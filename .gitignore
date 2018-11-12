@@ -5,6 +5,9 @@
 # Idea in general
 .idea/**/*.xml
 
+# Maven
+target/**/*.*
+
 # CMake
 cmake-build-*/
 
