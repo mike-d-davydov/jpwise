@@ -1,4 +1,4 @@
-** jpWise **
+# jpWise
 
 Very basic combinatorial testing library that supports:
  - Generating test data from parameter values using pairwise approach 
@@ -7,7 +7,7 @@ Very basic combinatorial testing library that supports:
  
 Library derives some ("core") code from "jWise" library (https://code.google.com/archive/p/jwise/downloads), though somewhat refactored and matched to the needs of this project.
 
-Some comments are still in Russian and ned to be updated.
+Some comments are still in Russian and need to be updated.
 
  
  
