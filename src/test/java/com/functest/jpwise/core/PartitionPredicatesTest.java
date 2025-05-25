@@ -43,10 +43,11 @@ public class PartitionPredicatesTest {
     }
 
     @Test
-    public void testParentNameIs() {
-        Predicate<EquivalencePartition<?>> isBrowserParam = parentNameIs("browser");
-        assertTrue(isBrowserParam.test(chrome), "Should match browser parameter");
-        assertFalse(isBrowserParam.test(windows), "Should not match OS parameter");
+    public void testParameterNameIs() {
+        Predicate<EquivalencePartition<?>> isBrowserParam = parameterNameIs("browser");
+
+        assertTrue(isBrowserParam.test(chrome), "Should match Chrome in browser parameter");
+        assertFalse(isBrowserParam.test(windows), "Should not match Windows in OS parameter");
     }
 
     @Test
@@ -90,7 +91,7 @@ public class PartitionPredicatesTest {
     public void testAnd() {
         Predicate<EquivalencePartition<?>> chromeInBrowser = and(
             nameIs("Chrome"),
-            parentNameIs("browser")
+            parameterNameIs("browser")
         );
         assertTrue(chromeInBrowser.test(chrome), "Should match Chrome in browser parameter");
         assertFalse(chromeInBrowser.test(firefox), "Should not match Firefox");
@@ -121,7 +122,7 @@ public class PartitionPredicatesTest {
         // Test a complex predicate that matches:
         // (Chrome or Firefox) in browser parameter with version containing "116" or "118"
         Predicate<EquivalencePartition<?>> complexPredicate = and(
-            parentNameIs("browser"),
+            parameterNameIs("browser"),
             or(nameIs("Chrome"), nameIs("Firefox")),
             or(valueContains("116"), valueContains("118"))
         );

@@ -15,12 +15,12 @@ import java.util.function.Predicate;
  * // Match by name
  * Predicate<EquivalencePartition<?>> isSafari = nameIs("Safari");
  * 
- * // Match by parent parameter
- * Predicate<EquivalencePartition<?>> isBrowserParam = parentNameIs("browser");
+ * // Match by parameter name
+ * Predicate<EquivalencePartition<?>> isBrowserParam = parameterNameIs("browser");
  * 
  * // Combine predicates
  * Predicate<EquivalencePartition<?>> isSafariInBrowser = 
- *     and(nameIs("Safari"), parentNameIs("browser"));
+ *     and(nameIs("Safari"), parameterNameIs("browser"));
  * 
  * // Match by value
  * Predicate<EquivalencePartition<?>> isVersion116 = valueIs("116.0");
@@ -43,12 +43,12 @@ public final class PartitionPredicates {
     }
 
     /**
-     * Creates a predicate that matches an EquivalencePartition by its parent parameter name.
+     * Creates a predicate that matches an EquivalencePartition by its parameter name.
      *
      * @param parameterName The parameter name to match
-     * @return A predicate that returns true if the partition's parent parameter name equals the given name
+     * @return A predicate that returns true if the partition's parameter name equals the given name
      */
-    public static Predicate<EquivalencePartition<?>> parentNameIs(String parameterName) {
+    public static Predicate<EquivalencePartition<?>> parameterNameIs(String parameterName) {
         return partition -> partition.getParentParameter() != null &&
                           Objects.equals(partition.getParentParameter().getName(), parameterName);
     }

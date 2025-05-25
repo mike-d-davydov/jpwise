@@ -84,13 +84,13 @@ public class JpWiseDemoTest {
         List<CompatibilityPredicate> browserOsRules = Arrays.asList(
             (v1, v2) -> {
                 // Only apply rules if we're dealing with browser and OS parameters
-                if (!(parentNameIs("browser").test(v1) && parentNameIs("operatingSystem").test(v2)) &&
-                    !(parentNameIs("operatingSystem").test(v1) && parentNameIs("browser").test(v2))) {
+                if (!(parameterNameIs("browser").test(v1) && parameterNameIs("operatingSystem").test(v2)) &&
+                    !(parameterNameIs("operatingSystem").test(v1) && parameterNameIs("browser").test(v2))) {
                     return true;
                 }
 
                 // Ensure v1 is the browser value
-                if (parentNameIs("operatingSystem").test(v1)) {
+                if (parameterNameIs("operatingSystem").test(v1)) {
                     EquivalencePartition<?> temp = v1;
                     v1 = v2;
                     v2 = temp;
@@ -165,13 +165,13 @@ public class JpWiseDemoTest {
         List<CompatibilityPredicate> accessRules = Arrays.asList(
             (v1, v2) -> {
                 // Only apply rules if we're dealing with role and access level
-                if (!(parentNameIs("userRole").test(v1) && parentNameIs("accessLevel").test(v2)) &&
-                    !(parentNameIs("accessLevel").test(v1) && parentNameIs("userRole").test(v2))) {
+                if (!(parameterNameIs("userRole").test(v1) && parameterNameIs("accessLevel").test(v2)) &&
+                    !(parameterNameIs("accessLevel").test(v1) && parameterNameIs("userRole").test(v2))) {
                     return true;
                 }
 
                 // Ensure v1 is the role value
-                if (parentNameIs("accessLevel").test(v1)) {
+                if (parameterNameIs("accessLevel").test(v1)) {
                     EquivalencePartition<?> temp = v1;
                     v1 = v2;
                     v2 = temp;
@@ -251,13 +251,13 @@ public class JpWiseDemoTest {
         List<CompatibilityPredicate> deviceRules = Arrays.asList(
             (v1, v2) -> {
                 // Only apply rules if we're dealing with device and resolution
-                if (!(parentNameIs("deviceType").test(v1) && parentNameIs("screenResolution").test(v2)) &&
-                    !(parentNameIs("screenResolution").test(v1) && parentNameIs("deviceType").test(v2))) {
+                if (!(parameterNameIs("deviceType").test(v1) && parameterNameIs("screenResolution").test(v2)) &&
+                    !(parameterNameIs("screenResolution").test(v1) && parameterNameIs("deviceType").test(v2))) {
                     return true;
                 }
 
                 // Ensure v1 is the device value
-                if (parentNameIs("screenResolution").test(v1)) {
+                if (parameterNameIs("screenResolution").test(v1)) {
                     EquivalencePartition<?> temp = v1;
                     v1 = v2;
                     v2 = temp;
@@ -330,13 +330,13 @@ public class JpWiseDemoTest {
         List<CompatibilityPredicate> performanceRules = Arrays.asList(
             (v1, v2) -> {
                 // Only apply rules if we're dealing with load and network conditions
-                if (!(parentNameIs("loadCondition").test(v1) && parentNameIs("networkCondition").test(v2)) &&
-                    !(parentNameIs("networkCondition").test(v1) && parentNameIs("loadCondition").test(v2))) {
+                if (!(parameterNameIs("loadCondition").test(v1) && parameterNameIs("networkCondition").test(v2)) &&
+                    !(parameterNameIs("networkCondition").test(v1) && parameterNameIs("loadCondition").test(v2))) {
                     return true;
                 }
 
                 // Ensure v1 is the load value
-                if (parentNameIs("networkCondition").test(v1)) {
+                if (parameterNameIs("networkCondition").test(v1)) {
                     EquivalencePartition<?> temp = v1;
                     v1 = v2;
                     v2 = temp;

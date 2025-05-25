@@ -27,12 +27,11 @@ package com.functest.jpwise.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * Represents a combination of parameter values that forms a test case.
- * A combination can be either partial (containing only some parameter values)
- * or complete (containing values for all parameters).
+ * Represents a combination of parameter equivalence partitions (values) that forms a test case.
+ * A combination can be either partial (containing only some parameter partitions)
+ * or complete (containing partitions for all parameters).
  * 
  * <p>Combinations are used both during test case generation (as partial combinations)
  * and in the final results (as complete test cases). The class provides methods
@@ -43,12 +42,12 @@ import java.util.Objects;
  * // Create a combination for 3 parameters
  * Combination combination = new Combination(3);
  * 
- * // Set values for parameters
- * combination.setValue(0, browserValue);
- * combination.setValue(1, osValue);
- * combination.setValue(2, resolutionValue);
+ * // Set partitions for parameters
+ * combination.setValue(0, browserPartition);
+ * combination.setValue(1, osPartition);
+ * combination.setValue(2, resolutionPartition);
  * 
- * // Check if all parameters have values
+ * // Check if all parameters have partitions
  * boolean isComplete = combination.isFilled();
  * 
  * // Get a unique key for the combination
@@ -86,8 +85,8 @@ public class Combination {
         List<Object> res = new ArrayList<>();
         res.add(this.toString());
 
-        for (@SuppressWarnings("rawtypes") EquivalencePartition value : values) {
-            res.add(value.getValue());
+        for (@SuppressWarnings("rawtypes") EquivalencePartition partition : values) {
+            res.add(partition.getValue());
         }
 
         return res.toArray();
@@ -141,8 +140,8 @@ public class Combination {
      * @return true if all parameters have a partition set, false otherwise
      */
     public boolean isFilled() {
-        for (@SuppressWarnings("rawtypes") EquivalencePartition value : values) {
-            if (value == null)
+        for (@SuppressWarnings("rawtypes") EquivalencePartition partition : values) {
+            if (partition == null)
                 return false;
         }
         return true;

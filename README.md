@@ -2,6 +2,38 @@
 
 JPWise is a powerful Java framework for generating pairwise test combinations, with support for complex parameter relationships and compatibility rules. This is a heavily reworked and extended version of the original jWise library by Pan Wei.
 
+## Table of Contents
+- [History](#history)
+- [Terminology](#terminology)
+- [Author](#author)
+- [Features](#features)
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Advanced Usage](#advanced-usage)
+  - [Understanding Equivalence Partitions](#understanding-equivalence-partitions)
+  - [Defining Compatibility Rules](#defining-compatibility-rules)
+  - [Best Practices](#best-practices)
+  - [Example: Complex Test Scenario](#example-complex-test-scenario)
+- [TestNG DataProvider Integration](#testng-dataprovider-integration)
+- [Running Tests](#running-tests)
+- [Architecture](#architecture)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+- [Requirements](#requirements)
+
+## Terminology
+
+JPWise uses specific terminology to describe its concepts:
+
+- **Parameter**: A variable or aspect of the system under test (e.g., browser, operating system)
+- **Equivalence Partition**: A group of values that are expected to be handled similarly by the system
+- **Value**: A specific concrete value within an equivalence partition
+- **Combination**: A set of specific values, one from each parameter's partition
+- **Compatibility Rule**: A constraint defining which values from different parameters can be combined
+- **Pairwise Testing**: A test design technique that tests all possible pairs of parameter values
+- **Partition Condition**: A predicate that matches specific characteristics of an equivalence partition
+
 ## History
 
 - **2010**: Original jWise library created by Pan Wei
@@ -10,12 +42,14 @@ JPWise is a powerful Java framework for generating pairwise test combinations, w
   - Added support for generic types
   - Improved compatibility rules system
   - Added comprehensive test suite
-- **2025**: Modern uplift
+- **2025**: Modern uplift and API improvements
   - Updated to latest dependency versions
   - Enhanced test coverage
   - Improved documentation and examples
   - Added TestNG DataProvider integration
-  - Added support for dynamic value generation
+  - Added support for dynamic value generation for partitions
+  - Introduced fluent API for partition conditions
+  - Standardized terminology
 
 ## Author
 - **Mikhail Davydov** - Main author and maintainer
@@ -23,13 +57,14 @@ JPWise is a powerful Java framework for generating pairwise test combinations, w
 
 ## Features
 - Pairwise (2-wise) test case generation
-- Support for complex parameter value relationships
+- Support for complex parameter relationships
 - Compatibility rules between parameters
-- Generic type support for parameter values
+- Generic type support for parameter partitions
 - Rich comparison operators (EQ, NEQ, IN, NOT_IN, CONTAINS, CONTAINS_ALL)
 - TestNG DataProvider integration
-- Dynamic value generation with GenericPartition
+- Dynamic value generation for partitions with GenericPartition
 - Thread-safe value cycling with CyclingPartition
+- Fluent API for building partition conditions
 
 ## Installation
 
@@ -45,7 +80,7 @@ Add to your pom.xml:
 ## Basic Usage
 
 ```java
-// Define parameters and their values
+// Define parameters and their partitions
 TestParameter browser = new TestParameter("browser", Arrays.asList(
     SimpleValue.of("Chrome"),
     SimpleValue.of("Firefox"),
@@ -75,11 +110,11 @@ CombinationTable results = generator.result();
 
 ### Understanding Equivalence Partitions
 
-JPWise uses equivalence partitions to group test values that are expected to behave similarly. The framework provides several implementations:
+JPWise uses equivalence partitions to group test inputs that are expected to behave similarly. The framework provides several implementations:
 
 1. **SimpleValue<T>**
    - Most basic implementation for constant values
-   - Suitable for static, unchanging test values
+   - Suitable for static, unchanging test inputs
    ```java
    SimpleValue<String> chrome = SimpleValue.of("Chrome", "116.0");
    ```
@@ -109,45 +144,61 @@ JPWise uses equivalence partitions to group test values that are expected to beh
 
 ### Defining Compatibility Rules
 
-JPWise provides a DSL for defining compatibility rules between parameter values:
+JPWise provides a modern fluent API for defining compatibility rules between parameter partitions:
 
 ```java
 import static com.functest.jpwise.core.PartitionPredicates.*;
 
-// Simple predicates
-Predicate<EquivalencePartition<?>> isSafari = nameIs("Safari");
-Predicate<EquivalencePartition<?>> isBrowser = parentNameIs("browser");
-Predicate<EquivalencePartition<?>> isVersion116 = valueIs("116.0");
+// Using the fluent API with PartitionConditionBuilder
+Predicate<EquivalencePartition<?>> isSafari = PartitionConditionBuilder.where()
+    .nameIs("Safari")
+    .build();
 
-// Complex rules
+Predicate<EquivalencePartition<?>> isBrowserVersion116 = PartitionConditionBuilder.where()
+    .parameterNameIs("browser")
+    .valueContains("116")
+    .build();
+
+// Combining conditions
+Predicate<EquivalencePartition<?>> isModernBrowser = PartitionConditionBuilder.where()
+    .parameterNameIs("browser")
+    .nameIn("Chrome", "Firefox")
+    .not(valueContains("legacy"))
+    .build();
+
+// Complex rules using the fluent API
 List<CompatibilityPredicate> browserOsRules = Arrays.asList(
     (v1, v2) -> {
         // Safari only works with macOS
-        if (nameIs("Safari").test(v1)) {
-            return nameIs("macOS").test(v2);
+        if (PartitionConditionBuilder.where().nameIs("Safari").build().test(v1)) {
+            return PartitionConditionBuilder.where()
+                .nameIs("macOS")
+                .parameterNameIs("operatingSystem")
+                .build()
+                .test(v2);
         }
         return true; // Other browsers work with all OS
     }
 );
 
-TestParameter browser = new TestParameter("browser", browserValues, browserOsRules);
+TestParameter browser = new TestParameter("browser", browserPartitions, browserOsRules);
 ```
 
 ### Best Practices
 
-1. **Choosing Value Types**
+1. **Choosing Partition Types**
    - Use `SimpleValue` for constant values that don't change
-   - Use `GenericPartition` for dynamic values or computed values
+   - Use `GenericPartition` for dynamic value generation
    - Use `CyclingPartition` when you need to test multiple values
 
 2. **Defining Compatibility Rules**
-   - Use `PartitionPredicates` for readable and maintainable rules
-   - Combine predicates with `and()`, `or()`, and `not()`
+   - Use `PartitionConditionBuilder` for readable and maintainable rules
+   - Combine conditions with `and()`, `or()`, and `not()`
    - Keep rules focused and well-documented
 
 3. **Parameter Organization**
    - Group related parameters together
-   - Use clear, descriptive names for parameters and values
+   - Use clear, descriptive names for parameters and their partitions
    - Document any special relationships or constraints
 
 4. **Testing Considerations**
@@ -158,7 +209,7 @@ TestParameter browser = new TestParameter("browser", browserValues, browserOsRul
 ### Example: Complex Test Scenario
 
 ```java
-// Browser versions with cycling
+// Browser versions with cycling values
 TestParameter browser = new TestParameter("browser", Arrays.asList(
     new CyclingPartition<>("Chrome", "116.0.5845.96", 
         Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98")),
@@ -181,15 +232,31 @@ TestParameter resolution = new TestParameter("resolution", Arrays.asList(
     SimpleValue.of("4K", "3840x2160")
 ));
 
-// Define compatibility rules
+// Define compatibility rules using the fluent API
 List<CompatibilityPredicate> rules = Arrays.asList(
     // Safari only works with macOS
-    (v1, v2) -> !and(nameIs("Safari"), parentNameIs("browser")).test(v1) || 
-                and(nameIs("macOS"), parentNameIs("operatingSystem")).test(v2),
+    (v1, v2) -> !PartitionConditionBuilder.where()
+        .nameIs("Safari")
+        .parameterNameIs("browser")
+        .build()
+        .test(v1) || 
+        PartitionConditionBuilder.where()
+        .nameIs("macOS")
+        .parameterNameIs("operatingSystem")
+        .build()
+        .test(v2),
     
     // 4K not supported on older Windows 10
-    (v1, v2) -> !and(nameIs("4K"), parentNameIs("resolution")).test(v1) ||
-                !and(nameIs("Windows 10"), valueContains("19045")).test(v2)
+    (v1, v2) -> !PartitionConditionBuilder.where()
+        .nameIs("4K")
+        .parameterNameIs("resolution")
+        .build()
+        .test(v1) ||
+        !PartitionConditionBuilder.where()
+        .nameIs("Windows 10")
+        .valueContains("19045")
+        .build()
+        .test(v2)
 );
 
 // Create test generator
@@ -197,16 +264,7 @@ TestInput input = new TestInput();
 input.add(browser);
 input.add(operatingSystem);
 input.add(resolution);
-
-TestGenerator generator = new TestGenerator(input);
-generator.generate(new PairwiseAlgorithm());
 ```
-
-This example demonstrates:
-- Using different partition types for different needs
-- Complex compatibility rules using predicates
-- Mixing static and dynamic values
-- Real-world testing scenarios
 
 ## TestNG DataProvider Integration
 ```java

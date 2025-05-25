@@ -14,7 +14,7 @@ import java.util.*;
  * 
  * <p>The algorithm works in two main phases:</p>
  * <ol>
- *   <li>Generate all possible pairs of equivalence partitions</li>
+ *   <li>Generate all possible pairs of input values (equivalence partitions)</li>
  *   <li>Build complete test cases by combining compatible partitions and getting their values</li>
  * </ol>
  * 
@@ -39,7 +39,6 @@ import java.util.*;
  */
 public class PairwiseAlgorithm extends GenerationAlgorithm {
     private final Random random = new Random();
-    private TestGenerator testGenerator;
     /**
      * Flag value to indicate that a combination pair has been generated.
      */
@@ -131,7 +130,7 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         TestParameter param1 = testInput.get(i);
         TestParameter param2 = testInput.get(j);
 
-        // Get all possible values for both parameters
+        // Get all possible values (equivalence partitions) for both parameters
         List<EquivalencePartition<?>> param1Partitions = new ArrayList<>(param1.getPartitions());
         Collections.shuffle(param1Partitions, random);
 
@@ -217,8 +216,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
     }
 
     /**
-     * Completes a partial combination by adding compatible values for all parameters.
-     * This method tries to find values that are compatible with all values already
+     * Completes a partial combination by adding compatible values (equivalence partitions) for all parameters.
+     * This method tries to find values that are compatible with all values (partitions) already
      * in the combination.
      *
      * @param combination The partial combination to complete
