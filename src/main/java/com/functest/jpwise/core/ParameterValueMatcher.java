@@ -46,7 +46,7 @@ public class ParameterValueMatcher {
     }
 
     public enum Field {
-        Value(ParameterValue::get), ValueName(ParameterValue::getName), ParameterName(v -> {
+        Value(ParameterValue::getValue), ValueName(ParameterValue::getName), ParameterName(v -> {
             return requireNonNull(v).getParentParameter().getName();
         });
 

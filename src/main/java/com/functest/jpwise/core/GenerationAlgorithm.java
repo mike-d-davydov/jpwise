@@ -37,7 +37,7 @@ public abstract class GenerationAlgorithm {
     /**
      * Reference to the generator.
      */
-    protected TestGenerator _Pairwise_generator;
+    protected TestGenerator pwGenerator;
 
     /**
      * Main method to generate combinations to be overwritten by child classes.
@@ -53,12 +53,12 @@ public abstract class GenerationAlgorithm {
      * @return
      */
     protected TestInput input() {
-        return _Pairwise_generator.input();
+        return pwGenerator.input();
     }
 
     protected void addToResult(Combination combination) {
         logger.debug("Adding combination:" + combination);
-        _Pairwise_generator.result().add(combination);
+        pwGenerator.result().add(combination);
     }
 
     protected boolean isCompatible(ParameterValue v1, ParameterValue v2) {

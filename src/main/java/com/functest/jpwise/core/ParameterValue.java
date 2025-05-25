@@ -6,14 +6,14 @@ package com.functest.jpwise.core;
  * Time: 15:49
  */
 
-public interface ParameterValue {
+public interface ParameterValue<T> {
     TestParameter getParentParameter();
 
     void setParentParameter(TestParameter parameter);
 
-    Object get();
+    T getValue();
 
     String getName();
 
-    boolean isCompatibleWith(ParameterValue v2);
+    boolean isCompatibleWith(ParameterValue<?> v2);
 }

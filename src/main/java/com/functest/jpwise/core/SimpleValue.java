@@ -5,14 +5,18 @@ package com.functest.jpwise.core;
  * Date: 17.06.13
  * Time: 15:53
  */
-public class SimpleValue implements ParameterValue {
+public class SimpleValue<T> implements ParameterValue<T> {
     private volatile static int uniqueId = 0;
-    private Object val;
+    private T val;
     private int id;
     private String name;
     private TestParameter parentParameter = null;
 
-    public SimpleValue(Object paramVal, String name) {
+    public SimpleValue(T value) {
+        this(value, String.valueOf(value));
+    }
+
+    public SimpleValue(T paramVal, String name) {
         super();
         this.id = uniqueId;
         uniqueId++;
@@ -20,12 +24,12 @@ public class SimpleValue implements ParameterValue {
         this.name = name;
     }
 
-    public static SimpleValue of(Object value) {
-        return new SimpleValue(value, String.valueOf(value));
+    public static <T> SimpleValue<T> of(T value) {
+        return new SimpleValue<>(value, String.valueOf(value));
     }
 
-    public static SimpleValue of(String inName, Object value) {
-        return new SimpleValue(value, inName);
+    public static <T> SimpleValue<T> of(String inName, T value) {
+        return new SimpleValue<>(value, inName);
     }
 
     public int getId() {
@@ -42,7 +46,7 @@ public class SimpleValue implements ParameterValue {
     }
 
     @Override
-    public Object get() {
+    public T getValue() {
         return val;
     }
 
@@ -52,7 +56,7 @@ public class SimpleValue implements ParameterValue {
     }
 
     @Override
-    public boolean isCompatibleWith(ParameterValue thatValue) {
+    public boolean isCompatibleWith(ParameterValue<?> thatValue) {
         return (parentParameter == null) || parentParameter.areCompatible(this, thatValue);
     }
 
@@ -63,7 +67,7 @@ public class SimpleValue implements ParameterValue {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof SimpleValue) && (((SimpleValue) obj).getId() == id);
+        return (obj instanceof SimpleValue) && (((SimpleValue<?>) obj).getId() == id);
     }
 
     @Override
