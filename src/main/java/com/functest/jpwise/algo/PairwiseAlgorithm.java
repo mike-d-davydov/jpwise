@@ -1,26 +1,4 @@
-/**
- * Copyright (c) 2010  Ng Pan Wei,  Copyright (c) 2013 Mikhail Davydov
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation files
- * (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 package com.functest.jpwise.algo;
 
@@ -153,19 +131,26 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         TestParameter param1 = testInput.get(i);
         TestParameter param2 = testInput.get(j);
 
-        List<ParameterValue> v1values = new ArrayList<>(param1.getValues());
+        List<ParameterValue<?>> v1values = new ArrayList<>(param1.getValues());
         Collections.shuffle(v1values);
 
-        for (ParameterValue v1 : v1values) {
-            List<ParameterValue> v2values = new ArrayList<>(param2.getValues());
+        for (ParameterValue<?> v1 : v1values) {
+            List<ParameterValue<?>> v2values = new ArrayList<>(param2.getValues());
             Collections.shuffle(v2values);
 
-            for (ParameterValue v2 : v2values) {
-                Combination entry = new Combination(testInput.size());
-                if (isCompatible(v1, v2)) {
-                    entry.setValue(i, v1);
-                    entry.setValue(j, v2);
+            for (ParameterValue<?> v2 : v2values) {
+                // Skip incompatible pairs
+                if (!isCompatible(v1, v2)) {
+                    continue;
+                }
 
+                // Create a combination with just this pair
+                Combination entry = new Combination(testInput.size());
+                entry.setValue(i, v1);
+                entry.setValue(j, v2);
+
+                // Verify the combination is valid
+                if (entry.checkNoConflicts(this)) {
                     String key = entry.getKey();
                     _combinationMap.put(key, PENDING);
                     _combinationQueue.add(entry);
@@ -188,6 +173,13 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         // Try different pairs from the queue to find one that can be completed
         while ((index < queueSize) && (result == null)) {
             Combination entry = _combinationQueue.get(index);
+            
+            // Skip incompatible combinations
+            if (!entry.checkNoConflicts(this)) {
+                index = index + _jump;
+                continue;
+            }
+            
             result = entry;
             completeCombination(result);
             if (!result.isFilled()) {
@@ -197,13 +189,26 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         }
 
         if (result == null) {
-            // If no pair could be completed, just take the first one
-            result = _combinationQueue.get(0);
-            completeCombination(result);
+            // If no pair could be completed, try each combination in order
+            for (int i = 0; i < _combinationQueue.size(); i++) {
+                Combination entry = _combinationQueue.get(i);
+                if (entry.checkNoConflicts(this)) {
+                    result = entry;
+                    completeCombination(result);
+                    if (result.isFilled()) {
+                        break;
+                    }
+                }
+            }
+            
+            // If still no valid combination found, something is wrong with the input
+            if (result == null || !result.isFilled()) {
+                throw new IllegalStateException("Could not find any valid combinations to complete");
+            }
         }
 
         // Remove the used pair and mark it as completed
-        _combinationQueue.remove(0);
+        _combinationQueue.remove(result);
         markUsedCombinations(result);
         addToResult(result);
 
@@ -227,9 +232,9 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         for (int i = 0; i < input.size(); i++) {
             if (combination.getValue(i) == null) {
                 boolean completed = false;
-                List<ParameterValue> shuffledValues = new ArrayList<>(input().get(i).getValues());
+                List<ParameterValue<?>> shuffledValues = new ArrayList<>(input().get(i).getValues());
                 Collections.shuffle(shuffledValues);
-                for (ParameterValue value : shuffledValues) {
+                for (ParameterValue<?> value : shuffledValues) {
                     combination.setValue(i, value);
                     if (combination.checkNoConflicts(this)) {
                         completed = true;
