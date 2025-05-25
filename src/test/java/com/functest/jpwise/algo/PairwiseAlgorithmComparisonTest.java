@@ -32,19 +32,19 @@ public class PairwiseAlgorithmComparisonTest {
             }
         );
 
-        TestParameter browser = new TestParameter("browser", Arrays.<ParameterValue<?>>asList(
+        TestParameter browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Chrome", "116.0.5845.96"),
             SimpleValue.of("Firefox", "118.0.2"),
             SimpleValue.of("Safari", "17.0")
         ), browserOsRules);
         
-        TestParameter os = new TestParameter("os", Arrays.<ParameterValue<?>>asList(
+        TestParameter os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Windows", "10.0.19045"),
             SimpleValue.of("macOS", "14.1"),
             SimpleValue.of("Linux", "6.5.7")
         ));
         
-        TestParameter resolution = new TestParameter("resolution", Arrays.<ParameterValue<?>>asList(
+        TestParameter resolution = new TestParameter("resolution", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("HD", "1920x1080"),
             SimpleValue.of("QHD", "2560x1440")
         ));
@@ -55,11 +55,11 @@ public class PairwiseAlgorithmComparisonTest {
         browserInput.add(resolution);
 
         // Set up simple input for basic comparison
-        TestParameter color = new TestParameter("color", Arrays.<ParameterValue<?>>asList(
+        TestParameter color = new TestParameter("color", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Primary", "red"),
             SimpleValue.of("Secondary", "blue")
         ));
-        TestParameter size = new TestParameter("size", Arrays.<ParameterValue<?>>asList(
+        TestParameter size = new TestParameter("size", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Compact", "small"),
             SimpleValue.of("Extended", "large")
         ));
@@ -68,19 +68,19 @@ public class PairwiseAlgorithmComparisonTest {
         simpleInput.add(size);
 
         // Set up complex input with more parameters and values
-        TestParameter userRole = new TestParameter("userRole", Arrays.<ParameterValue<?>>asList(
+        TestParameter userRole = new TestParameter("userRole", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Admin", "FULL_ACCESS"),
             SimpleValue.of("Manager", "DEPARTMENT_ACCESS"),
             SimpleValue.of("User", "BASIC_ACCESS")
         ));
         
-        TestParameter department = new TestParameter("department", Arrays.<ParameterValue<?>>asList(
+        TestParameter department = new TestParameter("department", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Sales", "REVENUE_CRITICAL"),
             SimpleValue.of("Engineering", "TECHNICAL"),
             SimpleValue.of("Support", "CUSTOMER_FACING")
         ));
         
-        TestParameter accessLevel = new TestParameter("accessLevel", Arrays.<ParameterValue<?>>asList(
+        TestParameter accessLevel = new TestParameter("accessLevel", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Full", "ALL_OPERATIONS"),
             SimpleValue.of("ReadWrite", "MODIFY_CONTENT"),
             SimpleValue.of("ReadOnly", "VIEW_CONTENT")

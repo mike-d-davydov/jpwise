@@ -55,7 +55,7 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
      * @param value A parameter value
      * @return The index of the parameter that contains this value
      */
-    private int getParameterIndex(ParameterValue value) {
+    private int getParameterIndex(EquivalencePartition value) {
         return input().getTestParameters().indexOf(value.getParentParameter());
     }
 
@@ -80,7 +80,7 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
             // For each existing partial combination
             for (Combination possiblyIncompleteCombination : possiblyIncompleteResult)
                 // For each value of the current parameter
-                for (ParameterValue paramValue : parameter.getValues()) {
+                for (EquivalencePartition paramValue : parameter.getPartitions()) {
                     moreCompleteResult.remove(possiblyIncompleteCombination);
                     final Combination moreCompleteCombination = new Combination(input().size()).merge(possiblyIncompleteCombination);
                     moreCompleteCombination.setValue(getParameterIndex(paramValue), paramValue);

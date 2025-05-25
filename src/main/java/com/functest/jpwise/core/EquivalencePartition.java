@@ -6,7 +6,7 @@ package com.functest.jpwise.core;
  * Time: 15:49
  */
 
-public interface ParameterValue<T> {
+public interface EquivalencePartition<T> {
     TestParameter getParentParameter();
 
     void setParentParameter(TestParameter parameter);
@@ -15,5 +15,5 @@ public interface ParameterValue<T> {
 
     String getName();
 
-    boolean isCompatibleWith(ParameterValue<?> v2);
+    boolean isCompatibleWith(EquivalencePartition<?> v2);
 }

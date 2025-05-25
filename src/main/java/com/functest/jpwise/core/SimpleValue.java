@@ -1,80 +1,49 @@
 package com.functest.jpwise.core;
 
 /**
- * @author DavydovMD
- * Date: 17.06.13
- * Time: 15:53
+ * A simple equivalence partition that always returns the same value.
+ * This is useful for constant values that don't change during testing.
+ *
+ * @param <T> The type of value this partition represents
  */
-public class SimpleValue<T> implements ParameterValue<T> {
-    private volatile static int uniqueId = 0;
-    private T val;
-    private int id;
-    private String name;
-    private TestParameter parentParameter = null;
-
+public class SimpleValue<T> extends GenericPartition<T> {
+    /**
+     * Creates a new simple value partition with the same name as its string value.
+     *
+     * @param value The constant value for this partition
+     */
     public SimpleValue(T value) {
-        this(value, String.valueOf(value));
+        this(String.valueOf(value), value);
     }
 
-    public SimpleValue(T paramVal, String name) {
-        super();
-        this.id = uniqueId;
-        uniqueId++;
-        this.val = paramVal;
-        this.name = name;
+    /**
+     * Creates a new simple value partition with a specific name and value.
+     *
+     * @param name The name of this partition
+     * @param value The constant value for this partition
+     */
+    public SimpleValue(String name, T value) {
+        super(name, () -> value);
     }
 
+    /**
+     * Factory method to create a simple value partition with the same name as its string value.
+     *
+     * @param value The constant value for this partition
+     * @return A new simple value partition
+     */
     public static <T> SimpleValue<T> of(T value) {
-        return new SimpleValue<>(value, String.valueOf(value));
+        return new SimpleValue<>(value);
     }
 
-    public static <T> SimpleValue<T> of(String inName, T value) {
-        return new SimpleValue<>(value, inName);
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public TestParameter getParentParameter() {
-        return parentParameter;
-    }
-
-    public void setParentParameter(TestParameter parameter) {
-        this.parentParameter = parameter;
-    }
-
-    @Override
-    public T getValue() {
-        return val;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public boolean isCompatibleWith(ParameterValue<?> thatValue) {
-        return (parentParameter == null) || parentParameter.areCompatible(this, thatValue);
-    }
-
-    @Override
-    public int hashCode() {
-        return Integer.valueOf(id).hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof SimpleValue) && (((SimpleValue<?>) obj).getId() == id);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append((parentParameter != null) ? parentParameter.getName() : "").append(":");
-        sb.append(String.valueOf(val).equals(name) ? String.valueOf(val) : (String.valueOf(name)));
-        return sb.toString();
+    /**
+     * Factory method to create a simple value partition with a specific name and value.
+     *
+     * @param name The name of this partition
+     * @param value The constant value for this partition
+     * @return A new simple value partition
+     */
+    public static <T> SimpleValue<T> of(String name, T value) {
+        return new SimpleValue<>(name, value);
     }
 }

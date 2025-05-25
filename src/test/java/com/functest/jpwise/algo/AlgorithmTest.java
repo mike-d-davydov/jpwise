@@ -25,11 +25,11 @@ public class AlgorithmTest {
     @BeforeMethod
     public void setUp() {
         // Set up simple test input with color and size equivalence classes
-        TestParameter color = new TestParameter("color", Arrays.<ParameterValue<?>>asList(
+        TestParameter color = new TestParameter("color", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Primary", "red"),      // Primary color class, red value
             SimpleValue.of("Secondary", "blue")    // Secondary color class, blue value
         ));
-        TestParameter size = new TestParameter("size", Arrays.<ParameterValue<?>>asList(
+        TestParameter size = new TestParameter("size", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Compact", "small"),    // Compact size class, small value
             SimpleValue.of("Extended", "large")    // Extended size class, large value
         ));
@@ -61,21 +61,21 @@ public class AlgorithmTest {
         );
 
         // Browser families with specific versions
-        browser = new TestParameter("browser", Arrays.<ParameterValue<?>>asList(
+        browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Chrome", "116.0.5845.96"),   // Chrome family with specific version
             SimpleValue.of("Firefox", "118.0.2"),        // Firefox family with specific version
             SimpleValue.of("Safari", "17.0")             // Safari family with specific version
         ), browserOsRules);
         
         // OS families with specific builds/versions
-        os = new TestParameter("os", Arrays.<ParameterValue<?>>asList(
+        os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("Windows", "10.0.19045"),     // Windows family with specific build
             SimpleValue.of("macOS", "14.1"),             // macOS family with specific version
             SimpleValue.of("Linux", "6.5.7")             // Linux family with specific version
         ));
         
         // Resolution categories with specific dimensions
-        resolution = new TestParameter("resolution", Arrays.<ParameterValue<?>>asList(
+        resolution = new TestParameter("resolution", Arrays.<EquivalencePartition<?>>asList(
             SimpleValue.of("HD", "1920x1080"),           // HD class with specific resolution
             SimpleValue.of("QHD", "2560x1440")          // QHD class with specific resolution
         ));
@@ -247,8 +247,8 @@ public class AlgorithmTest {
 
     private int calculateValidPairsForParameters(TestParameter param1, TestParameter param2) {
         int count = 0;
-        for (ParameterValue<?> v1 : param1.getValues()) {
-            for (ParameterValue<?> v2 : param2.getValues()) {
+        for (EquivalencePartition<?> v1 : param1.getPartitions()) {
+            for (EquivalencePartition<?> v2 : param2.getPartitions()) {
                 if (param1.areCompatible(v1, v2)) {
                     count++;
                 }

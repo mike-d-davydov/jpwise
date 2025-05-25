@@ -58,7 +58,8 @@ import java.util.Objects;
 public class Combination {
     private static final String SEPARATOR = "|";
     private static final String EMPTY = "_";
-    private ParameterValue[] values;
+    @SuppressWarnings("rawtypes")
+    private EquivalencePartition[] values;
 
     /**
      * Creates a new combination with space for the specified number of parameter values.
@@ -69,7 +70,7 @@ public class Combination {
     @SuppressWarnings("AssignmentToNull") // Here we simply initialize array
     public Combination(int size) {
         super();
-        values = new ParameterValue[size];
+        values = new EquivalencePartition[size];
         for (int i = 0; i < size; i++)
             values[i] = null;
     }
@@ -85,7 +86,7 @@ public class Combination {
         List<Object> res = new ArrayList<>();
         res.add(this.toString());
 
-        for (ParameterValue value : values) {
+        for (@SuppressWarnings("rawtypes") EquivalencePartition value : values) {
             res.add(value.getValue());
         }
 
@@ -93,29 +94,29 @@ public class Combination {
     }
 
     /**
-     * Gets the parameter value at the specified index.
+     * Gets a value from this combination at the specified index.
      *
-     * @param i The index of the parameter value to get
-     * @return The parameter value, or null if not set
+     * @param i The index to get the value from
+     * @return The equivalence partition at the specified index, or null if not set
      */
-    public ParameterValue getValue(int i) {
+    public EquivalencePartition<?> getValue(int i) {
         return values[i];
     }
 
     /**
-     * Sets the parameter value at the specified index.
+     * Sets a value in this combination at the specified index.
      *
-     * @param i The index at which to set the value
-     * @param value The parameter value to set
+     * @param i The index to set the value at
+     * @param value The equivalence partition to set
      */
-    public void setValue(int i, ParameterValue value) {
+    public void setValue(int i, EquivalencePartition<?> value) {
         values[i] = value;
     }
 
     /**
      * Generates a unique key for this combination.
-     * The key is a string representation of all values, with empty positions
-     * marked by underscores and values separated by vertical bars.
+     * The key is a string representation of all partition names, with empty positions
+     * marked by underscores and names separated by vertical bars.
      * For example: "Chrome|_|1024x768"
      *
      * @return A string key uniquely identifying this combination
@@ -135,12 +136,12 @@ public class Combination {
     }
 
     /**
-     * Checks if this combination is complete (has values for all parameters).
+     * Checks if this combination is complete (has a partition set for all parameters).
      *
-     * @return true if all parameters have values, false otherwise
+     * @return true if all parameters have a partition set, false otherwise
      */
     public boolean isFilled() {
-        for (ParameterValue value : values) {
+        for (@SuppressWarnings("rawtypes") EquivalencePartition value : values) {
             if (value == null)
                 return false;
         }
@@ -149,8 +150,8 @@ public class Combination {
 
     /**
      * Attempts to merge this combination with another combination.
-     * The merge succeeds if there are no conflicts (same parameter having different values).
-     * Values from the other combination are added to positions that are null in this combination.
+     * The merge succeeds if there are no conflicts (same parameter having different partitions).
+     * Partitions from the other combination are added to positions that are null in this combination.
      *
      * @param other The combination to merge with this one
      * @return A new merged combination, or null if there are conflicts
@@ -199,11 +200,12 @@ public class Combination {
     }
 
     /**
-     * Gets a copy of all parameter values in this combination.
+     * Gets a copy of all parameter partitions in this combination.
      *
-     * @return An array containing all parameter values
+     * @return An array containing all parameter partitions
      */
-    public ParameterValue[] getValues() {
+    @SuppressWarnings("rawtypes")
+    public EquivalencePartition[] getValues() {
         return Arrays.copyOf(values, values.length);
     }
 
@@ -254,8 +256,8 @@ public class Combination {
      * @return true if all values are compatible, false if any are incompatible
      */
     public boolean checkNoConflicts(GenerationAlgorithm algorithm) {
-        for (ParameterValue v1 : getValues()) {
-            for (ParameterValue v2 : getValues()) {
+        for (@SuppressWarnings("rawtypes") EquivalencePartition v1 : getValues()) {
+            for (@SuppressWarnings("rawtypes") EquivalencePartition v2 : getValues()) {
                 if ((v1 != null) && (v2 != null)) {
                     if (!algorithm.isCompatible(v1, v2))
                         return false;

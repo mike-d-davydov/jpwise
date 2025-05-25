@@ -33,7 +33,7 @@ public class JpWiseDataProviderDemoTest {
 
         // Define compatibility rules (Safari only works with macOS)
         List<CompatibilityPredicate> rules = Arrays.<CompatibilityPredicate>asList(
-            (ParameterValue<?> v1, ParameterValue<?> v2) -> {
+            (EquivalencePartition<?> v1, EquivalencePartition<?> v2) -> {
                 if (v1.getName().equals("Safari")) {
                     return v2.getName().equals("macOS");
                 }
@@ -46,8 +46,8 @@ public class JpWiseDataProviderDemoTest {
 
         // Create test input
         TestInput input = new TestInput();
-        input.add(new TestParameter("browser", browser.getValues(), rules));
-        input.add(new TestParameter("os", os.getValues()));
+        input.add(new TestParameter("browser", browser.getPartitions(), rules));
+        input.add(new TestParameter("os", os.getPartitions()));
 
         // Generate combinations
         TestGenerator generator = new TestGenerator(input);

@@ -33,17 +33,17 @@ public class CombinationTableTest {
         linux = SimpleValue.of("Linux");
 
         // Create parameters with their values
-        browser = new TestParameter("browser", Arrays.<ParameterValue<?>>asList(chrome, firefox));
-        os = new TestParameter("os", Arrays.<ParameterValue<?>>asList(windows, linux));
+        browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox));
+        os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(windows, linux));
 
         // Create test combinations using the parameters
         combination1 = new Combination(2);
-        combination1.setValue(0, browser.getValueByName("Chrome")); // Use parameter to get value
-        combination1.setValue(1, os.getValueByName("Windows")); // Use parameter to get value
+        combination1.setValue(0, browser.getPartitionByName("Chrome")); // Use parameter to get partition
+        combination1.setValue(1, os.getPartitionByName("Windows")); // Use parameter to get partition
 
         combination2 = new Combination(2);
-        combination2.setValue(0, browser.getValueByName("Firefox")); // Use parameter to get value
-        combination2.setValue(1, os.getValueByName("Linux")); // Use parameter to get value
+        combination2.setValue(0, browser.getPartitionByName("Firefox")); // Use parameter to get partition
+        combination2.setValue(1, os.getPartitionByName("Linux")); // Use parameter to get partition
     }
 
     @Test
@@ -143,10 +143,10 @@ public class CombinationTableTest {
 
     @Test
     public void testSpanWithOverlappingCombinations() {
-        // Create a combination that reuses some values
+        // Create a combination that reuses some partitions
         Combination combination3 = new Combination(2);
-        combination3.setValue(0, browser.getValueByName("Chrome")); // Use parameter to get value
-        combination3.setValue(1, os.getValueByName("Linux")); // Use parameter to get value
+        combination3.setValue(0, browser.getPartitionByName("Chrome")); // Use parameter to get partition
+        combination3.setValue(1, os.getPartitionByName("Linux")); // Use parameter to get partition
 
         table.add(combination1);  // Chrome-Windows
         table.add(combination2);  // Firefox-Linux
@@ -172,16 +172,16 @@ public class CombinationTableTest {
     }
 
     @Test
-    public void testParameterValueParentRelationship() {
+    public void testEquivalencePartitionParentRelationship() {
         table.add(combination1);
         
         // Verify that values in combinations maintain their parameter relationships
-        ParameterValue browserValue = combination1.getValue(0);
-        ParameterValue osValue = combination1.getValue(1);
+        EquivalencePartition browserValue = combination1.getValue(0);
+        EquivalencePartition osValue = combination1.getValue(1);
         
         assertEquals(browserValue.getParentParameter(), browser, 
-            "Browser value should reference browser parameter");
+            "Browser partition should reference browser parameter");
         assertEquals(osValue.getParentParameter(), os, 
-            "OS value should reference os parameter");
+            "OS partition should reference os parameter");
     }
 } 

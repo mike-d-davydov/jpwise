@@ -31,12 +31,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents a test parameter with its possible values and compatibility rules.
- * A test parameter is a variable in the test space that can take on different values.
- * For example, a "browser" parameter might have values like "Chrome", "Firefox", and "Safari".
+ * Represents a test parameter with its equivalence partitions and compatibility rules.
+ * A test parameter is a variable in the test space that can take on different partitions.
+ * For example, a "browser" parameter might have partitions like "Chrome", "Firefox", and "Safari".
  * 
- * <p>Parameters can also have compatibility rules that define which values are compatible
- * with values of other parameters. For example, "Safari" might only be compatible with
+ * <p>Parameters can also have compatibility rules that define which partitions are compatible
+ * with partitions of other parameters. For example, "Safari" might only be compatible with
  * "MacOS" in an operating system parameter.</p>
  * 
  * <p>Example usage:</p>
@@ -49,80 +49,81 @@ import java.util.List;
  * 
  * // Parameter with compatibility rules
  * List<CompatibilityPredicate> rules = Arrays.asList(
- *     ValueCompatibility.valuesAre(
- *         new ParameterValueMatcher(Field.NAME, ConditionOperator.EQ, "Safari"),
- *         new ParameterValueMatcher(Field.NAME, ConditionOperator.EQ, "MacOS")
+ *     PartitionCompatibility.partitionsAre(
+ *         new PartitionMatcher(Field.NAME, ConditionOperator.EQ, "Safari"),
+ *         new PartitionMatcher(Field.NAME, ConditionOperator.EQ, "MacOS")
  *     )
  * );
- * TestParameter browser = new TestParameter("browser", values, rules);
+ * TestParameter browser = new TestParameter("browser", partitions, rules);
  * </pre>
  *
  * @author panwei, davydovmd
- * @see ParameterValue
+ * @see EquivalencePartition
  * @see CompatibilityPredicate
  */
 public class TestParameter {
     private String name;
-    private ImmutableList<ParameterValue<?>> values;
+    private ImmutableList<EquivalencePartition<?>> partitions;
     private Collection<CompatibilityPredicate> dependencies = new ArrayList<>();
 
     /**
-     * Creates a new test parameter with the specified name and possible values.
+     * Creates a new test parameter with the specified name and equivalence partitions.
      * This constructor creates a parameter without any compatibility rules.
      *
      * @param theName The name of the parameter (used for reporting and identification)
-     * @param parameterValues Collection of possible values for this parameter
+     * @param partitions Collection of equivalence partitions for this parameter
      */
-    public TestParameter(String theName, Collection<? extends ParameterValue<?>> parameterValues) {
+    public TestParameter(String theName, Collection<? extends EquivalencePartition<?>> partitions) {
         super();
         name = theName;
-        values = ImmutableList.copyOf(parameterValues);
+        this.partitions = ImmutableList.copyOf(partitions);
 
-        for (ParameterValue<?> value : parameterValues) {
-            value.setParentParameter(this);
+        for (EquivalencePartition<?> partition : partitions) {
+            partition.setParentParameter(this);
         }
     }
 
     /**
-     * Creates a new test parameter with name, values, and compatibility rules.
-     * The compatibility rules define which values of this parameter are compatible
-     * with values of other parameters.
+     * Creates a new test parameter with name, equivalence partitions, and compatibility rules.
+     * The compatibility rules define which equivalence partitions of this parameter are compatible
+     * with partitions of other parameters.
      *
      * @param theName The name of the parameter (used for reporting and identification)
-     * @param parameterValues Collection of possible values for this parameter
-     * @param dependencies List of compatibility rules for this parameter's values
+     * @param partitions Collection of equivalence partitions for this parameter
+     * @param dependencies List of compatibility rules for this parameter's partitions
      */
-    public TestParameter(String theName, Collection<? extends ParameterValue<?>> parameterValues, List<CompatibilityPredicate> dependencies) {
+    public TestParameter(String theName, Collection<? extends EquivalencePartition<?>> partitions, List<CompatibilityPredicate> dependencies) {
         super();
         name = theName;
         this.dependencies = ImmutableList.copyOf(dependencies);
-        values = ImmutableList.copyOf(parameterValues);
-        for (ParameterValue<?> value : parameterValues) {
-            value.setParentParameter(this);
+        this.partitions = ImmutableList.copyOf(partitions);
+        for (EquivalencePartition<?> partition : partitions) {
+            partition.setParentParameter(this);
         }
     }
 
     /**
-     * Finds a parameter value by its name.
+     * Gets a partition by its name.
      *
-     * @param name The name of the value to find
-     * @return The matching parameter value, or null if not found
+     * @param name The name of the partition to find
+     * @return The partition with the given name, or null if not found
      */
-    public ParameterValue<?> getValueByName(String name) {
-        for (ParameterValue<?> v : values) {
-            if (v.getName().equals(name)) return v;
+    public EquivalencePartition<?> getPartitionByName(String name) {
+        for (EquivalencePartition<?> partition : partitions) {
+            if (partition.getName().equals(name)) return partition;
         }
         return null;
     }
 
     /**
-     * Gets a parameter value by its index in the values list.
+     * Gets a partition by its index.
      *
-     * @param i The index of the value to get
-     * @return The parameter value at the specified index
+     * @param i The index of the partition to get
+     * @return The partition at the given index
+     * @throws IndexOutOfBoundsException if the index is out of range
      */
-    public ParameterValue<?> getValueByIndex(int i) {
-        return values.get(i);
+    public EquivalencePartition<?> getPartitionByIndex(int i) {
+        return partitions.get(i);
     }
 
     /**
@@ -135,27 +136,27 @@ public class TestParameter {
     }
 
     /**
-     * Gets all possible values for this parameter.
+     * Gets all equivalence partitions for this parameter.
      *
-     * @return An immutable list of all parameter values
+     * @return An immutable list of all equivalence partitions
      */
-    public List<ParameterValue<?>> getValues() {
-        return values;
+    public List<EquivalencePartition<?>> getPartitions() {
+        return partitions;
     }
 
     /**
-     * Checks if two parameter values are compatible according to this parameter's rules.
-     * This method applies all compatibility predicates to determine if the values can
+     * Checks if two equivalence partitions are compatible according to this parameter's rules.
+     * This method applies all compatibility predicates to determine if the partitions can
      * be used together in a test combination.
      *
-     * @param value1 The first parameter value to check
-     * @param value2 The second parameter value to check
-     * @return true if the values are compatible, false otherwise
+     * @param partition1 The first equivalence partition to check
+     * @param partition2 The second equivalence partition to check
+     * @return true if the partitions are compatible, false otherwise
      */
-    public boolean areCompatible(ParameterValue<?> value1, ParameterValue<?> value2) {
+    public boolean areCompatible(EquivalencePartition<?> partition1, EquivalencePartition<?> partition2) {
         if (dependencies.isEmpty()) return true;
         for (CompatibilityPredicate predicate : dependencies) {
-            if (predicate.isCompatible(value1, value2)) return true;
+            if (predicate.isCompatible(partition1, partition2)) return true;
         }
         return false;
     }

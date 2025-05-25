@@ -121,13 +121,14 @@ public class CombinationTable {
      *
      * @return A list of maps representing the test cases
      */
+    @SuppressWarnings("rawtypes")
     public List<Map<String, Object>> asRowMapList() {
         List<Map<String, Object>> rows = new ArrayList<>();
 
         for (Combination combination : _combinations) {
             Map<String, Object> row = new HashMap<>();
 
-            for (ParameterValue value : combination.getValues()) {
+            for (EquivalencePartition value : combination.getValues()) {
                 row.put(value.getParentParameter().getName(), value.getValue());
             }
             row.put("combination_description", combination.toString());

@@ -30,52 +30,52 @@ public class TestParameterTest {
     }
 
     @Test
-    public void testConstructorSetsValues() {
-        List<ParameterValue<?>> values = parameter.getValues();
-        assertEquals(values.size(), 3, "Should have correct number of values");
-        assertTrue(values.contains(chrome), "Should contain Chrome value");
-        assertTrue(values.contains(firefox), "Should contain Firefox value");
-        assertTrue(values.contains(safari), "Should contain Safari value");
+    public void testConstructorSetsPartitions() {
+        List<EquivalencePartition<?>> partitions = parameter.getPartitions();
+        assertEquals(partitions.size(), 3, "Should have correct number of partitions");
+        assertTrue(partitions.contains(chrome), "Should contain Chrome partition");
+        assertTrue(partitions.contains(firefox), "Should contain Firefox partition");
+        assertTrue(partitions.contains(safari), "Should contain Safari partition");
     }
 
     @Test
     public void testConstructorSetsParentParameter() {
-        for (ParameterValue<?> value : parameter.getValues()) {
-            assertEquals(value.getParentParameter(), parameter, 
-                "Each value should reference the parameter as parent");
+        for (EquivalencePartition<?> partition : parameter.getPartitions()) {
+            assertEquals(partition.getParentParameter(), parameter, 
+                "Each partition should reference the parameter as parent");
         }
     }
 
     @Test
-    public void testGetValueByName() {
-        assertEquals(parameter.getValueByName("Chrome"), chrome, 
-            "Should find value by exact name match");
-        assertEquals(parameter.getValueByName("Firefox"), firefox, 
-            "Should find value by exact name match");
-        assertNull(parameter.getValueByName("NonExistent"), 
-            "Should return null for non-existent value name");
+    public void testGetPartitionByName() {
+        assertEquals(parameter.getPartitionByName("Chrome"), chrome, 
+            "Should find partition by exact name match");
+        assertEquals(parameter.getPartitionByName("Firefox"), firefox, 
+            "Should find partition by exact name match");
+        assertNull(parameter.getPartitionByName("NonExistent"), 
+            "Should return null for non-existent partition name");
     }
 
     @Test
-    public void testGetValueByIndex() {
-        List<ParameterValue<?>> values = parameter.getValues();
-        for (int i = 0; i < values.size(); i++) {
-            assertEquals(parameter.getValueByIndex(i), values.get(i), 
-                "Should return correct value at index " + i);
+    public void testGetPartitionByIndex() {
+        List<EquivalencePartition<?>> partitions = parameter.getPartitions();
+        for (int i = 0; i < partitions.size(); i++) {
+            assertEquals(parameter.getPartitionByIndex(i), partitions.get(i), 
+                "Should return correct partition at index " + i);
         }
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetValueByIndexThrowsException() {
-        parameter.getValueByIndex(3); // Should throw exception for invalid index
+    public void testGetPartitionByIndexThrowsException() {
+        parameter.getPartitionByIndex(3); // Should throw exception for invalid index
     }
 
     @Test
     public void testAreCompatibleWithNoRules() {
         assertTrue(parameter.areCompatible(chrome, firefox), 
-            "Values should be compatible when no rules are defined");
+            "Partitions should be compatible when no rules are defined");
         assertTrue(parameter.areCompatible(firefox, safari), 
-            "Values should be compatible when no rules are defined");
+            "Partitions should be compatible when no rules are defined");
     }
 
     @Test
@@ -108,11 +108,11 @@ public class TestParameterTest {
     }
 
     @Test
-    public void testValuesAreImmutable() {
-        List<ParameterValue<?>> values = parameter.getValues();
+    public void testPartitionsAreImmutable() {
+        List<EquivalencePartition<?>> partitions = parameter.getPartitions();
         try {
-            values.add(SimpleValue.of("Edge"));
-            fail("Should not be able to modify the values list");
+            partitions.add(SimpleValue.of("Edge"));
+            fail("Should not be able to modify the partitions list");
         } catch (UnsupportedOperationException e) {
             // Expected
         }

@@ -51,9 +51,9 @@ public class CombinationTest {
         );
 
         // Create test parameters with compatibility rules
-        browser = new TestParameter("browser", Arrays.<ParameterValue<?>>asList(chrome, firefox, safari), browserOsRules);
-        operatingSystem = new TestParameter("operatingSystem", Arrays.<ParameterValue<?>>asList(windows, macOS, linux));
-        resolution = new TestParameter("resolution", Arrays.<ParameterValue<?>>asList(hd, uhd));
+        browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox, safari), browserOsRules);
+        operatingSystem = new TestParameter("operatingSystem", Arrays.<EquivalencePartition<?>>asList(windows, macOS, linux));
+        resolution = new TestParameter("resolution", Arrays.<EquivalencePartition<?>>asList(hd, uhd));
     }
 
     @Test
@@ -143,7 +143,7 @@ public class CombinationTest {
             public void generate(TestGenerator testGenerator, int nwise) {}
 
             @Override
-            public boolean isCompatible(ParameterValue v1, ParameterValue v2) {
+            public boolean isCompatible(EquivalencePartition v1, EquivalencePartition v2) {
                 if (v1.getParentParameter() == browser) {
                     return browser.areCompatible(v1, v2);
                 }

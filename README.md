@@ -15,6 +15,7 @@ JPWise is a powerful Java framework for generating pairwise test combinations, w
   - Enhanced test coverage
   - Improved documentation and examples
   - Added TestNG DataProvider integration
+  - Added support for dynamic value generation
 
 ## Author
 - **Mikhail Davydov** - Main author and maintainer
@@ -27,6 +28,8 @@ JPWise is a powerful Java framework for generating pairwise test combinations, w
 - Generic type support for parameter values
 - Rich comparison operators (EQ, NEQ, IN, NOT_IN, CONTAINS, CONTAINS_ALL)
 - TestNG DataProvider integration
+- Dynamic value generation with GenericPartition
+- Thread-safe value cycling with CyclingPartition
 
 ## Installation
 
@@ -42,7 +45,7 @@ Add to your pom.xml:
 ## Basic Usage
 
 ```java
-// Define parameters and values
+// Define parameters and their values
 TestParameter browser = new TestParameter("browser", Arrays.asList(
     SimpleValue.of("Chrome"),
     SimpleValue.of("Firefox"),
@@ -55,32 +58,157 @@ TestParameter os = new TestParameter("os", Arrays.asList(
     SimpleValue.of("Linux")
 ));
 
-// Add compatibility rules if needed
-List<CompatibilityPredicate> rules = Arrays.<CompatibilityPredicate>asList(
-    (v1, v2) -> {
-        if (v1.getName().equals("Safari")) {
-            return v2.getName().equals("MacOS");
-        }
-        return true;
-    }
-);
-
-// Generate test combinations
+// Create test input
 TestInput input = new TestInput();
-input.add(new TestParameter("browser", browser.getValues(), rules));
+input.add(browser);
 input.add(os);
 
+// Generate test combinations
 TestGenerator generator = new TestGenerator(input);
 generator.generate(new PairwiseAlgorithm());
 
 // Get results
-for (Combination combination : generator.result().combinations()) {
-    System.out.println(combination);
-}
+CombinationTable results = generator.result();
 ```
 
-## TestNG DataProvider Integration
+## Advanced Usage
 
+### Understanding Equivalence Partitions
+
+JPWise uses equivalence partitions to group test values that are expected to behave similarly. The framework provides several implementations:
+
+1. **SimpleValue<T>**
+   - Most basic implementation for constant values
+   - Suitable for static, unchanging test values
+   ```java
+   SimpleValue<String> chrome = SimpleValue.of("Chrome", "116.0");
+   ```
+
+2. **GenericPartition<T>**
+   - Supports dynamic value generation via a Supplier
+   - Useful for values that need to be computed or fetched at runtime
+   ```java
+   // Dynamic version generation
+   GenericPartition<String> windows = new GenericPartition<>(
+       "Windows 11", 
+       () -> String.format("22H2.%d", getCurrentBuild())
+   );
+   ```
+
+3. **CyclingPartition<T>**
+   - Cycles through a set of values
+   - Thread-safe using AtomicInteger for cycling
+   - Useful for testing multiple values in sequence
+   ```java
+   CyclingPartition<String> firefox = new CyclingPartition<>(
+       "Firefox",
+       "118.0.2",  // Default value
+       Arrays.asList("118.0.2", "118.0.3", "118.1.0")  // Values to cycle through
+   );
+   ```
+
+### Defining Compatibility Rules
+
+JPWise provides a DSL for defining compatibility rules between parameter values:
+
+```java
+import static com.functest.jpwise.core.PartitionPredicates.*;
+
+// Simple predicates
+Predicate<EquivalencePartition<?>> isSafari = nameIs("Safari");
+Predicate<EquivalencePartition<?>> isBrowser = parentNameIs("browser");
+Predicate<EquivalencePartition<?>> isVersion116 = valueIs("116.0");
+
+// Complex rules
+List<CompatibilityPredicate> browserOsRules = Arrays.asList(
+    (v1, v2) -> {
+        // Safari only works with macOS
+        if (nameIs("Safari").test(v1)) {
+            return nameIs("macOS").test(v2);
+        }
+        return true; // Other browsers work with all OS
+    }
+);
+
+TestParameter browser = new TestParameter("browser", browserValues, browserOsRules);
+```
+
+### Best Practices
+
+1. **Choosing Value Types**
+   - Use `SimpleValue` for constant values that don't change
+   - Use `GenericPartition` for dynamic values or computed values
+   - Use `CyclingPartition` when you need to test multiple values
+
+2. **Defining Compatibility Rules**
+   - Use `PartitionPredicates` for readable and maintainable rules
+   - Combine predicates with `and()`, `or()`, and `not()`
+   - Keep rules focused and well-documented
+
+3. **Parameter Organization**
+   - Group related parameters together
+   - Use clear, descriptive names for parameters and values
+   - Document any special relationships or constraints
+
+4. **Testing Considerations**
+   - Test both positive and negative compatibility cases
+   - Verify cycling behavior when using `CyclingPartition`
+   - Check edge cases in dynamic value generation
+
+### Example: Complex Test Scenario
+
+```java
+// Browser versions with cycling
+TestParameter browser = new TestParameter("browser", Arrays.asList(
+    new CyclingPartition<>("Chrome", "116.0.5845.96", 
+        Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98")),
+    new CyclingPartition<>("Firefox", "118.0.2",
+        Arrays.asList("118.0.2", "118.0.3", "118.1.0")),
+    new CyclingPartition<>("Safari", "17.0",
+        Arrays.asList("17.0", "17.0.1", "17.1"))
+));
+
+// OS with dynamic version/build numbers
+TestParameter operatingSystem = new TestParameter("operatingSystem", Arrays.asList(
+    new GenericPartition<>("Windows 11", () -> "22H2 " + getLatestBuild("win11")),
+    new GenericPartition<>("Windows 10", () -> "22H2 " + getLatestBuild("win10")),
+    new GenericPartition<>("macOS", () -> getLatestVersion("macos"))
+));
+
+// Screen resolutions (static values)
+TestParameter resolution = new TestParameter("resolution", Arrays.asList(
+    SimpleValue.of("HD", "1920x1080"),
+    SimpleValue.of("4K", "3840x2160")
+));
+
+// Define compatibility rules
+List<CompatibilityPredicate> rules = Arrays.asList(
+    // Safari only works with macOS
+    (v1, v2) -> !and(nameIs("Safari"), parentNameIs("browser")).test(v1) || 
+                and(nameIs("macOS"), parentNameIs("operatingSystem")).test(v2),
+    
+    // 4K not supported on older Windows 10
+    (v1, v2) -> !and(nameIs("4K"), parentNameIs("resolution")).test(v1) ||
+                !and(nameIs("Windows 10"), valueContains("19045")).test(v2)
+);
+
+// Create test generator
+TestInput input = new TestInput();
+input.add(browser);
+input.add(operatingSystem);
+input.add(resolution);
+
+TestGenerator generator = new TestGenerator(input);
+generator.generate(new PairwiseAlgorithm());
+```
+
+This example demonstrates:
+- Using different partition types for different needs
+- Complex compatibility rules using predicates
+- Mixing static and dynamic values
+- Real-world testing scenarios
+
+## TestNG DataProvider Integration
 ```java
 @DataProvider(name = "browserConfigs")
 public Object[][] getBrowserConfigs() {
@@ -108,49 +236,134 @@ public void testBrowsers(String description, String browser) {
 
 ```bash
 mvn test                           # Run all tests
-mvn test -Dtest=TestClassName     # Run specific test
+mvn test -Dtest=TestClassName      # Run specific test
 ```
 
 ## License
+
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
-- Pan Wei for the original jWise library that served as the foundation for this project
-- All contributors who have helped improve and extend the framework
+
+* Pan Wei for the original jWise library that served as the foundation for this project
+* All contributors who have helped improve and extend the framework
 
 ## Requirements
 
-- Java 8 or higher
-- Maven 3.x
+Java 8 or higher
+Maven 3.x
 
-## Usage
+## Advanced Usage
 
-### Basic Example
+###Adding Value Compatibility Rules (Parameter Dependencies)
+
+This is a key feature of JPWise, allowing you to define constraints where the validity of one parameter's value depends on the value of another.
+
+```java 
+ Advanced Usage
+
+### Adding Value Compatibility Rules (Parameter Dependencies)
+
+A key strength of JPWise is its ability to define and enforce compatibility rules between parameter values, ensuring that generated test combinations are realistic and valid for your system's constraints. This is achieved using the `CompatibilityPredicate` interface.
+
+**Scenario: Browser and Operating System Compatibility**
+
+Let's define rules where certain browsers are only compatible with specific operating systems.
 
 ```java
-// Create test parameters
-TestParameter browser = new TestParameter("browser", Arrays.asList(
+// 1. Define your TestParameters
+TestParameter browserParam = new TestParameter("browser", Arrays.asList(
     SimpleValue.of("Chrome"),
     SimpleValue.of("Firefox"),
-    SimpleValue.of("Safari")
+    SimpleValue.of("Safari"),
+    SimpleValue.of("Edge")
 ));
 
-TestParameter os = new TestParameter("os", Arrays.asList(
-    SimpleValue.of("Windows"),
-    SimpleValue.of("MacOS"),
-    SimpleValue.of("Linux")
+TestParameter osParam = new TestParameter("operatingSystem", Arrays.asList(
+    SimpleValue.of("Windows 11"),
+    SimpleValue.of("Windows 10"),
+    SimpleValue.of("macOS"),
+    SimpleValue.of("Ubuntu") 
+    // Using names from your JpWiseDemoTest for consistency
 ));
 
-// Create test input with parameters
-TestInput input = new TestInput();
-input.add(browser);
-input.add(os);
+// 2. Define your CompatibilityPredicates as a list
+List<CompatibilityPredicate> browserOsCompatibilityRules = Arrays.asList(
+    (val1, val2) -> { // val1 and val2 are the two EquivalencePartition instances being considered for a pair
+        EquivalencePartition<?> partition1 = val1;
+        EquivalencePartition<?> partition2 = val2;
 
-// Generate pairwise combinations
-TestGenerator generator = new TestGenerator(input);
+        // Ensure correct order for consistent rule application (e.g., browser is always first for this logic)
+        // This makes the rule logic simpler as you know which parameter partition1 and partition2 refer to.
+        if ("operatingSystem".equals(partition1.getParentParameter().getName()) && 
+            "browser".equals(partition2.getParentParameter().getName())) {
+            // Swap if OS came first
+            partition1 = val2; 
+            partition2 = val1;
+        }
+
+        // Proceed only if we have a browser value and an OS value
+        if (!"browser".equals(partition1.getParentParameter().getName()) ||
+            !"operatingSystem".equals(partition2.getParentParameter().getName())) {
+            return true; // This rule doesn't apply to other parameter pairs
+        }
+
+        String browserName = partition1.getName();
+        String osName = partition2.getName();
+
+        // Rule 1: Safari is only compatible with macOS
+        if (browserName.equals("Safari")) {
+            return osName.equals("macOS");
+        }
+
+        // Rule 2: Edge is only compatible with Windows (10 or 11)
+        if (browserName.equals("Edge")) {
+            return osName.startsWith("Windows");
+        }
+        
+        // Add more rules as needed...
+
+        // By default, other combinations (e.g., Chrome/Firefox with any OS) are compatible
+        return true;
+    }
+    // You can add more predicates to the list for other, unrelated rules if needed
+);
+
+// 3. Create TestInput and associate rules with one of the involved parameters
+TestInput constrainedInput = new TestInput();
+// The rules are associated with the 'browser' parameter here. The predicate logic
+// then correctly identifies and constrains its pairing with 'operatingSystem'.
+constrainedInput.add(new TestParameter("browser", browserParam.getPartitions(), browserOsCompatibilityRules));
+constrainedInput.add(osParam); 
+// You can add other parameters as well (e.g., screenResolution)
+// constrainedInput.add(screenResolution);
+
+// 4. Generate combinations
+TestGenerator generator = new TestGenerator(constrainedInput);
 generator.generate(new PairwiseAlgorithm());
 
-// Get results
+// 5. Use the results
+System.out.println("Pairwise combinations respecting Browser-OS compatibility:");
+for (Combination combination : generator.result().combinations()) {
+    System.out.println(combination);
+    // Expected: No (Safari, Windows), (Safari, Ubuntu), (Edge, macOS), (Edge, Ubuntu)
+    // Will see: (Safari, macOS), (Edge, Windows 11), (Edge, Windows 10)
+    // And all combinations for Chrome & Firefox with all OS.
+}
+```
+
+## Using Combinatorial Algorithm (All Combinations)
+
+To generate all possible combinations (n-wise, where n is the number of parameters), use the `CombinatorialAlgorithm`.
+
+```java
+// Assuming 'input' is defined and populated with TestParameters (e.g., from Basic Usage)
+TestInput input = new TestInput(); /* ... populate input ... */
+
+TestGenerator generator = new TestGenerator(input);
+// The second argument to generate() for CombinatorialAlgorithm can be a limit.
+generator.generate(new CombinatorialAlgorithm(), 1000); // Generate all combinations, up to a safety limit of 1000
+
 CombinationTable table = generator.result();
 for (Combination combination : table.combinations()) {
     System.out.println(combination);
@@ -162,15 +375,81 @@ for (Combination combination : table.combinations()) {
 #### Adding Value Compatibility Rules
 
 ```java
-// Define compatibility rules
+// Define parameters (e.g., browser and OS)
+TestParameter browserParam = new TestParameter("browser", Arrays.asList(
+    SimpleValue.of("Chrome"),
+    SimpleValue.of("Firefox"),
+    SimpleValue.of("Safari")
+));
+
+TestParameter osParam = new TestParameter("os", Arrays.asList(
+    SimpleValue.of("Windows"),
+    SimpleValue.of("MacOS"),
+    SimpleValue.of("Linux")
+));
+
+// Define a compatibility rule: Safari browser is only compatible with MacOS
+// This rule will be evaluated for pairs of values being considered for a combination.
 List<CompatibilityPredicate> rules = Arrays.asList(
-    ValueCompatibility.valuesAre(
-        new ParameterValueMatcher(Field.NAME, ConditionOperator.EQ, "Safari"),
-        new ParameterValueMatcher(Field.NAME, ConditionOperator.NEQ, "Windows")
-    )
+    (valueFromPair1, valueFromPair2) -> {
+        // Check if this rule applies to the parameters of the current values
+        String param1Name = valueFromPair1.getParentParameter().getName();
+        String val1Name = valueFromPair1.getName();
+        String param2Name = valueFromPair2.getParentParameter().getName();
+        String val2Name = valueFromPair2.getName();
+
+        // Rule: If browser is Safari, OS must be MacOS
+        if (param1Name.equals("browser") && val1Name.equals("Safari") && 
+            param2Name.equals("os") && !val2Name.equals("MacOS")) {
+            return false; // Incompatible
+        }
+        // Symmetrically, if os is MacOS and browser is Safari
+        if (param1Name.equals("os") && val1Name.equals("MacOS") && 
+            param2Name.equals("browser") && !val2Name.equals("Safari")) {
+            // This specific symmetric check might be redundant if the first one covers it,
+            // or could be structured to handle parameter order flexibly.
+            // For simplicity here, we assume the generator tries pairs in different orders
+            // or that the predicate should be robust to the order of v1, v2.
+            // The first check is the primary one for "Safari -> requires MacOS"
+        }
+        
+        // Add other rules similarly...
+        // e.g., Firefox not compatible with Linux (hypothetical)
+        // if (param1Name.equals("browser") && val1Name.equals("Firefox") && 
+        //     param2Name.equals("os") && val2Name.equals("Linux")) {
+        //     return false; 
+        // }
+
+        return true; // Default to compatible if no specific rule makes it incompatible
+    }
 );
 
-TestParameter browser = new TestParameter("browser", browserValues, rules);
+TestInput input = new TestInput();
+// One way to apply rules: Associate with a specific parameter (if it primarily constrains that parameter's values with others)
+// input.add(new TestParameter("browser", browserParam.getPartitions(), rules)); 
+// input.add(osParam);
+// OR, if your framework supports global rules applied to the TestInput (ideal for cross-parameter rules):
+// input.add(browserParam);
+// input.add(osParam);
+// input.setGlobalCompatibilityRules(rules); // Assuming such a method exists or can be added
+
+// For now, let's assume rules are applied during generation based on all TestParameters in the input.
+// The exact mechanism of rule application (global vs. parameter-associated) needs to be clear from JPWise's API.
+// The example below assumes the generator intelligently uses the rules.
+// We will refine this example. For now, let's show the structure.
+
+// This section needs a more complete example of how rules are registered and applied.
+// For instance, if using the lambda predicate (valueFromPair1, valueFromPair2):
+// It's often applied globally or to the TestGenerator.
+// Example:
+// TestGenerator generator = new TestGenerator(input, rules); // If constructor takes global rules
+// generator.generate(new PairwiseAlgorithm());
+
+// Placeholder for a more fleshed-out example here based on your library's actual API for rules.
+// For now, the previous "Basic Usage" section had an example of associating rules with a TestParameter:
+// input.add(new TestParameter("browser", browser.getPartitions(), rules)); // This implies the rule primarily involves 'browser'
+// input.add(os);
+// This is the part we need to make super clear with a real-world scenario.
 ```
 
 #### Using Combinatorial Algorithm
@@ -184,8 +463,8 @@ generator.generate(new CombinatorialAlgorithm(), 99); // Generate all possible c
 
 The framework consists of several key components:
 
-- `TestParameter`: Represents a test parameter with its possible values
-- `ParameterValue`: Interface for parameter values
+- `TestParameter`: Represents a test parameter with its possible equivalence partitions
+- `EquivalencePartition`: Interface for parameter equivalence partitions
 - `TestGenerator`: Main class for generating test combinations
 - `GenerationAlgorithm`: Base class for test generation algorithms
 - `PairwiseAlgorithm`: Implements pairwise test generation
@@ -200,33 +479,7 @@ The framework consists of several key components:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Running Tests
-
-To run all tests:
-```bash
-mvn test
-```
-
-To run a specific test class:
-```bash
-mvn test -Dtest=TestClassName
-```
-
-For example:
-```bash
-mvn test -Dtest=JpWiseDataProviderDemoTest
-```
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
 - Original author: Ng Pan Wei
 - Contributors: Mikhail Davydov
-
- 
- 
- 
- 

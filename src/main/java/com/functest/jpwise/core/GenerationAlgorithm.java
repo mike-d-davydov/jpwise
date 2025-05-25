@@ -61,7 +61,7 @@ public abstract class GenerationAlgorithm {
         pwGenerator.result().add(combination);
     }
 
-    protected boolean isCompatible(ParameterValue v1, ParameterValue v2) {
+    protected boolean isCompatible(EquivalencePartition v1, EquivalencePartition v2) {
         return v1.isCompatibleWith(v2) && (v2.isCompatibleWith(v1));
     }
 }

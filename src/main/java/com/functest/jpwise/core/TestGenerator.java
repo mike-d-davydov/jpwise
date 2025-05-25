@@ -123,8 +123,8 @@ public class TestGenerator {
         int size = 0;
         for (int i = 0; i < _testInput.size(); i++) {
             for (int j = i + 1; j < _testInput.size(); j++) {
-                size += _testInput.get(i).getValues().size()
-                        * _testInput.get(j).getValues().size();
+                size += _testInput.get(i).getPartitions().size()
+                        * _testInput.get(j).getPartitions().size();
             }
         }
         return size;

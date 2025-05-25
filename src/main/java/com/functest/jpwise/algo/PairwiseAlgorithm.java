@@ -1,5 +1,3 @@
-
-
 package com.functest.jpwise.algo;
 
 import com.functest.jpwise.core.*;
@@ -16,8 +14,8 @@ import java.util.*;
  * 
  * <p>The algorithm works in two main phases:</p>
  * <ol>
- *   <li>Generate all possible pairs of parameter values</li>
- *   <li>Build complete test cases by combining compatible pairs</li>
+ *   <li>Generate all possible pairs of equivalence partitions</li>
+ *   <li>Build complete test cases by combining compatible partitions and getting their values</li>
  * </ol>
  * 
  * <p>The algorithm uses a tunable "jump" parameter that affects how pairs are
@@ -27,8 +25,8 @@ import java.util.*;
  * <p>Example usage:</p>
  * <pre>
  * TestInput input = new TestInput();
- * input.add(new TestParameter("browser", browserValues));
- * input.add(new TestParameter("os", osValues));
+ * input.add(new TestParameter("browser", browserPartitions));
+ * input.add(new TestParameter("os", osPartitions));
  * 
  * TestGenerator generator = new TestGenerator(input);
  * generator.generate(new PairwiseAlgorithm(3)); // jump = 3
@@ -40,6 +38,8 @@ import java.util.*;
  * @see TestGenerator
  */
 public class PairwiseAlgorithm extends GenerationAlgorithm {
+    private final Random random = new Random();
+    private TestGenerator testGenerator;
     /**
      * Flag value to indicate that a combination pair has been generated.
      */
@@ -131,14 +131,15 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         TestParameter param1 = testInput.get(i);
         TestParameter param2 = testInput.get(j);
 
-        List<ParameterValue<?>> v1values = new ArrayList<>(param1.getValues());
-        Collections.shuffle(v1values);
+        // Get all possible values for both parameters
+        List<EquivalencePartition<?>> param1Partitions = new ArrayList<>(param1.getPartitions());
+        Collections.shuffle(param1Partitions, random);
 
-        for (ParameterValue<?> v1 : v1values) {
-            List<ParameterValue<?>> v2values = new ArrayList<>(param2.getValues());
-            Collections.shuffle(v2values);
+        List<EquivalencePartition<?>> param2Partitions = new ArrayList<>(param2.getPartitions());
+        Collections.shuffle(param2Partitions, random);
 
-            for (ParameterValue<?> v2 : v2values) {
+        for (EquivalencePartition<?> v1 : param1Partitions) {
+            for (EquivalencePartition<?> v2 : param2Partitions) {
                 // Skip incompatible pairs
                 if (!isCompatible(v1, v2)) {
                     continue;
@@ -222,19 +223,21 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
      *
      * @param combination The partial combination to complete
      */
+    @SuppressWarnings("rawtypes")
     private void completeCombination(Combination combination) {
         TestInput input = pwGenerator.input();
 
         Preconditions.checkArgument(combination.checkNoConflicts(this), 
             "Combination should be initially consistent, with no conflicting values. It is not:" + combination);
-        ParameterValue[] initial = combination.getValues();
+        EquivalencePartition[] initial = combination.getValues();
 
         for (int i = 0; i < input.size(); i++) {
             if (combination.getValue(i) == null) {
                 boolean completed = false;
-                List<ParameterValue<?>> shuffledValues = new ArrayList<>(input().get(i).getValues());
-                Collections.shuffle(shuffledValues);
-                for (ParameterValue<?> value : shuffledValues) {
+                // Shuffle values for each parameter
+                List<EquivalencePartition<?>> shuffledPartitions = new ArrayList<>(input().get(i).getPartitions());
+                Collections.shuffle(shuffledPartitions, random);
+                for (EquivalencePartition<?> value : shuffledPartitions) {
                     combination.setValue(i, value);
                     if (combination.checkNoConflicts(this)) {
                         completed = true;

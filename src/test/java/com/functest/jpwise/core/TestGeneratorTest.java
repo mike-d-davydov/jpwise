@@ -31,8 +31,8 @@ public class TestGeneratorTest {
         linux = SimpleValue.of("Linux");
 
         // Create test parameters
-        browser = new TestParameter("browser", Arrays.<ParameterValue<?>>asList(chrome, firefox));
-        os = new TestParameter("os", Arrays.<ParameterValue<?>>asList(windows, linux));
+        browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox));
+        os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(windows, linux));
 
         // Create test input
         input = new TestInput();
@@ -105,8 +105,8 @@ public class TestGeneratorTest {
         for (Combination combination : result.combinations()) {
             assertTrue(combination.isFilled(), "All combinations should be complete");
             
-            ParameterValue browserValue = combination.getValue(0);
-            ParameterValue osValue = combination.getValue(1);
+            EquivalencePartition browserValue = combination.getValue(0);
+            EquivalencePartition osValue = combination.getValue(1);
 
             if (browserValue.equals(chrome) && osValue.equals(windows)) {
                 foundChromeWindows = true;
@@ -141,7 +141,7 @@ public class TestGeneratorTest {
         );
 
         TestParameter browserWithRules = new TestParameter("browser", 
-            Arrays.<ParameterValue<?>>asList(chrome, firefox), rules);
+            Arrays.<EquivalencePartition<?>>asList(chrome, firefox), rules);
 
         TestInput inputWithRules = new TestInput();
         inputWithRules.add(browserWithRules);

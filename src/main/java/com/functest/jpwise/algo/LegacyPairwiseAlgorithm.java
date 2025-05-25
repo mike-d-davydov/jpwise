@@ -9,7 +9,9 @@ import java.util.*;
 
 /**
  * Original implementation of the pairwise algorithm that builds combinations
- * by incrementally merging compatible pairs.
+ * by incrementally merging compatible pairs of equivalence partitions.
+ * The concrete values for test cases are obtained from the partitions
+ * when building the final combinations.
  *
  * Kept for comparison testing and validation of the new implementation.
  *
@@ -39,6 +41,9 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
      * parameter to tune the selection of unprocessed combination pairs.
      */
     private int _jump;
+
+    private final Random random = new Random();
+    private TestGenerator testGenerator;
 
     /**
      * Constructor.
@@ -89,23 +94,26 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
         TestParameter param1 = testInput.get(i);
         TestParameter param2 = testInput.get(j);
 
-        List<ParameterValue> v1values = new ArrayList<>(param1.getValues());
-        Collections.shuffle(v1values);
+        // Get all possible partitions for both parameters
+        List<EquivalencePartition> param1Partitions = new ArrayList<>(param1.getPartitions());
+        Collections.shuffle(param1Partitions, random);
 
-        for (ParameterValue v1 : v1values) {
-            List<ParameterValue> v2values = new ArrayList<>(param2.getValues());
-            Collections.shuffle(v2values);
+        for (EquivalencePartition v1 : param1Partitions) {
+            List<EquivalencePartition> param2Partitions = new ArrayList<>(param2.getPartitions());
+            Collections.shuffle(param2Partitions, random);
 
-            for (ParameterValue v2 : v2values) {
-                Combination entry = new Combination(testInput.size());
-                if (isCompatible(v1, v2)) {
-                    entry.setValue(i, v1);
-                    entry.setValue(j, v2);
-
-                    String key = entry.getKey();
-                    _combinationMap.put(key, PENDING);
-                    _combinationQueue.add(entry);
+            for (EquivalencePartition v2 : param2Partitions) {
+                // Skip incompatible pairs
+                if (!isCompatible(v1, v2)) {
+                    continue;
                 }
+                Combination entry = new Combination(testInput.size());
+                entry.setValue(i, v1);
+                entry.setValue(j, v2);
+
+                String key = entry.getKey();
+                _combinationMap.put(key, PENDING);
+                _combinationQueue.add(entry);
             }
         }
     }
@@ -169,20 +177,21 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
         TestInput input = pwGenerator.input();
 
         Preconditions.checkArgument(combination.checkNoConflicts(this), "Combination should be initially consistent, with no conflicting values. It is not:" + combination);
-        ParameterValue[] initial = combination.getValues();
+        EquivalencePartition[] initial = combination.getValues();
 
         for (int i = 0; i < input.size(); i++) {
             if (combination.getValue(i) == null) {
                 boolean completed = false;
-                List<ParameterValue> shuffledValues = new ArrayList<>(input().get(i).getValues());
-                Collections.shuffle(shuffledValues);
-                for (ParameterValue value : shuffledValues) {
-                    combination.setValue(i, value);
+                // Shuffle partitions for each parameter
+                List<EquivalencePartition> shuffledPartitions = new ArrayList<>(input().get(i).getPartitions());
+                Collections.shuffle(shuffledPartitions, random);
+                for (EquivalencePartition partition : shuffledPartitions) {
+                    combination.setValue(i, partition);
                     if (combination.checkNoConflicts(this)) {
                         completed = true;
                         break;
                     } else {
-                        logger.trace(combination + " contains incompatible values (changed value was: " + value + ")?");
+                        logger.trace(combination + " contains incompatible values (changed value was: " + partition + ")?");
                     }
                 }
 
