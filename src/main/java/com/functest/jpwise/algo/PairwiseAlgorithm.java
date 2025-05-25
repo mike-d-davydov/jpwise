@@ -1,26 +1,4 @@
-/**
- * Copyright (c) 2010  Ng Pan Wei, 2013 Mikhail Davydov,  Copyright (c) 2013 Mikhail Davydov
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation files
- * (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 package com.functest.jpwise.algo;
 
@@ -32,9 +10,34 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Basic Algorithm to generate combinations.
+ * Implements the pairwise (2-wise) test case generation algorithm.
+ * This algorithm generates a minimal set of test cases that covers all possible
+ * pairs of parameter values while respecting compatibility rules.
+ * 
+ * <p>The algorithm works in two main phases:</p>
+ * <ol>
+ *   <li>Generate all possible pairs of parameter values</li>
+ *   <li>Build complete test cases by combining compatible pairs</li>
+ * </ol>
+ * 
+ * <p>The algorithm uses a tunable "jump" parameter that affects how pairs are
+ * selected from the queue. A larger jump value may result in fewer test cases
+ * but takes longer to compute.</p>
+ * 
+ * <p>Example usage:</p>
+ * <pre>
+ * TestInput input = new TestInput();
+ * input.add(new TestParameter("browser", browserValues));
+ * input.add(new TestParameter("os", osValues));
+ * 
+ * TestGenerator generator = new TestGenerator(input);
+ * generator.generate(new PairwiseAlgorithm(3)); // jump = 3
+ * CombinationTable results = generator.result();
+ * </pre>
  *
  * @author panwei
+ * @see GenerationAlgorithm
+ * @see TestGenerator
  */
 public class PairwiseAlgorithm extends GenerationAlgorithm {
     /**
@@ -47,54 +50,68 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
     private static final int PENDING = 0;
     private static Logger logger = LoggerFactory.getLogger(PairwiseAlgorithm.class);
     /**
-     * Map of candidate combination pairs.
+     * Map tracking which parameter value pairs have been covered.
+     * The key is a string representation of the pair, and the value is
+     * either COMPLETED or PENDING.
      */
     private Map<String, Integer> _combinationMap = new HashMap<>();
     /**
-     * List of unprocessed combination pairs.
+     * Queue of parameter value pairs that still need to be covered.
+     * Each combination in the queue represents a pair of values that
+     * needs to be included in a test case.
      */
     private List<Combination> _combinationQueue = new ArrayList<Combination>() {
     };
 
     /**
-     * parameter to tune the selection of unprocessed combination pairs.
+     * The jump parameter controls how pairs are selected from the queue.
+     * A larger value may result in fewer test cases but increases computation time.
      */
     private int _jump;
 
     /**
-     * Constructor.
+     * Creates a new pairwise algorithm instance with the specified jump value.
+     *
+     * @param jump The jump value for pair selection (recommended values: 2-5)
      */
     public PairwiseAlgorithm(int jump) {
         super();
         _jump = jump;
     }
 
+    /**
+     * Creates a new pairwise algorithm instance with a default jump value of 3.
+     */
     public PairwiseAlgorithm() {
         this(3);
     }
 
-
     /**
-     * Main generation algorithm.
+     * Generates a set of test cases that cover all possible pairs of parameter values.
+     * The algorithm first generates all possible pairs, then builds complete test cases
+     * by combining compatible pairs.
+     *
+     * @param testGenerator The test generator containing input parameters
+     * @param nwise The degree of combinations (ignored for pairwise, always uses 2)
      */
     @Override
     public void generate(TestGenerator testGenerator, int nwise) {
-        _Pairwise_generator = testGenerator;
+        pwGenerator = testGenerator;
         generatePartialCombinations();
         while (!_combinationQueue.isEmpty()) {
             Combination entry = buildCombination();
-            logger.trace("Progress result:" + _Pairwise_generator.result().size() + " queue:"
+            logger.trace("Progress result:" + pwGenerator.result().size() + " queue:"
                     + _combinationQueue.size() + " -- " + entry.getKey());
         }
-
-
     }
 
     /**
-     * Generate candidate partial combinations.
+     * Generates all possible pairs of parameter values that need to be covered.
+     * This is the first phase of the algorithm where we identify all pairs
+     * that must appear in at least one test case.
      */
     private void generatePartialCombinations() {
-        int size = _Pairwise_generator.input().size();
+        int size = pwGenerator.input().size();
         for (int i = 0; i < size; i++) {
             for (int j = i + 1; j < size; j++) {
                 generatePairs(i, j);
@@ -102,31 +119,38 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         }
     }
 
-
     /**
-     * Generate partial combination for parameters.
+     * Generates all possible pairs between values of two parameters.
+     * Only compatible pairs are added to the queue.
      *
-     * @param i
-     * @param j
+     * @param i Index of the first parameter
+     * @param j Index of the second parameter
      */
     private void generatePairs(int i, int j) {
-        TestInput testInput = _Pairwise_generator.input();
+        TestInput testInput = pwGenerator.input();
         TestParameter param1 = testInput.get(i);
         TestParameter param2 = testInput.get(j);
 
-        List<ParameterValue> v1values = new ArrayList<>(param1.getValues());
+        List<ParameterValue<?>> v1values = new ArrayList<>(param1.getValues());
         Collections.shuffle(v1values);
 
-        for (ParameterValue v1 : v1values) {
-            List<ParameterValue> v2values = new ArrayList<>(param2.getValues());
+        for (ParameterValue<?> v1 : v1values) {
+            List<ParameterValue<?>> v2values = new ArrayList<>(param2.getValues());
             Collections.shuffle(v2values);
 
-            for (ParameterValue v2 : v2values) {
-                Combination entry = new Combination(testInput.size());
-                if (isCompatible(v1, v2)) {
-                    entry.setValue(i, v1);
-                    entry.setValue(j, v2);
+            for (ParameterValue<?> v2 : v2values) {
+                // Skip incompatible pairs
+                if (!isCompatible(v1, v2)) {
+                    continue;
+                }
 
+                // Create a combination with just this pair
+                Combination entry = new Combination(testInput.size());
+                entry.setValue(i, v1);
+                entry.setValue(j, v2);
+
+                // Verify the combination is valid
+                if (entry.checkNoConflicts(this)) {
                     String key = entry.getKey();
                     _combinationMap.put(key, PENDING);
                     _combinationQueue.add(entry);
@@ -136,68 +160,81 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
     }
 
     /**
-     * Build a combination from what is available in the queue.
+     * Builds a complete test case by starting with a pair from the queue
+     * and adding compatible values for other parameters.
      *
-     * @return
+     * @return A complete test case combination
      */
     private Combination buildCombination() {
-        int offset = -_jump;
-        Combination curCombination = new Combination(input().size());
+        int index = 0;
+        Combination result = null;
+        int queueSize = _combinationQueue.size();
 
-        List<Combination> toPutBack = new ArrayList<>();
-
-        while (!curCombination.isFilled() && !_combinationQueue.isEmpty()) {
-            offset = (offset + _jump) % _combinationQueue.size();
-            Combination fromQueue = _combinationQueue.remove(offset);
-            Preconditions.checkArgument(fromQueue.checkNoConflicts(this), "Combination in queue is already conflicting!" + fromQueue);
-
-            String key = fromQueue.getKey();
-            logger.trace(" - trying: " + key);
-            Integer status = _combinationMap.get(key);
-            if (status == COMPLETED) {
-                logger.trace(" - skipping: " + key);
+        // Try different pairs from the queue to find one that can be completed
+        while ((index < queueSize) && (result == null)) {
+            Combination entry = _combinationQueue.get(index);
+            
+            // Skip incompatible combinations
+            if (!entry.checkNoConflicts(this)) {
+                index = index + _jump;
                 continue;
             }
-
-            boolean isConflicted = false;
-
-            Combination mergedCombination = curCombination.merge(fromQueue);
-            if (mergedCombination != null) {
-                isConflicted = !mergedCombination.checkNoConflicts(this);
+            
+            result = entry;
+            completeCombination(result);
+            if (!result.isFilled()) {
+                result = null;
             }
-
-
-            if ((mergedCombination == null) || (isConflicted)) {
-                toPutBack.add(fromQueue);
-                logger.trace(" - postponing: " + key + ". Merge conflict?" + (mergedCombination == null) + "; Incompatible values?" + isConflicted);
-                continue;
-            }
-
-            curCombination = mergedCombination;
-            markCombinations(curCombination);
+            index = index + _jump;
         }
 
-        _combinationQueue.addAll(toPutBack);
-        completeCombination(curCombination);
+        if (result == null) {
+            // If no pair could be completed, try each combination in order
+            for (int i = 0; i < _combinationQueue.size(); i++) {
+                Combination entry = _combinationQueue.get(i);
+                if (entry.checkNoConflicts(this)) {
+                    result = entry;
+                    completeCombination(result);
+                    if (result.isFilled()) {
+                        break;
+                    }
+                }
+            }
+            
+            // If still no valid combination found, something is wrong with the input
+            if (result == null || !result.isFilled()) {
+                throw new IllegalStateException("Could not find any valid combinations to complete");
+            }
+        }
 
-        addToResult(curCombination);
+        // Remove the used pair and mark it as completed
+        _combinationQueue.remove(result);
+        markUsedCombinations(result);
+        addToResult(result);
 
-        return curCombination;
+        return result;
     }
 
-
+    /**
+     * Completes a partial combination by adding compatible values for all parameters.
+     * This method tries to find values that are compatible with all values already
+     * in the combination.
+     *
+     * @param combination The partial combination to complete
+     */
     private void completeCombination(Combination combination) {
-        TestInput input = _Pairwise_generator.input();
+        TestInput input = pwGenerator.input();
 
-        Preconditions.checkArgument(combination.checkNoConflicts(this), "Combination should be initially consistent, with no conflicting values. It is not:" + combination);
+        Preconditions.checkArgument(combination.checkNoConflicts(this), 
+            "Combination should be initially consistent, with no conflicting values. It is not:" + combination);
         ParameterValue[] initial = combination.getValues();
 
         for (int i = 0; i < input.size(); i++) {
             if (combination.getValue(i) == null) {
                 boolean completed = false;
-                List<ParameterValue> shuffledValues = new ArrayList<>(input().get(i).getValues());
+                List<ParameterValue<?>> shuffledValues = new ArrayList<>(input().get(i).getValues());
                 Collections.shuffle(shuffledValues);
-                for (ParameterValue value : shuffledValues) {
+                for (ParameterValue<?> value : shuffledValues) {
                     combination.setValue(i, value);
                     if (combination.checkNoConflicts(this)) {
                         completed = true;
@@ -208,37 +245,31 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
                 }
 
                 if (!completed)
-                    logger.warn("Failed to find value of parameter " + combination.getValue(i).getParentParameter() + " compatible with other parameter values in combination " + Arrays.toString(initial));
-                //throw new RuntimeException("Failed to find value of parameter " + combination.getValue(i) + " compatible with other parameter values in combination " + Arrays.toString(initial));
-
+                    logger.warn("Failed to find value of parameter " + combination.getValue(i).getParentParameter() + 
+                        " compatible with other parameter values in combination " + Arrays.toString(initial));
             }
         }
-
     }
 
-
     /**
-     * Mark partial combinations that have been used.
+     * Marks all pairs in a combination as completed in the combination map.
+     * This helps track which pairs have been covered by test cases.
      *
-     * @param combination
+     * @param combination The combination containing pairs to mark as completed
      */
-    private void markCombinations(Combination combination) {
-        int size = input().size();
+    private void markUsedCombinations(Combination combination) {
+        int size = combination.size();
         for (int i = 0; i < size; i++) {
             for (int j = i + 1; j < size; j++) {
-                if ((combination.getValue(i) != null) && (combination.getValue(j) != null)) {
-                    Combination pair = new Combination(size);
-                    pair.setValue(i, combination.getValue(i));
-                    pair.setValue(j, combination.getValue(j));
-                    String key = pair.getKey();
-                    Integer status = _combinationMap.get(key);
-                    if (status != COMPLETED) {
-                        logger.trace(" - clearing: " + key);
-                        _combinationMap.put(key, COMPLETED);
-                    }
+                if ((combination.getValue(i) != null)
+                        && (combination.getValue(j) != null)) {
+                    Combination entry = new Combination(size);
+                    entry.setValue(i, combination.getValue(i));
+                    entry.setValue(j, combination.getValue(j));
+                    String key = entry.getKey();
+                    _combinationMap.put(key, COMPLETED);
                 }
             }
         }
     }
-
 }

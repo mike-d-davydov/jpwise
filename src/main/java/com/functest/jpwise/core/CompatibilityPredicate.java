@@ -5,6 +5,14 @@ package com.functest.jpwise.core;
  * Date: 20.06.13
  * Time: 14:16
  */
+@FunctionalInterface
 public interface CompatibilityPredicate {
-    boolean isCompatible(ParameterValue thisValue, ParameterValue thatValue);
+    /**
+     * Tests if two parameter values are compatible according to this predicate.
+     *
+     * @param v1 The first parameter value
+     * @param v2 The second parameter value
+     * @return true if the values are compatible, false otherwise
+     */
+    boolean isCompatible(ParameterValue<?> v1, ParameterValue<?> v2);
 }

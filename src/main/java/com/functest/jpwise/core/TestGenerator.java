@@ -26,25 +26,47 @@ package com.functest.jpwise.core;
 
 
 /**
- * Combination generation algorithm to generate N-wise.
- * Currently support only pair-wise.
+ * The main test case generator class that implements test combination generation algorithms.
+ * This class serves as the primary interface for generating test combinations using either
+ * pairwise or full combinatorial approaches.
+ * 
+ * <p>The generator works with a {@link TestInput} object that defines the test parameters
+ * and their possible values. It uses a specified {@link GenerationAlgorithm} to generate
+ * the test combinations.</p>
+ * 
+ * <p>Example usage:</p>
+ * <pre>
+ * TestInput input = new TestInput();
+ * input.add(new TestParameter("browser", Arrays.asList(
+ *     SimpleValue.of("Chrome"),
+ *     SimpleValue.of("Firefox")
+ * )));
+ * 
+ * TestGenerator generator = new TestGenerator(input);
+ * generator.generate(new PairwiseAlgorithm());
+ * CombinationTable results = generator.result();
+ * </pre>
  *
  * @author panwei
+ * @see TestInput
+ * @see GenerationAlgorithm
+ * @see CombinationTable
  */
 public class TestGenerator {
     /**
-     * Combinations generated.
+     * The table containing all generated test combinations.
      */
     protected CombinationTable _result;
+    
     /**
-     * TestInput from which combinations will be generated.
+     * The test input configuration containing parameters and their possible values.
      */
     private TestInput _testInput;
 
     /**
-     * Constructor ;
+     * Creates a new test generator for the specified test input configuration.
      *
-     * @param theTestInput
+     * @param theTestInput The test input configuration containing parameters and their values
      */
     public TestGenerator(TestInput theTestInput) {
         _testInput = theTestInput;
@@ -52,44 +74,50 @@ public class TestGenerator {
     }
 
     /**
-     * Delegate generation to algorithm.
+     * Generates test combinations using the specified algorithm and N-wise coverage.
+     * For pairwise testing, use N=2. For higher-order combinations, use larger values.
+     * For full combinatorial testing, use a large value like 99.
      *
-     * @param nwise
+     * @param algorithm The generation algorithm to use (e.g., PairwiseAlgorithm or CombinatorialAlgorithm)
+     * @param nwise The degree of combinations (2 for pairwise, higher for more combinations)
      */
     public void generate(GenerationAlgorithm algorithm, int nwise) {
         algorithm.generate(this, nwise);
     }
 
     /**
-     * Delegate generation to algorithm.
+     * Generates test combinations using the specified algorithm with pairwise (2-wise) coverage.
+     * This is a convenience method equivalent to calling generate(algorithm, 2).
+     *
+     * @param algorithm The generation algorithm to use
      */
     public void generate(GenerationAlgorithm algorithm) {
         algorithm.generate(this, 2);
     }
 
-
     /**
-     * Get the domain.
+     * Gets the test input configuration.
      *
-     * @return
+     * @return The test input configuration
      */
     public TestInput input() {
         return _testInput;
     }
 
     /**
-     * Get the result.
+     * Gets the table containing all generated test combinations.
      *
-     * @return
+     * @return The combination table with generated test cases
      */
     public CombinationTable result() {
         return _result;
     }
 
     /**
-     * Compute the span of the domain.
+     * Computes the total number of possible parameter value pairs in the test input.
+     * This represents the theoretical maximum number of combinations that could be generated.
      *
-     * @return
+     * @return The total number of possible parameter value pairs
      */
     public int span() {
         int size = 0;
@@ -101,6 +129,4 @@ public class TestGenerator {
         }
         return size;
     }
-
-
 }

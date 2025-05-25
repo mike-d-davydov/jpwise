@@ -8,10 +8,11 @@ import java.util.Collection;
  * Time: 11:08
  */
 public enum ConditionOperator {
-    EQ(" = "), NEQ(" <> "), IN(" IN "), NOT_IN(" NOT IN "), IS_NULL(" IS NULL "), IS_NOT_NULL(" IS NOT NULL ");
+    EQ(" = "), NEQ(" <> "), IN(" IN "), NOT_IN(" NOT IN "), IS_NULL(" IS NULL "), IS_NOT_NULL(" IS NOT NULL "),
+    CONTAINS(" CONTAINS "),
+    CONTAINS_ALL(" CONTAINS ALL ");
 
     private String desc;
-
 
     ConditionOperator(String desc) {
         this.desc = desc;
@@ -28,6 +29,7 @@ public enum ConditionOperator {
 
     }
 
+
     public boolean apply(final Object left, final Object right) {
         switch (this) {
             case EQ:
@@ -38,16 +40,32 @@ public enum ConditionOperator {
                 if (right == null) {
                     return (left == null);
                 }
-                return ((Collection) right).contains(left);
+                return ((Collection<?>) right).contains(left);
             case NOT_IN:
                 if (right == null) {
                     return (left != null);
                 }
-                return !((Collection) right).contains(left);
+                return !((Collection<?>) right).contains(left);
             case IS_NULL:
                 return left == null;
             case IS_NOT_NULL:
                 return left != null;
+            case CONTAINS:
+                if (left == null || right == null) {
+                    return false;
+                }
+                if (left instanceof Collection) {
+                    return ((Collection<?>) left).contains(right);
+                }
+                return left.toString().contains(right.toString());
+            case CONTAINS_ALL:
+                if (left == null || right == null) {
+                    return false;
+                }
+                if (!(left instanceof Collection) || !(right instanceof Collection)) {
+                    return false;
+                }
+                return ((Collection<?>) left).containsAll((Collection<?>) right);
         }
         throw new UnsupportedOperationException("Not supported: " + String.valueOf(left) + " " + this + " " + String.valueOf(right));
     }
