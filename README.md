@@ -60,7 +60,11 @@ JPWise uses specific terminology to describe its concepts:
 - Support for complex parameter relationships
 - Compatibility rules between parameters
 - Generic type support for parameter partitions
-- Rich comparison operators (EQ, NEQ, IN, NOT_IN, CONTAINS, CONTAINS_ALL)
+- Rich comparison operators with fluent API:
+  - Equality: `.equals()`, `.nameIs()`, `.valueIs()`
+  - Containment: `.nameIn()`, `.valueIn()`, `.valueContains()`
+  - Negation: `.not()`
+  - Composition: `.and()`, `.or()`
 - TestNG DataProvider integration
 - Dynamic value generation for partitions with GenericPartition
 - Thread-safe value cycling with CyclingPartition
@@ -110,7 +114,15 @@ CombinationTable results = generator.result();
 
 ### Understanding Equivalence Partitions
 
-JPWise uses equivalence partitions to group test inputs that are expected to behave similarly. The framework provides several implementations:
+JPWise uses equivalence partitions to group test inputs that are expected to behave similarly. A key concept is that a TestParameter can contain multiple equivalence partitions, each representing a different class of values for that parameter.
+
+For example, a "Browser" parameter might have separate partitions for:
+- Latest Chrome versions (as a cycling partition)
+- Stable Firefox versions (as another cycling partition)
+- Legacy IE versions (as simple values)
+- Beta versions (as dynamic values)
+
+The framework provides several implementations:
 
 1. **SimpleValue<T>**
    - Most basic implementation for constant values
@@ -149,39 +161,66 @@ JPWise provides a modern fluent API for defining compatibility rules between par
 ```java
 import static com.functest.jpwise.core.PartitionPredicates.*;
 
-// Using the fluent API with PartitionConditionBuilder
-Predicate<EquivalencePartition<?>> isSafari = PartitionConditionBuilder.where()
+// Define the parameter partitions first
+List<EquivalencePartition<?>> browserPartitions = Arrays.asList(
+    SimpleValue.of("Chrome"),
+    SimpleValue.of("Firefox"),
+    SimpleValue.of("Safari"),
+    SimpleValue.of("Edge")
+);
+
+List<EquivalencePartition<?>> osPartitions = Arrays.asList(
+    SimpleValue.of("Windows 11"),
+    SimpleValue.of("Windows 10"),
+    SimpleValue.of("macOS"),
+    SimpleValue.of("Ubuntu")
+);
+
+// Define predicates using the fluent API
+Predicate<EquivalencePartition<?>> isSafariBrowser = PartitionConditionBuilder.where()
     .nameIs("Safari")
-    .build();
-
-Predicate<EquivalencePartition<?>> isBrowserVersion116 = PartitionConditionBuilder.where()
     .parameterNameIs("browser")
-    .valueContains("116")
     .build();
 
-// Combining conditions
-Predicate<EquivalencePartition<?>> isModernBrowser = PartitionConditionBuilder.where()
+Predicate<EquivalencePartition<?>> isMacOS = PartitionConditionBuilder.where()
+    .nameIs("macOS")
+    .parameterNameIs("operatingSystem")
+    .build();
+
+Predicate<EquivalencePartition<?>> isEdgeBrowser = PartitionConditionBuilder.where()
+    .nameIs("Edge")
     .parameterNameIs("browser")
-    .nameIn("Chrome", "Firefox")
-    .not(valueContains("legacy"))
     .build();
 
-// Complex rules using the fluent API
+Predicate<EquivalencePartition<?>> isWindowsOS = PartitionConditionBuilder.where()
+    .parameterNameIs("operatingSystem")
+    .nameIn("Windows 11", "Windows 10")
+    .build();
+
+// Complex rules using the predicates
 List<CompatibilityPredicate> browserOsRules = Arrays.asList(
-    (v1, v2) -> {
-        // Safari only works with macOS
-        if (PartitionConditionBuilder.where().nameIs("Safari").build().test(v1)) {
-            return PartitionConditionBuilder.where()
-                .nameIs("macOS")
-                .parameterNameIs("operatingSystem")
-                .build()
-                .test(v2);
-        }
-        return true; // Other browsers work with all OS
+    // Safari only works with macOS
+    (ep1, ep2) -> {
+        if (isSafariBrowser.test(ep1)) return isMacOS.test(ep2);
+        if (isSafariBrowser.test(ep2)) return isMacOS.test(ep1);
+        return true;
+    },
+    // Edge only works with Windows
+    (ep1, ep2) -> {
+        if (isEdgeBrowser.test(ep1)) return isWindowsOS.test(ep2);
+        if (isEdgeBrowser.test(ep2)) return isWindowsOS.test(ep1);
+        return true;
     }
 );
 
+// Create parameters with rules
 TestParameter browser = new TestParameter("browser", browserPartitions, browserOsRules);
+TestParameter os = new TestParameter("os", osPartitions);
+
+// Create test input
+TestInput input = new TestInput();
+input.add(browser);  // Rules are associated with the browser parameter
+input.add(os);
 ```
 
 ### Best Practices
@@ -232,38 +271,101 @@ TestParameter resolution = new TestParameter("resolution", Arrays.asList(
     SimpleValue.of("4K", "3840x2160")
 ));
 
-// Define compatibility rules using the fluent API
+// Define predicates for clearer rule composition
+Predicate<EquivalencePartition<?>> isSafariBrowser = PartitionConditionBuilder.where()
+    .nameIs("Safari")
+    .parameterNameIs("browser")
+    .build();
+
+Predicate<EquivalencePartition<?>> isMacOS = PartitionConditionBuilder.where()
+    .nameIs("macOS")
+    .parameterNameIs("operatingSystem")
+    .build();
+
+Predicate<EquivalencePartition<?>> is4KResolution = PartitionConditionBuilder.where()
+    .nameIs("4K")
+    .parameterNameIs("resolution")
+    .build();
+
+Predicate<EquivalencePartition<?>> isOldWindows10 = PartitionConditionBuilder.where()
+    .nameIs("Windows 10")
+    .valueContains("19045")
+    .parameterNameIs("operatingSystem")
+    .build();
+
+// Define compatibility rules with explicit symmetry handling
 List<CompatibilityPredicate> rules = Arrays.asList(
     // Safari only works with macOS
-    (v1, v2) -> !PartitionConditionBuilder.where()
-        .nameIs("Safari")
-        .parameterNameIs("browser")
-        .build()
-        .test(v1) || 
-        PartitionConditionBuilder.where()
-        .nameIs("macOS")
-        .parameterNameIs("operatingSystem")
-        .build()
-        .test(v2),
+    // This rule is symmetric - it should be checked regardless of parameter order
+    (ep1, ep2) -> {
+        // Check both directions explicitly for clarity
+        if (isSafariBrowser.test(ep1)) return isMacOS.test(ep2);
+        if (isSafariBrowser.test(ep2)) return isMacOS.test(ep1);
+        return true; // Other browsers work with all OS
+    },
     
     // 4K not supported on older Windows 10
-    (v1, v2) -> !PartitionConditionBuilder.where()
-        .nameIs("4K")
-        .parameterNameIs("resolution")
-        .build()
-        .test(v1) ||
-        !PartitionConditionBuilder.where()
-        .nameIs("Windows 10")
-        .valueContains("19045")
-        .build()
-        .test(v2)
+    // This rule is symmetric - the constraint applies regardless of parameter order
+    (ep1, ep2) -> {
+        // First direction: 4K resolution with OS
+        if (is4KResolution.test(ep1) && isOldWindows10.test(ep2)) return false;
+        // Reverse direction: OS with 4K resolution
+        if (is4KResolution.test(ep2) && isOldWindows10.test(ep1)) return false;
+        return true; // All other combinations are valid
+    }
 );
 
-// Create test generator
+// Create test input and associate rules
 TestInput input = new TestInput();
+
+// Associate rules with relevant parameters
+// Note: When rules are associated with a parameter, they are primarily evaluated
+// when that parameter is being considered in a pair. However, it's still good
+// practice to make rules symmetric for robustness and clarity.
+browser.setCompatibilityRules(rules);    // Rules affecting browser
+resolution.setCompatibilityRules(rules);  // Rules affecting resolution
+
 input.add(browser);
 input.add(operatingSystem);
 input.add(resolution);
+
+// Generate combinations
+TestGenerator generator = new TestGenerator(input);
+generator.generate(new PairwiseAlgorithm());
+
+// The generated combinations will respect all compatibility rules,
+// regardless of the order in which parameters are paired
+CombinationTable results = generator.result();
+
+// Verify the rules are enforced
+for (Combination combination : results.combinations()) {
+    // Safari should only appear with macOS
+    if (isSafariBrowser.test(combination.getValue(0)) || 
+        isSafariBrowser.test(combination.getValue(1)) ||
+        isSafariBrowser.test(combination.getValue(2))) {
+        assert isMacOS.test(combination.getValue(1)) : "Safari must be paired with macOS";
+    }
+    
+    // 4K resolution should not appear with old Windows 10
+    if (is4KResolution.test(combination.getValue(2))) {
+        assert !isOldWindows10.test(combination.getValue(1)) : "4K not supported on old Windows 10";
+    }
+}
+
+This example demonstrates several important concepts:
+
+1. **Explicit Predicate Definition**: We define predicates separately for better readability and reuse.
+
+2. **Symmetric Rule Handling**: Each rule explicitly handles both possible orders of parameters:
+   - When checking Safari compatibility, we test both `(Safari, OS)` and `(OS, Safari)` pairs
+   - For 4K resolution compatibility, we check both `(4K, Windows)` and `(Windows, 4K)` pairs
+
+3. **Rule Association**: Rules are associated with specific parameters via `setCompatibilityRules`:
+   - When associated with `browser`, rules are primarily evaluated when browser partitions are being paired
+   - When associated with `resolution`, rules are evaluated when resolution partitions are being paired
+   - Making rules symmetric ensures correct behavior regardless of parameter order
+
+4. **Verification**: The example includes verification code to ensure rules are properly enforced in the generated combinations.
 ```
 
 ## TestNG DataProvider Integration
@@ -311,233 +413,23 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Java 8 or higher
 Maven 3.x
 
-## Advanced Usage
-
-###Adding Value Compatibility Rules (Parameter Dependencies)
-
-This is a key feature of JPWise, allowing you to define constraints where the validity of one parameter's value depends on the value of another.
-
-```java 
- Advanced Usage
-
-### Adding Value Compatibility Rules (Parameter Dependencies)
-
-A key strength of JPWise is its ability to define and enforce compatibility rules between parameter values, ensuring that generated test combinations are realistic and valid for your system's constraints. This is achieved using the `CompatibilityPredicate` interface.
-
-**Scenario: Browser and Operating System Compatibility**
-
-Let's define rules where certain browsers are only compatible with specific operating systems.
-
-```java
-// 1. Define your TestParameters
-TestParameter browserParam = new TestParameter("browser", Arrays.asList(
-    SimpleValue.of("Chrome"),
-    SimpleValue.of("Firefox"),
-    SimpleValue.of("Safari"),
-    SimpleValue.of("Edge")
-));
-
-TestParameter osParam = new TestParameter("operatingSystem", Arrays.asList(
-    SimpleValue.of("Windows 11"),
-    SimpleValue.of("Windows 10"),
-    SimpleValue.of("macOS"),
-    SimpleValue.of("Ubuntu") 
-    // Using names from your JpWiseDemoTest for consistency
-));
-
-// 2. Define your CompatibilityPredicates as a list
-List<CompatibilityPredicate> browserOsCompatibilityRules = Arrays.asList(
-    (val1, val2) -> { // val1 and val2 are the two EquivalencePartition instances being considered for a pair
-        EquivalencePartition<?> partition1 = val1;
-        EquivalencePartition<?> partition2 = val2;
-
-        // Ensure correct order for consistent rule application (e.g., browser is always first for this logic)
-        // This makes the rule logic simpler as you know which parameter partition1 and partition2 refer to.
-        if ("operatingSystem".equals(partition1.getParentParameter().getName()) && 
-            "browser".equals(partition2.getParentParameter().getName())) {
-            // Swap if OS came first
-            partition1 = val2; 
-            partition2 = val1;
-        }
-
-        // Proceed only if we have a browser value and an OS value
-        if (!"browser".equals(partition1.getParentParameter().getName()) ||
-            !"operatingSystem".equals(partition2.getParentParameter().getName())) {
-            return true; // This rule doesn't apply to other parameter pairs
-        }
-
-        String browserName = partition1.getName();
-        String osName = partition2.getName();
-
-        // Rule 1: Safari is only compatible with macOS
-        if (browserName.equals("Safari")) {
-            return osName.equals("macOS");
-        }
-
-        // Rule 2: Edge is only compatible with Windows (10 or 11)
-        if (browserName.equals("Edge")) {
-            return osName.startsWith("Windows");
-        }
-        
-        // Add more rules as needed...
-
-        // By default, other combinations (e.g., Chrome/Firefox with any OS) are compatible
-        return true;
-    }
-    // You can add more predicates to the list for other, unrelated rules if needed
-);
-
-// 3. Create TestInput and associate rules with one of the involved parameters
-TestInput constrainedInput = new TestInput();
-// The rules are associated with the 'browser' parameter here. The predicate logic
-// then correctly identifies and constrains its pairing with 'operatingSystem'.
-constrainedInput.add(new TestParameter("browser", browserParam.getPartitions(), browserOsCompatibilityRules));
-constrainedInput.add(osParam); 
-// You can add other parameters as well (e.g., screenResolution)
-// constrainedInput.add(screenResolution);
-
-// 4. Generate combinations
-TestGenerator generator = new TestGenerator(constrainedInput);
-generator.generate(new PairwiseAlgorithm());
-
-// 5. Use the results
-System.out.println("Pairwise combinations respecting Browser-OS compatibility:");
-for (Combination combination : generator.result().combinations()) {
-    System.out.println(combination);
-    // Expected: No (Safari, Windows), (Safari, Ubuntu), (Edge, macOS), (Edge, Ubuntu)
-    // Will see: (Safari, macOS), (Edge, Windows 11), (Edge, Windows 10)
-    // And all combinations for Chrome & Firefox with all OS.
-}
-```
-
-## Using Combinatorial Algorithm (All Combinations)
-
-To generate all possible combinations (n-wise, where n is the number of parameters), use the `CombinatorialAlgorithm`.
-
-```java
-// Assuming 'input' is defined and populated with TestParameters (e.g., from Basic Usage)
-TestInput input = new TestInput(); /* ... populate input ... */
-
-TestGenerator generator = new TestGenerator(input);
-// The second argument to generate() for CombinatorialAlgorithm can be a limit.
-generator.generate(new CombinatorialAlgorithm(), 1000); // Generate all combinations, up to a safety limit of 1000
-
-CombinationTable table = generator.result();
-for (Combination combination : table.combinations()) {
-    System.out.println(combination);
-}
-```
-
-### Advanced Usage
-
-#### Adding Value Compatibility Rules
-
-```java
-// Define parameters (e.g., browser and OS)
-TestParameter browserParam = new TestParameter("browser", Arrays.asList(
-    SimpleValue.of("Chrome"),
-    SimpleValue.of("Firefox"),
-    SimpleValue.of("Safari")
-));
-
-TestParameter osParam = new TestParameter("os", Arrays.asList(
-    SimpleValue.of("Windows"),
-    SimpleValue.of("MacOS"),
-    SimpleValue.of("Linux")
-));
-
-// Define a compatibility rule: Safari browser is only compatible with MacOS
-// This rule will be evaluated for pairs of values being considered for a combination.
-List<CompatibilityPredicate> rules = Arrays.asList(
-    (valueFromPair1, valueFromPair2) -> {
-        // Check if this rule applies to the parameters of the current values
-        String param1Name = valueFromPair1.getParentParameter().getName();
-        String val1Name = valueFromPair1.getName();
-        String param2Name = valueFromPair2.getParentParameter().getName();
-        String val2Name = valueFromPair2.getName();
-
-        // Rule: If browser is Safari, OS must be MacOS
-        if (param1Name.equals("browser") && val1Name.equals("Safari") && 
-            param2Name.equals("os") && !val2Name.equals("MacOS")) {
-            return false; // Incompatible
-        }
-        // Symmetrically, if os is MacOS and browser is Safari
-        if (param1Name.equals("os") && val1Name.equals("MacOS") && 
-            param2Name.equals("browser") && !val2Name.equals("Safari")) {
-            // This specific symmetric check might be redundant if the first one covers it,
-            // or could be structured to handle parameter order flexibly.
-            // For simplicity here, we assume the generator tries pairs in different orders
-            // or that the predicate should be robust to the order of v1, v2.
-            // The first check is the primary one for "Safari -> requires MacOS"
-        }
-        
-        // Add other rules similarly...
-        // e.g., Firefox not compatible with Linux (hypothetical)
-        // if (param1Name.equals("browser") && val1Name.equals("Firefox") && 
-        //     param2Name.equals("os") && val2Name.equals("Linux")) {
-        //     return false; 
-        // }
-
-        return true; // Default to compatible if no specific rule makes it incompatible
-    }
-);
-
-TestInput input = new TestInput();
-// One way to apply rules: Associate with a specific parameter (if it primarily constrains that parameter's values with others)
-// input.add(new TestParameter("browser", browserParam.getPartitions(), rules)); 
-// input.add(osParam);
-// OR, if your framework supports global rules applied to the TestInput (ideal for cross-parameter rules):
-// input.add(browserParam);
-// input.add(osParam);
-// input.setGlobalCompatibilityRules(rules); // Assuming such a method exists or can be added
-
-// For now, let's assume rules are applied during generation based on all TestParameters in the input.
-// The exact mechanism of rule application (global vs. parameter-associated) needs to be clear from JPWise's API.
-// The example below assumes the generator intelligently uses the rules.
-// We will refine this example. For now, let's show the structure.
-
-// This section needs a more complete example of how rules are registered and applied.
-// For instance, if using the lambda predicate (valueFromPair1, valueFromPair2):
-// It's often applied globally or to the TestGenerator.
-// Example:
-// TestGenerator generator = new TestGenerator(input, rules); // If constructor takes global rules
-// generator.generate(new PairwiseAlgorithm());
-
-// Placeholder for a more fleshed-out example here based on your library's actual API for rules.
-// For now, the previous "Basic Usage" section had an example of associating rules with a TestParameter:
-// input.add(new TestParameter("browser", browser.getPartitions(), rules)); // This implies the rule primarily involves 'browser'
-// input.add(os);
-// This is the part we need to make super clear with a real-world scenario.
-```
-
-#### Using Combinatorial Algorithm
-
-```java
-TestGenerator generator = new TestGenerator(input);
-generator.generate(new CombinatorialAlgorithm(), 99); // Generate all possible combinations
-```
-
 ## Architecture
 
 The framework consists of several key components:
 
-- `TestParameter`: Represents a test parameter with its possible equivalence partitions
-- `EquivalencePartition`: Interface for parameter equivalence partitions
-- `TestGenerator`: Main class for generating test combinations
+- `TestParameter`: Represents a test parameter that can contain multiple equivalence partitions. For example, a "Browser" parameter might have separate partitions for stable versions, beta versions, and legacy versions.
+- `EquivalencePartition`: Interface for parameter partitions, implemented by:
+  - `SimpleValue`: For constant values
+  - `GenericPartition`: For dynamic value generation
+  - `CyclingPartition`: For cycling through a sequence of values
+- `TestGenerator`: Main class for generating test combinations. It works by:
+  1. Collecting all partitions from each parameter
+  2. Generating pairs of values from compatible partitions
+  3. Combining pairs into complete test cases
 - `GenerationAlgorithm`: Base class for test generation algorithms
-- `PairwiseAlgorithm`: Implements pairwise test generation
+- `PairwiseAlgorithm`: Implements pairwise test generation by:
+  1. Creating a queue of all possible value pairs
+  2. Building complete combinations that cover each pair
+  3. Respecting compatibility rules during generation
 - `CombinatorialAlgorithm`: Implements full combinatorial test generation
 - `CombinationTable`: Holds and manages generated test combinations
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Acknowledgments
-
-- Original author: Ng Pan Wei
-- Contributors: Mikhail Davydov
