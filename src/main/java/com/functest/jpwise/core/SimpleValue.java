@@ -46,4 +46,15 @@ public class SimpleValue<T> extends GenericPartition<T> {
     public static <T> SimpleValue<T> of(String name, T value) {
         return new SimpleValue<>(name, value);
     }
+
+    /**
+     * Creates a new SimpleValue where the name is used as the string value.
+     * This is a convenience factory method for cases where the value is the same as the name.
+     *
+     * @param name The name and value of this partition
+     * @return A new SimpleValue instance
+     */
+    public static SimpleValue<String> of(String name) {
+        return new SimpleValue<>(name, name);
+    }
 }

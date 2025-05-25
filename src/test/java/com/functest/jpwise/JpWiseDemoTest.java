@@ -1,6 +1,5 @@
 package com.functest.jpwise;
 
-import com.functest.jpwise.algo.PairwiseAlgorithm;
 import com.functest.jpwise.core.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -12,75 +11,72 @@ import static com.functest.jpwise.core.PartitionPredicates.*;
 import static org.testng.Assert.*;
 
 /**
- * Integration tests for JPWise demonstrating real-world web application testing scenarios
- * using equivalence classes and their concrete values.
+ * Integration tests for JPWise demonstrating real-world web application testing scenarios.
  */
 public class JpWiseDemoTest {
-    private TestInput testInput;
-    private TestParameter browser;
-    private TestParameter operatingSystem;
-    private TestParameter screenResolution;
-    private TestParameter networkCondition;
-    private TestParameter userRole;
+    private CyclingPartition<String> chrome;
+    private CyclingPartition<String> firefox;
+    private CyclingPartition<String> safari;
+    private CyclingPartition<String> edge;
+    private GenericPartition<String> windows11;
+    private GenericPartition<String> windows10;
+    private GenericPartition<String> macOS;
+    private GenericPartition<String> ubuntu;
+    private GenericPartition<String> fedora;
+    private SimpleValue<String> hd;
+    private SimpleValue<String> qhd;
+    private SimpleValue<String> uhd;
+    private SimpleValue<String> hdReady;
+    private SimpleValue<String> network4g;
+    private SimpleValue<String> network5g;
+    private SimpleValue<String> networkFiber;
+    private SimpleValue<String> network3g;
+    private SimpleValue<String> admin;
+    private SimpleValue<String> manager;
+    private SimpleValue<String> user;
+    private SimpleValue<String> guest;
 
     @BeforeMethod
     public void setUp() {
         // Browser versions with cycling
-        browser = new TestParameter("browser", Arrays.asList(
-            new CyclingPartition<>("Chrome", "116.0.5845.96", 
-                Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98")),
-            new CyclingPartition<>("Firefox", "118.0.2",
-                Arrays.asList("118.0.2", "118.0.3", "118.1.0")),
-            new CyclingPartition<>("Safari", "17.0",
-                Arrays.asList("17.0", "17.0.1", "17.1")),
-            new CyclingPartition<>("Edge", "117.0.2045.47",
-                Arrays.asList("117.0.2045.47", "117.0.2045.48", "117.1.0"))
-        ));
+        chrome = new CyclingPartition<>("Chrome", "116.0.5845.96", 
+            Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98"));
+        firefox = new CyclingPartition<>("Firefox", "118.0.2",
+            Arrays.asList("118.0.2", "118.0.3", "118.1.0"));
+        safari = new CyclingPartition<>("Safari", "17.0",
+            Arrays.asList("17.0", "17.0.1", "17.1"));
+        edge = new CyclingPartition<>("Edge", "117.0.2045.47",
+            Arrays.asList("117.0.2045.47", "117.0.2045.48", "117.1.0"));
 
-        // OS equivalence classes with specific builds/versions
-        operatingSystem = new TestParameter("operatingSystem", Arrays.<EquivalencePartition<?>>asList(
-            GenericPartition.of("Windows 11", () -> "22H2 22621.2428"),
-            GenericPartition.of("Windows 10", () -> "22H2 19045.3693"),
-            GenericPartition.of("macOS", () -> "14.1.1"),
-            GenericPartition.of("Ubuntu", () -> "22.04.3 LTS"),
-            GenericPartition.of("Fedora", () -> "39.1.2")
-        ));
+        // OS with dynamic versions
+        windows11 = GenericPartition.of("Windows 11", () -> "22H2 22621.2428");
+        windows10 = GenericPartition.of("Windows 10", () -> "22H2 19045.3693");
+        macOS = GenericPartition.of("macOS", () -> "14.1.1");
+        ubuntu = GenericPartition.of("Ubuntu", () -> "22.04.3 LTS");
+        fedora = GenericPartition.of("Fedora", () -> "39.1.2");
 
-        // Resolution equivalence classes with specific pixel dimensions
-        screenResolution = new TestParameter("screenResolution", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("HD", "1920x1080"),
-            SimpleValue.of("QHD", "2560x1440"),
-            SimpleValue.of("4K", "3840x2160"),
-            SimpleValue.of("HD Ready", "1366x768")
-        ));
+        // Screen resolutions
+        hd = SimpleValue.of("HD", "1920x1080");
+        qhd = SimpleValue.of("QHD", "2560x1440");
+        uhd = SimpleValue.of("4K", "3840x2160");
+        hdReady = SimpleValue.of("HD Ready", "1366x768");
 
-        // Network condition classes with specific speeds
-        networkCondition = new TestParameter("networkCondition", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("4G", "100Mbps"),
-            SimpleValue.of("5G", "1Gbps"),
-            SimpleValue.of("Fiber", "10Gbps"),
-            SimpleValue.of("3G", "10Mbps")
-        ));
+        // Network conditions
+        network4g = SimpleValue.of("4G", "100Mbps");
+        network5g = SimpleValue.of("5G", "1Gbps");
+        networkFiber = SimpleValue.of("Fiber", "10Gbps");
+        network3g = SimpleValue.of("3G", "10Mbps");
 
-        // User role classes with specific permissions
-        userRole = new TestParameter("userRole", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Admin", "FULL_ACCESS"),
-            SimpleValue.of("Manager", "DEPARTMENT_ACCESS"),
-            SimpleValue.of("User", "BASIC_ACCESS"),
-            SimpleValue.of("Guest", "READ_ONLY")
-        ));
-
-        testInput = new TestInput();
-        testInput.add(browser);
-        testInput.add(operatingSystem);
-        testInput.add(screenResolution);
-        testInput.add(networkCondition);
-        testInput.add(userRole);
+        // User roles
+        admin = SimpleValue.of("Admin", "FULL_ACCESS");
+        manager = SimpleValue.of("Manager", "DEPARTMENT_ACCESS");
+        user = SimpleValue.of("User", "BASIC_ACCESS");
+        guest = SimpleValue.of("Guest", "READ_ONLY");
     }
 
     @Test
     public void testBrowserCompatibilityRules() {
-        // Define browser-OS compatibility rules based on real-world constraints
+        // Define browser-OS compatibility rules using fluent API
         List<CompatibilityPredicate> browserOsRules = Arrays.asList(
             (v1, v2) -> {
                 // Only apply rules if we're dealing with browser and OS parameters
@@ -114,15 +110,14 @@ public class JpWiseDemoTest {
             }
         );
 
-        // Create test input with browser-OS compatibility rules
-        TestInput compatibilityInput = new TestInput();
-        compatibilityInput.add(new TestParameter("browser", browser.getPartitions(), browserOsRules));
-        compatibilityInput.add(operatingSystem);
+        // Create test parameters with rules
+        TestParameter browser = new TestParameter("browser", 
+            Arrays.asList(chrome, firefox, safari, edge), browserOsRules);
+        TestParameter os = new TestParameter("operatingSystem", 
+            Arrays.asList(windows11, windows10, macOS, ubuntu, fedora));
 
-        TestGenerator generator = new TestGenerator(compatibilityInput);
-        generator.generate(new PairwiseAlgorithm());
-
-        CombinationTable results = generator.result();
+        // Generate and verify combinations
+        CombinationTable results = JPWise.generatePairwise(browser, os);
         
         // Verify browser-OS compatibility rules
         for (Combination combination : results.combinations()) {
@@ -145,21 +140,17 @@ public class JpWiseDemoTest {
 
     @Test
     public void testEnterpriseAccessControl() {
-        // Enterprise department classes with specific functions
-        TestParameter department = new TestParameter("department", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Sales", "REVENUE_CRITICAL"),
-            SimpleValue.of("Engineering", "TECHNICAL"),
-            SimpleValue.of("Marketing", "CONTENT_FOCUSED"),
-            SimpleValue.of("Support", "CUSTOMER_FACING")
-        ));
+        // Enterprise department classes
+        SimpleValue<String> sales = SimpleValue.of("Sales", "REVENUE_CRITICAL");
+        SimpleValue<String> engineering = SimpleValue.of("Engineering", "TECHNICAL");
+        SimpleValue<String> marketing = SimpleValue.of("Marketing", "CONTENT_FOCUSED");
+        SimpleValue<String> support = SimpleValue.of("Support", "CUSTOMER_FACING");
 
-        // Access level classes with specific capabilities
-        TestParameter accessLevel = new TestParameter("accessLevel", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Full", "ALL_OPERATIONS"),
-            SimpleValue.of("ReadWrite", "MODIFY_CONTENT"),
-            SimpleValue.of("ReadOnly", "VIEW_CONTENT"),
-            SimpleValue.of("Restricted", "LIMITED_VIEW")
-        ));
+        // Access level classes
+        SimpleValue<String> fullAccess = SimpleValue.of("Full", "ALL_OPERATIONS");
+        SimpleValue<String> readWrite = SimpleValue.of("ReadWrite", "MODIFY_CONTENT");
+        SimpleValue<String> readOnly = SimpleValue.of("ReadOnly", "VIEW_CONTENT");
+        SimpleValue<String> restricted = SimpleValue.of("Restricted", "LIMITED_VIEW");
 
         // Define access control rules using predicates
         List<CompatibilityPredicate> accessRules = Arrays.asList(
@@ -197,20 +188,16 @@ public class JpWiseDemoTest {
             }
         );
 
-        TestInput enterpriseInput = new TestInput();
-        enterpriseInput.add(new TestParameter("userRole", userRole.getPartitions(), accessRules));
-        enterpriseInput.add(department);
-        enterpriseInput.add(accessLevel);
-
-        TestGenerator generator = new TestGenerator(enterpriseInput);
-        generator.generate(new PairwiseAlgorithm());
-
-        CombinationTable results = generator.result();
+        // Create parameters with rules and generate combinations
+        CombinationTable results = JPWise.generatePairwise(
+            new TestParameter("userRole", Arrays.asList(admin, manager, user, guest), accessRules),
+            new TestParameter("department", Arrays.asList(sales, engineering, marketing, support)),
+            new TestParameter("accessLevel", Arrays.asList(fullAccess, readWrite, readOnly, restricted))
+        );
         
         // Verify access control rules
         for (Combination combination : results.combinations()) {
             EquivalencePartition<?> roleValue = combination.getValue(0);
-            EquivalencePartition<?> departmentValue = combination.getValue(1);
             EquivalencePartition<?> accessValue = combination.getValue(2);
 
             if (nameIs("Admin").test(roleValue)) {
@@ -239,13 +226,11 @@ public class JpWiseDemoTest {
 
     @Test
     public void testDeviceCompatibility() {
-        // Device type classes
-        TestParameter deviceType = new TestParameter("deviceType", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Desktop", "WORKSTATION"),
-            SimpleValue.of("Laptop", "PORTABLE"),
-            SimpleValue.of("Tablet", "TOUCH_ENABLED"),
-            SimpleValue.of("Mobile", "HANDHELD")
-        ));
+        // Device types
+        SimpleValue<String> desktop = SimpleValue.of("Desktop", "WORKSTATION");
+        SimpleValue<String> laptop = SimpleValue.of("Laptop", "PORTABLE");
+        SimpleValue<String> tablet = SimpleValue.of("Tablet", "TOUCH_ENABLED");
+        SimpleValue<String> mobile = SimpleValue.of("Mobile", "HANDHELD");
 
         // Define device-resolution compatibility rules
         List<CompatibilityPredicate> deviceRules = Arrays.asList(
@@ -277,14 +262,11 @@ public class JpWiseDemoTest {
             }
         );
 
-        TestInput deviceInput = new TestInput();
-        deviceInput.add(new TestParameter("deviceType", deviceType.getPartitions(), deviceRules));
-        deviceInput.add(screenResolution);
-
-        TestGenerator generator = new TestGenerator(deviceInput);
-        generator.generate(new PairwiseAlgorithm());
-
-        CombinationTable results = generator.result();
+        // Create parameters with rules and generate combinations
+        CombinationTable results = JPWise.generatePairwise(
+            new TestParameter("deviceType", Arrays.asList(desktop, laptop, tablet, mobile), deviceRules),
+            new TestParameter("screenResolution", Arrays.asList(hd, qhd, uhd, hdReady))
+        );
         
         // Verify device compatibility rules
         for (Combination combination : results.combinations()) {
@@ -304,29 +286,18 @@ public class JpWiseDemoTest {
 
     @Test
     public void testPerformanceScenarios() {
-        // Load condition classes with specific user counts
-        TestParameter loadCondition = new TestParameter("loadCondition", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Light", "100_USERS"),
-            SimpleValue.of("Medium", "1000_USERS"),
-            SimpleValue.of("Heavy", "10000_USERS"),
-            SimpleValue.of("Peak", "100000_USERS")
-        ));
+        // Load conditions
+        SimpleValue<String> lightLoad = SimpleValue.of("Light", "100_USERS");
+        SimpleValue<String> mediumLoad = SimpleValue.of("Medium", "1000_USERS");
+        SimpleValue<String> heavyLoad = SimpleValue.of("Heavy", "10000_USERS");
+        SimpleValue<String> peakLoad = SimpleValue.of("Peak", "100000_USERS");
 
-        // Cache status classes with specific states
-        TestParameter cacheStatus = new TestParameter("cacheStatus", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Warm", "FULLY_POPULATED"),
-            SimpleValue.of("Cold", "EMPTY"),
-            SimpleValue.of("Partial", "PARTIALLY_POPULATED")
-        ));
+        // Cache status
+        SimpleValue<String> warmCache = SimpleValue.of("Warm", "FULLY_POPULATED");
+        SimpleValue<String> coldCache = SimpleValue.of("Cold", "EMPTY");
+        SimpleValue<String> partialCache = SimpleValue.of("Partial", "PARTIALLY_POPULATED");
 
-        // Concurrent users classes with specific thresholds
-        TestParameter concurrentUsers = new TestParameter("concurrentUsers", Arrays.<EquivalencePartition<?>>asList(
-            SimpleValue.of("Low", "100"),
-            SimpleValue.of("Medium", "1000"),
-            SimpleValue.of("High", "10000")
-        ));
-
-        // Define performance compatibility rules using predicates
+        // Define performance compatibility rules
         List<CompatibilityPredicate> performanceRules = Arrays.asList(
             (v1, v2) -> {
                 // Only apply rules if we're dealing with load and network conditions
@@ -352,21 +323,19 @@ public class JpWiseDemoTest {
                     return not(nameIs("3G")).test(v2);
                 }
 
-                // All other combinations are compatible
                 return true;
             }
         );
 
-        TestInput performanceInput = new TestInput();
-        performanceInput.add(new TestParameter("loadCondition", loadCondition.getPartitions(), performanceRules));
-        performanceInput.add(networkCondition);
-        performanceInput.add(cacheStatus);
-        performanceInput.add(concurrentUsers);
-
-        TestGenerator generator = new TestGenerator(performanceInput);
-        generator.generate(new PairwiseAlgorithm());
-
-        CombinationTable results = generator.result();
+        // Create parameters with rules and generate combinations
+        CombinationTable results = JPWise.generatePairwise(
+            new TestParameter("loadCondition", 
+                Arrays.asList(lightLoad, mediumLoad, heavyLoad, peakLoad), performanceRules),
+            new TestParameter("networkCondition", 
+                Arrays.asList(network4g, network5g, networkFiber, network3g)),
+            new TestParameter("cacheStatus", 
+                Arrays.asList(warmCache, coldCache, partialCache))
+        );
         
         // Verify performance rules
         for (Combination combination : results.combinations()) {

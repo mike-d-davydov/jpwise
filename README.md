@@ -5,7 +5,6 @@ JPWise is a powerful Java framework for generating pairwise test combinations, w
 ## Table of Contents
 - [History](#history)
 - [Terminology](#terminology)
-- [Author](#author)
 - [Features](#features)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
@@ -83,31 +82,46 @@ Add to your pom.xml:
 
 ## Basic Usage
 
+The most concise way to use JPWise is through the builder API:
+
 ```java
-// Define parameters and their partitions
-TestParameter browser = new TestParameter("browser", Arrays.asList(
-    SimpleValue.of("Chrome"),
-    SimpleValue.of("Firefox"),
-    SimpleValue.of("Safari")
-));
+// Define parameter values using convenient factory methods
+SimpleValue<String> chrome = SimpleValue.of("Chrome");  // Value same as name
+SimpleValue<String> firefox = SimpleValue.of("Firefox");
+SimpleValue<String> windows = SimpleValue.of("Windows", "11");  // Explicit value
+SimpleValue<String> macOS = SimpleValue.of("macOS", "14.1");
 
-TestParameter os = new TestParameter("os", Arrays.asList(
-    SimpleValue.of("Windows"),
-    SimpleValue.of("MacOS"),
-    SimpleValue.of("Linux")
-));
+// Create test combinations using the builder
+CombinationTable results = JPWise.builder()
+    .parameter("browser", Arrays.asList(chrome, firefox))
+    .parameter("os", Arrays.asList(windows, macOS))
+    .generatePairwise();
 
-// Create test input
-TestInput input = new TestInput();
-input.add(browser);
-input.add(os);
+// Use the results
+for (Combination combination : results.combinations()) {
+    String browserValue = combination.getValue(0).getValue();
+    String osValue = combination.getValue(1).getValue();
+    System.out.println(browserValue + " on " + osValue);
+}
+```
 
-// Generate test combinations
-TestGenerator generator = new TestGenerator(input);
-generator.generate(new PairwiseAlgorithm());
+You can also use the direct generation method for even more concise code:
 
-// Get results
-CombinationTable results = generator.result();
+```java
+CombinationTable results = JPWise.generatePairwise(
+    new TestParameter("browser", Arrays.asList(chrome, firefox)),
+    new TestParameter("os", Arrays.asList(windows, macOS))
+);
+```
+
+Or pre-populate parameters and use them later:
+
+```java
+TestParameter browser = new TestParameter("browser", Arrays.asList(chrome, firefox));
+TestParameter os = new TestParameter("os", Arrays.asList(windows, macOS));
+
+CombinationTable results = JPWise.withParameters(browser, os)
+    .generatePairwise();
 ```
 
 ## Advanced Usage
@@ -187,40 +201,27 @@ Predicate<EquivalencePartition<?>> isMacOS = PartitionConditionBuilder.where()
     .parameterNameIs("operatingSystem")
     .build();
 
-Predicate<EquivalencePartition<?>> isEdgeBrowser = PartitionConditionBuilder.where()
-    .nameIs("Edge")
-    .parameterNameIs("browser")
-    .build();
-
-Predicate<EquivalencePartition<?>> isWindowsOS = PartitionConditionBuilder.where()
-    .parameterNameIs("operatingSystem")
-    .nameIn("Windows 11", "Windows 10")
-    .build();
-
-// Complex rules using the predicates
+// Define compatibility rules
 List<CompatibilityPredicate> browserOsRules = Arrays.asList(
     // Safari only works with macOS
     (ep1, ep2) -> {
         if (isSafariBrowser.test(ep1)) return isMacOS.test(ep2);
         if (isSafariBrowser.test(ep2)) return isMacOS.test(ep1);
         return true;
-    },
-    // Edge only works with Windows
-    (ep1, ep2) -> {
-        if (isEdgeBrowser.test(ep1)) return isWindowsOS.test(ep2);
-        if (isEdgeBrowser.test(ep2)) return isWindowsOS.test(ep1);
-        return true;
     }
 );
 
-// Create parameters with rules
-TestParameter browser = new TestParameter("browser", browserPartitions, browserOsRules);
-TestParameter os = new TestParameter("os", osPartitions);
+// Create test combinations using the builder
+CombinationTable results = JPWise.builder()
+    .parameter("browser", browserPartitions, browserOsRules)
+    .parameter("os", osPartitions)
+    .generatePairwise();
 
-// Create test input
-TestInput input = new TestInput();
-input.add(browser);  // Rules are associated with the browser parameter
-input.add(os);
+// Or use the direct method
+results = JPWise.generatePairwise(
+    new TestParameter("browser", browserPartitions, browserOsRules),
+    new TestParameter("os", osPartitions)
+);
 ```
 
 ### Best Practices
@@ -248,28 +249,27 @@ input.add(os);
 ### Example: Complex Test Scenario
 
 ```java
+import static com.functest.jpwise.core.PartitionPredicates.*;
+
 // Browser versions with cycling values
-TestParameter browser = new TestParameter("browser", Arrays.asList(
-    new CyclingPartition<>("Chrome", "116.0.5845.96", 
-        Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98")),
-    new CyclingPartition<>("Firefox", "118.0.2",
-        Arrays.asList("118.0.2", "118.0.3", "118.1.0")),
-    new CyclingPartition<>("Safari", "17.0",
-        Arrays.asList("17.0", "17.0.1", "17.1"))
-));
+CyclingPartition<String> chrome = new CyclingPartition<>("Chrome", "116.0.5845.96", 
+    Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98"));
+CyclingPartition<String> firefox = new CyclingPartition<>("Firefox", "118.0.2",
+    Arrays.asList("118.0.2", "118.0.3", "118.1.0"));
+CyclingPartition<String> safari = new CyclingPartition<>("Safari", "17.0",
+    Arrays.asList("17.0", "17.0.1", "17.1"));
 
-// OS with dynamic version/build numbers
-TestParameter operatingSystem = new TestParameter("operatingSystem", Arrays.asList(
-    new GenericPartition<>("Windows 11", () -> "22H2 " + getLatestBuild("win11")),
-    new GenericPartition<>("Windows 10", () -> "22H2 " + getLatestBuild("win10")),
-    new GenericPartition<>("macOS", () -> getLatestVersion("macos"))
-));
+// OS with dynamic versions using factory method
+GenericPartition<String> windows11 = GenericPartition.of("Windows 11", 
+    () -> "22H2 " + getLatestBuild("win11"));
+GenericPartition<String> windows10 = GenericPartition.of("Windows 10", 
+    () -> "22H2 " + getLatestBuild("win10"));
+GenericPartition<String> macOS = GenericPartition.of("macOS", 
+    () -> getLatestVersion("macos"));
 
-// Screen resolutions (static values)
-TestParameter resolution = new TestParameter("resolution", Arrays.asList(
-    SimpleValue.of("HD", "1920x1080"),
-    SimpleValue.of("4K", "3840x2160")
-));
+// Screen resolutions using factory method
+SimpleValue<String> hd = SimpleValue.of("HD", "1920x1080");
+SimpleValue<String> uhd = SimpleValue.of("4K", "3840x2160");
 
 // Define predicates for clearer rule composition
 Predicate<EquivalencePartition<?>> isSafariBrowser = PartitionConditionBuilder.where()
@@ -287,103 +287,63 @@ Predicate<EquivalencePartition<?>> is4KResolution = PartitionConditionBuilder.wh
     .parameterNameIs("resolution")
     .build();
 
-Predicate<EquivalencePartition<?>> isOldWindows10 = PartitionConditionBuilder.where()
+Predicate<EquivalencePartition<?>> isWindows10 = PartitionConditionBuilder.where()
     .nameIs("Windows 10")
-    .valueContains("19045")
     .parameterNameIs("operatingSystem")
     .build();
 
-// Define compatibility rules with explicit symmetry handling
+// Define compatibility rules using predicates
 List<CompatibilityPredicate> rules = Arrays.asList(
     // Safari only works with macOS
-    // This rule is symmetric - it should be checked regardless of parameter order
     (ep1, ep2) -> {
-        // Check both directions explicitly for clarity
         if (isSafariBrowser.test(ep1)) return isMacOS.test(ep2);
         if (isSafariBrowser.test(ep2)) return isMacOS.test(ep1);
-        return true; // Other browsers work with all OS
+        return true;
     },
-    
-    // 4K not supported on older Windows 10
-    // This rule is symmetric - the constraint applies regardless of parameter order
+    // 4K not supported on Windows 10
     (ep1, ep2) -> {
-        // First direction: 4K resolution with OS
-        if (is4KResolution.test(ep1) && isOldWindows10.test(ep2)) return false;
-        // Reverse direction: OS with 4K resolution
-        if (is4KResolution.test(ep2) && isOldWindows10.test(ep1)) return false;
-        return true; // All other combinations are valid
+        if (is4KResolution.test(ep1) && isWindows10.test(ep2)) return false;
+        if (is4KResolution.test(ep2) && isWindows10.test(ep1)) return false;
+        return true;
     }
 );
 
-// Create test input and associate rules
-TestInput input = new TestInput();
+// Generate test combinations using the builder
+CombinationTable results = JPWise.builder()
+    .parameter("browser", Arrays.asList(chrome, firefox, safari))
+    .parameter("operatingSystem", Arrays.asList(windows11, windows10, macOS), rules)
+    .parameter("resolution", Arrays.asList(hd, uhd))
+    .generatePairwise();
 
-// Associate rules with relevant parameters
-// Note: When rules are associated with a parameter, they are primarily evaluated
-// when that parameter is being considered in a pair. However, it's still good
-// practice to make rules symmetric for robustness and clarity.
-browser.setCompatibilityRules(rules);    // Rules affecting browser
-resolution.setCompatibilityRules(rules);  // Rules affecting resolution
-
-input.add(browser);
-input.add(operatingSystem);
-input.add(resolution);
-
-// Generate combinations
-TestGenerator generator = new TestGenerator(input);
-generator.generate(new PairwiseAlgorithm());
-
-// The generated combinations will respect all compatibility rules,
-// regardless of the order in which parameters are paired
-CombinationTable results = generator.result();
-
-// Verify the rules are enforced
+// Verify the rules are enforced using defined predicates
 for (Combination combination : results.combinations()) {
     // Safari should only appear with macOS
-    if (isSafariBrowser.test(combination.getValue(0)) || 
-        isSafariBrowser.test(combination.getValue(1)) ||
-        isSafariBrowser.test(combination.getValue(2))) {
-        assert isMacOS.test(combination.getValue(1)) : "Safari must be paired with macOS";
+    if (isSafariBrowser.test(combination.getValue(0))) {
+        assert isMacOS.test(combination.getValue(1)) : 
+            "Safari must be paired with macOS";
     }
     
-    // 4K resolution should not appear with old Windows 10
+    // 4K resolution should not appear with Windows 10
     if (is4KResolution.test(combination.getValue(2))) {
-        assert !isOldWindows10.test(combination.getValue(1)) : "4K not supported on old Windows 10";
+        assert !isWindows10.test(combination.getValue(1)) : 
+            "4K not supported on Windows 10";
     }
 }
-
-This example demonstrates several important concepts:
-
-1. **Explicit Predicate Definition**: We define predicates separately for better readability and reuse.
-
-2. **Symmetric Rule Handling**: Each rule explicitly handles both possible orders of parameters:
-   - When checking Safari compatibility, we test both `(Safari, OS)` and `(OS, Safari)` pairs
-   - For 4K resolution compatibility, we check both `(4K, Windows)` and `(Windows, 4K)` pairs
-
-3. **Rule Association**: Rules are associated with specific parameters via `setCompatibilityRules`:
-   - When associated with `browser`, rules are primarily evaluated when browser partitions are being paired
-   - When associated with `resolution`, rules are evaluated when resolution partitions are being paired
-   - Making rules symmetric ensures correct behavior regardless of parameter order
-
-4. **Verification**: The example includes verification code to ensure rules are properly enforced in the generated combinations.
 ```
 
 ## TestNG DataProvider Integration
+
 ```java
 @DataProvider(name = "browserConfigs")
 public Object[][] getBrowserConfigs() {
-    TestParameter browser = new TestParameter("browser", Arrays.asList(
-        SimpleValue.of("Chrome", "116.0"),
-        SimpleValue.of("Firefox", "118.0")
-    ));
+    SimpleValue<String> chrome = SimpleValue.of("Chrome");  // Using name-only factory
+    SimpleValue<String> firefox = SimpleValue.of("Firefox");
     
-    TestInput input = new TestInput();
-    input.add(browser);
+    CombinationTable results = JPWise.builder()
+        .parameter("browser", Arrays.asList(chrome, firefox))
+        .generatePairwise();
     
-    TestGenerator generator = new TestGenerator(input);
-    generator.generate(new PairwiseAlgorithm());
-    
-    return generator.result().asDataProvider();
+    return results.asDataProvider();
 }
 
 @Test(dataProvider = "browserConfigs")
