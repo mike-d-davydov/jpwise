@@ -1,19 +1,16 @@
 package com.functest.jpwise.core;
 
 /**
- * @author DavydovMD
- * Date: 17.06.13
- * Time: 15:49
+ * @author DavydovMD Date: 17.06.13 Time: 15:49
  */
-
 public interface EquivalencePartition<T> {
-    TestParameter getParentParameter();
+  TestParameter getParentParameter();
 
-    void setParentParameter(TestParameter parameter);
+  void setParentParameter(TestParameter parameter);
 
-    T getValue();
+  T getValue();
 
-    String getName();
+  String getName();
 
-    boolean isCompatibleWith(EquivalencePartition<?> v2);
+  boolean isCompatibleWith(EquivalencePartition<?> v2);
 }
