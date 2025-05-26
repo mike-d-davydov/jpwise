@@ -62,12 +62,66 @@ JPWise uses specific terminology to describe its concepts:
 
 ## Installation
 
-Add to your pom.xml:
+### Using JitPack (Recommended)
+
+JPWise is available through [JitPack](https://jitpack.io), which builds the library automatically from GitHub releases.
+
+#### Maven
+Add the JitPack repository to your `pom.xml`:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+Then add the dependency:
 ```xml
 <dependency>
-    <groupId>com.functest</groupId>
+    <groupId>com.github.mikeddavydov</groupId>
     <artifactId>jpwise</artifactId>
-    <version>1.0.0</version>
+    <version>v1.0.0</version>
+</dependency>
+```
+
+#### Gradle
+Add the JitPack repository to your `build.gradle`:
+```gradle
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+```
+
+Then add the dependency:
+```gradle
+dependencies {
+    implementation 'com.github.mikeddavydov:jpwise:v1.0.0'
+}
+```
+
+#### How JitPack Works
+- JitPack automatically builds the library when you request it
+- The first build may take a few minutes, subsequent requests are served from cache
+- Use Git tags (like `v1.0.0`) or commit hashes as versions
+- Check build status at: https://jitpack.io/#mikeddavydov/jpwise
+
+### Alternative: Local Installation
+
+If you prefer to build locally, clone the repository and install:
+```bash
+git clone https://github.com/mikeddavydov/jpwise.git
+cd jpwise
+mvn clean install
+```
+
+Then add to your pom.xml:
+```xml
+<dependency>
+    <groupId>io.github.mikeddavydov</groupId>
+    <artifactId>jpwise</artifactId>
+    <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
 
