@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11]
+        java: [11, 17]
       fail-fast: false
 
     steps:
@@ -58,10 +58,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 8
+    - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
-        java-version: 8
+        java-version: 11
         distribution: 'temurin'
 
     - name: Cache Maven dependencies
@@ -115,10 +115,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 8
+    - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
-        java-version: 8
+        java-version: 11
         distribution: 'temurin'
 
     - name: Cache Maven dependencies

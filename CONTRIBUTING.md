@@ -133,8 +133,8 @@ The project uses GitHub Actions for continuous integration:
 
 1. **CI Workflow** (`.github/workflows/ci.yml`)
    - Runs on push/PR to main/develop branches
-   - Tests on multiple Java versions (8, 11, 17, 21)
-   - Tests on multiple OS (Ubuntu, Windows, macOS)
+   - Tests on multiple Java versions (11, 17)
+   - Tests on Ubuntu (simplified for cost efficiency)
    - Runs code quality checks
    - Generates coverage reports
 
