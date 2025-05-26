@@ -1,10 +1,12 @@
 package com.functest.jpwise.algo;
 
-import com.functest.jpwise.core.*;
-import com.google.common.base.Preconditions;
 import java.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.functest.jpwise.core.*;
+import com.google.common.base.Preconditions;
 
 /**
  * Original implementation of the pairwise algorithm that builds combinations by incrementally
@@ -28,13 +30,12 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
   private Map<String, Integer> _combinationMap = new HashMap<>();
 
   /** List of unprocessed combination pairs. */
-  private List<Combination> _combinationQueue = new ArrayList<Combination>() {};
+  private List<Combination> _combinationQueue = new ArrayList<Combination>();
 
   /** parameter to tune the selection of unprocessed combination pairs. */
   private int _jump;
 
   private final Random random = new Random();
-  private TestGenerator testGenerator;
 
   /** Constructor. */
   public LegacyPairwiseAlgorithm(int jump) {

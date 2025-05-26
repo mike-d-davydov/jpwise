@@ -53,7 +53,6 @@ public class Combination {
   private static final String SEPARATOR = "|";
   private static final String EMPTY = "_";
 
-  @SuppressWarnings("rawtypes")
   private EquivalencePartition[] values;
 
   /**
@@ -79,7 +78,7 @@ public class Combination {
     List<Object> res = new ArrayList<>();
     res.add(this.toString());
 
-    for (@SuppressWarnings("rawtypes") EquivalencePartition partition : values) {
+    for (EquivalencePartition partition : values) {
       res.add(partition.getValue());
     }
 
@@ -92,7 +91,7 @@ public class Combination {
    * @param i The index to get the value from
    * @return The equivalence partition at the specified index, or null if not set
    */
-  public EquivalencePartition<?> getValue(int i) {
+  public EquivalencePartition getValue(int i) {
     return values[i];
   }
 
@@ -102,7 +101,7 @@ public class Combination {
    * @param i The index to set the value at
    * @param value The equivalence partition to set
    */
-  public void setValue(int i, EquivalencePartition<?> value) {
+  public void setValue(int i, EquivalencePartition value) {
     values[i] = value;
   }
 
@@ -132,7 +131,7 @@ public class Combination {
    * @return true if all parameters have a partition set, false otherwise
    */
   public boolean isFilled() {
-    for (@SuppressWarnings("rawtypes") EquivalencePartition partition : values) {
+    for (EquivalencePartition partition : values) {
       if (partition == null) return false;
     }
     return true;
@@ -190,7 +189,6 @@ public class Combination {
    *
    * @return An array containing all parameter partitions
    */
-  @SuppressWarnings("rawtypes")
   public EquivalencePartition[] getValues() {
     return Arrays.copyOf(values, values.length);
   }
@@ -242,7 +240,7 @@ public class Combination {
   public boolean checkNoConflicts(GenerationAlgorithm algorithm) {
     // Only check compatibility between parameters that have rules
     for (int i = 0; i < values.length; i++) {
-      EquivalencePartition<?> v1 = values[i];
+      EquivalencePartition v1 = values[i];
       if (v1 == null) continue;
 
       // Only check parameters that have compatibility rules
@@ -250,7 +248,7 @@ public class Combination {
       if (param1.getDependencies().isEmpty()) continue;
 
       for (int j = i + 1; j < values.length; j++) {
-        EquivalencePartition<?> v2 = values[j];
+        EquivalencePartition v2 = values[j];
         if (v2 == null) continue;
 
         // Only check if either parameter has rules

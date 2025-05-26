@@ -6,11 +6,9 @@ import java.util.function.Supplier;
  * A generic implementation of an equivalence partition that uses a supplier function to generate
  * values. This class can be used as a base for specific partition types by providing different
  * value generation strategies.
- *
- * @param <T> The type of values in this partition
  */
-public class GenericPartition<T> extends BaseEquivalencePartition<T> {
-  private final Supplier<T> valueGenerator;
+public class GenericPartition extends BaseEquivalencePartition {
+  private final Supplier<Object> valueGenerator;
 
   /**
    * Creates a new generic partition with a name and a value generator function.
@@ -18,13 +16,13 @@ public class GenericPartition<T> extends BaseEquivalencePartition<T> {
    * @param name The name of this partition
    * @param valueGenerator A function that supplies values for this partition
    */
-  public GenericPartition(String name, Supplier<T> valueGenerator) {
+  public GenericPartition(String name, Supplier<Object> valueGenerator) {
     super(name);
     this.valueGenerator = valueGenerator;
   }
 
   @Override
-  public T getValue() {
+  public Object getValue() {
     return valueGenerator.get();
   }
 
@@ -33,10 +31,9 @@ public class GenericPartition<T> extends BaseEquivalencePartition<T> {
    *
    * @param name The name of this partition
    * @param valueGenerator A function that supplies values for this partition
-   * @param <T> The type of values in this partition
    * @return A new generic partition
    */
-  public static <T> GenericPartition<T> of(String name, Supplier<T> valueGenerator) {
-    return new GenericPartition<>(name, valueGenerator);
+  public static GenericPartition of(String name, Supplier<Object> valueGenerator) {
+    return new GenericPartition(name, valueGenerator);
   }
 }

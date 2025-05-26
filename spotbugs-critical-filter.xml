@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SpotBugs Critical Issues Filter
+  
+  This filter defines what constitutes "critical" issues that should fail builds.
+  Currently used by scripts/spotbugs-critical-check.sh for reference.
+  
+  Priority Levels:
+  - Priority 1: Critical issues (security, null pointers, resource leaks)
+  - Priority 2: High priority issues  
+  - Priority 3: Medium priority issues
+  - Priority 4: Low priority issues
+  
+  Only Priority 1 issues will fail the build.
+-->
+<FindBugsFilter>
+    <!-- Critical Security Issues -->
+    <Match>
+        <Bug category="SECURITY" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical Null Pointer Issues -->
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH" />
+        <Priority value="1" />
+    </Match>
+    
+    <Match>
+        <Bug pattern="NP_ALWAYS_NULL" />
+        <Priority value="1" />
+    </Match>
+    
+    <Match>
+        <Bug pattern="NP_ALWAYS_NULL_EXCEPTION" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical SQL Injection Issues -->
+    <Match>
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical Cryptographic Issues -->
+    <Match>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical Resource Management Issues -->
+    <Match>
+        <Bug pattern="OS_OPEN_STREAM" />
+        <Priority value="1" />
+    </Match>
+    
+    <Match>
+        <Bug pattern="OS_OPEN_STREAM_EXCEPTION_PATH" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical Concurrency Issues -->
+    <Match>
+        <Bug pattern="DC_DOUBLECHECK" />
+        <Priority value="1" />
+    </Match>
+    
+    <Match>
+        <Bug pattern="IS2_INCONSISTENT_SYNC" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical Performance Issues that can cause system failure -->
+    <Match>
+        <Bug pattern="DM_GC" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical API Usage Issues -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" />
+        <Priority value="1" />
+    </Match>
+    
+    <!-- Critical Exception Handling Issues -->
+    <Match>
+        <Bug pattern="DE_MIGHT_IGNORE" />
+        <Priority value="1" />
+    </Match>
+    
+    <Match>
+        <Bug pattern="REC_CATCH_EXCEPTION" />
+        <Priority value="1" />
+    </Match>
+</FindBugsFilter> 

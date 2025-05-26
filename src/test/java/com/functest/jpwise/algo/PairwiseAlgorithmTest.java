@@ -2,25 +2,27 @@ package com.functest.jpwise.algo;
 
 import static org.testng.Assert.*;
 
-import com.functest.jpwise.core.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.functest.jpwise.core.*;
 
 /** Unit tests for {@link PairwiseAlgorithm} class. */
 public class PairwiseAlgorithmTest {
   private TestInput input;
-  private SimpleValue<String> chrome;
-  private SimpleValue<String> firefox;
-  private SimpleValue<String> safari;
-  private SimpleValue<String> windows;
-  private SimpleValue<String> macOS;
-  private SimpleValue<String> linux;
-  private SimpleValue<String> hd;
-  private SimpleValue<String> qhd;
+  private SimpleValue chrome;
+  private SimpleValue firefox;
+  private SimpleValue safari;
+  private SimpleValue windows;
+  private SimpleValue macOS;
+  private SimpleValue linux;
+  private SimpleValue hd;
+  private SimpleValue qhd;
   private TestParameter browser;
   private TestParameter os;
   private TestParameter resolution;
@@ -42,20 +44,14 @@ public class PairwiseAlgorithmTest {
         Arrays.asList(
             (v1, v2) -> {
               // Only apply Safari-macOS rule if we're dealing with browser and OS
-              if (v1.getParentParameter().getName().equals("browser")
-                      && v2.getParentParameter().getName().equals("os")
-                  || v2.getParentParameter().getName().equals("browser")
-                      && v1.getParentParameter().getName().equals("os")) {
-                // Ensure v1 is the browser value
-                if (v2.getParentParameter().getName().equals("browser")) {
-                  EquivalencePartition<?> temp = v1;
-                  v1 = v2;
-                  v2 = temp;
-                }
-                // Safari only works with macOS
-                if (v1.getName().equals("Safari")) {
-                  return v2.getName().equals("macOS");
-                }
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("os"))) {
+                return true;
+              }
+
+              // Safari only works with macOS
+              if (v1.getName().equals("Safari")) {
+                return v2.getName().equals("macOS");
               }
               // All other combinations are compatible
               return true;
@@ -65,10 +61,10 @@ public class PairwiseAlgorithmTest {
     browser =
         new TestParameter(
             "browser",
-            Arrays.<EquivalencePartition<?>>asList(chrome, firefox, safari),
+            Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
             browserOsRules);
-    os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(windows, macOS, linux));
-    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition<?>>asList(hd, qhd));
+    os = new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
+    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd, qhd));
 
     // Create test input
     input = new TestInput();
@@ -103,8 +99,8 @@ public class PairwiseAlgorithmTest {
 
     // Verify that Safari only appears with macOS
     for (Combination combination : result.combinations()) {
-      EquivalencePartition<?> browserValue = combination.getValue(0);
-      EquivalencePartition<?> osValue = combination.getValue(1);
+      EquivalencePartition browserValue = combination.getValue(0);
+      EquivalencePartition osValue = combination.getValue(1);
 
       if (browserValue.getName().equals("Safari")) {
         assertEquals(osValue.getName(), "macOS", "Safari should only be combined with macOS");

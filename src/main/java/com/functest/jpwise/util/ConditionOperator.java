@@ -2,6 +2,8 @@ package com.functest.jpwise.util;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 /**
  * @author DavydovMD Date: 10.04.13 Time: 11:08
  */
@@ -21,10 +23,10 @@ public enum ConditionOperator {
     this.desc = desc;
   }
 
-  public boolean nullableEquals(Object a, Object b) {
+  public boolean nullableEquals(@Nullable Object a, @Nullable Object b) {
     if (((a == null) && (b != null)) || ((b == null) && (a != null))) return false;
 
-    return ((a == null) && (b == null)) || (a.equals(b));
+    return (a == b) || (a != null && a.equals(b));
   }
 
   public boolean apply(final Object left, final Object right) {

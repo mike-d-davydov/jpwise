@@ -2,22 +2,32 @@
 
 <configuration>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type
-             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <!-- Console appender with minimal output -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name="com.lordofthejars.foo" level="INFO" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </logger>
+    <!-- File appender for detailed logs -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>target/jpwise.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-    <!-- Strictly speaking, the level attribute is not necessary since -->
-    <!-- the level of the root level is set to DEBUG by default.       -->
-    <root level="DEBUG">
-        <appender-ref ref="STDOUT"/>
+    <!-- Set logging levels -->
+    <logger name="com.functest.jpwise" level="INFO" />
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.hibernate" level="WARN" />
+    <logger name="org.apache" level="WARN" />
+    <logger name="com.diffplug.spotless" level="WARN" />
+
+    <!-- Root logger - only show WARN and above on console -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </root>
 
 </configuration>

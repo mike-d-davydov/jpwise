@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# JPWise Pre-commit Hook
+# This hook runs before each commit to ensure code quality
+
+set -e
+
+echo "Running pre-commit checks..."
+
+# Check if Maven is available
+if ! command -v mvn &> /dev/null; then
+    echo "Error: Maven is not installed or not in PATH"
+    exit 1
+fi
+
+# Check if Java is available
+if ! command -v java &> /dev/null; then
+    echo "Error: Java is not installed or not in PATH"
+    exit 1
+fi
+
+# Format code with Spotless
+echo "Formatting code with Spotless..."
+if ! mvn spotless:apply -q; then
+    echo "Error: Code formatting failed"
+    exit 1
+fi
+
+# Check if Spotless made any changes
+if ! git diff --quiet; then
+    echo "Spotless made formatting changes. Please review and add them to your commit:"
+    git diff --name-only
+    echo ""
+    echo "Run 'git add .' to stage the formatting changes, then commit again."
+    exit 1
+fi
+
+# Compile the code
+echo "Compiling code..."
+if ! mvn compile -q; then
+    echo "Error: Code compilation failed"
+    exit 1
+fi
+
+# Run tests
+echo "Running tests..."
+if ! mvn test -q; then
+    echo "Error: Tests failed"
+    exit 1
+fi
+
+# Run SpotBugs for critical issues only
+echo "Running SpotBugs analysis for critical issues..."
+if ! ./scripts/spotbugs-critical-check.sh; then
+    echo "Error: SpotBugs found critical issues that must be fixed"
+    exit 1
+fi
+
+# Check for common issues in staged files
+echo "Checking staged files..."
+
+# Get list of staged Java files
+STAGED_JAVA_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$' || true)
+
+if [ -n "$STAGED_JAVA_FILES" ]; then
+    echo "Checking Java files for common issues..."
+    
+    # Check for System.out.println (should use logging)
+    if grep -n "System\.out\.println" $STAGED_JAVA_FILES; then
+        echo "Warning: Found System.out.println statements. Consider using proper logging."
+        echo "Do you want to continue? (y/n)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+    
+    # Check for TODO comments
+    if grep -n "TODO" $STAGED_JAVA_FILES; then
+        echo "Warning: Found TODO comments in staged files."
+        echo "Do you want to continue? (y/n)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+    
+    # Check for proper file endings (should end with newline)
+    for file in $STAGED_JAVA_FILES; do
+        if [ -n "$(tail -c1 "$file")" ]; then
+            echo "Warning: $file does not end with a newline"
+        fi
+    done
+fi
+
+echo "Pre-commit checks passed!"
+exit 0 

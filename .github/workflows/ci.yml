@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, develop, 'feature/**' ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  test:
+    name: Test on Java ${{ matrix.java }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [11, 17]
+      fail-fast: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Run tests
+      run: mvn clean test
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: |
+          target/surefire-reports/junitreports/TEST-*.xml
+        check_name: "Test Results (Java ${{ matrix.java }})"
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-java${{ matrix.java }}
+        path: target/surefire-reports/
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: 11
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Run SpotBugs Analysis
+      run: |
+        echo "🔍 Starting SpotBugs analysis..."
+        echo "Java version:"
+        java -version
+        echo "Maven version:"
+        mvn -version
+        echo "Current directory: $(pwd)"
+        echo "Files in target directory:"
+        ls -la target/ || echo "Target directory doesn't exist yet"
+        
+        echo "🏗️ Compiling project first..."
+        mvn clean compile -X
+        
+        echo "🔍 Running SpotBugs analysis with verbose output..."
+        mvn spotbugs:spotbugs -X
+        
+        echo "📁 Checking generated files..."
+        ls -la target/ || echo "Target directory still doesn't exist"
+        
+        echo "🔍 Running critical issues check..."
+        chmod +x scripts/spotbugs-critical-check.sh
+        ./scripts/spotbugs-critical-check.sh
+
+    - name: Upload SpotBugs Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: spotbugs-report
+        path: |
+          target/spotbugsXml.xml
+          target/spotbugs.html
+
+
+
+    - name: Run Checkstyle
+      run: |
+        mvn checkstyle:check
+        if [ $? -ne 0 ]; then
+          echo "❌ Code style issues found. Please fix them according to Checkstyle rules."
+          exit 1
+        else
+          echo "✅ Code style is correct."
+        fi
+
+    - name: Compile and package
+      run: mvn clean compile package -DskipTests
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: target/*.jar
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: 11
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Run tests with coverage
+      run: mvn clean test jacoco:report
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: target/site/jacoco/jacoco.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: target/site/jacoco/ 

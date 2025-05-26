@@ -4,15 +4,16 @@ import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /** Unit tests for {@link TestParameter} class. */
 public class TestParameterTest {
   private TestParameter parameter;
-  private SimpleValue<String> chrome;
-  private SimpleValue<String> firefox;
-  private SimpleValue<String> safari;
+  private SimpleValue chrome;
+  private SimpleValue firefox;
+  private SimpleValue safari;
 
   @BeforeMethod
   public void setUp() {
@@ -29,7 +30,7 @@ public class TestParameterTest {
 
   @Test
   public void testConstructorSetsPartitions() {
-    List<EquivalencePartition<?>> partitions = parameter.getPartitions();
+    List<EquivalencePartition> partitions = parameter.getPartitions();
     assertEquals(partitions.size(), 3, "Should have correct number of partitions");
     assertTrue(partitions.contains(chrome), "Should contain Chrome partition");
     assertTrue(partitions.contains(firefox), "Should contain Firefox partition");
@@ -38,7 +39,7 @@ public class TestParameterTest {
 
   @Test
   public void testConstructorSetsParentParameter() {
-    for (EquivalencePartition<?> partition : parameter.getPartitions()) {
+    for (EquivalencePartition partition : parameter.getPartitions()) {
       assertEquals(
           partition.getParentParameter(),
           parameter,
@@ -63,7 +64,7 @@ public class TestParameterTest {
 
   @Test
   public void testGetPartitionByIndex() {
-    List<EquivalencePartition<?>> partitions = parameter.getPartitions();
+    List<EquivalencePartition> partitions = parameter.getPartitions();
     for (int i = 0; i < partitions.size(); i++) {
       assertEquals(
           parameter.getPartitionByIndex(i),
@@ -90,17 +91,15 @@ public class TestParameterTest {
   @Test
   public void testAreCompatibleWithRules() {
     // Create a parameter with a rule that Safari is only compatible with MacOS
-    SimpleValue<String> macOS = SimpleValue.of("MacOS");
-    SimpleValue<String> windows = SimpleValue.of("Windows");
+    SimpleValue macOS = SimpleValue.of("MacOS");
+    SimpleValue windows = SimpleValue.of("Windows");
 
     List<CompatibilityPredicate> rules =
         Arrays.asList(
             (v1, v2) -> {
+              // Safari only works with MacOS
               if (v1.getValue().equals("Safari")) {
                 return v2.getValue().equals("MacOS");
-              }
-              if (v2.getValue().equals("Safari")) {
-                return v1.getValue().equals("MacOS");
               }
               return true;
             });
@@ -120,7 +119,7 @@ public class TestParameterTest {
 
   @Test
   public void testPartitionsAreImmutable() {
-    List<EquivalencePartition<?>> partitions = parameter.getPartitions();
+    List<EquivalencePartition> partitions = parameter.getPartitions();
     try {
       partitions.add(SimpleValue.of("Edge"));
       fail("Should not be able to modify the partitions list");

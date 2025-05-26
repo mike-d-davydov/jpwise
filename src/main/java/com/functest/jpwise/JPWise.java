@@ -1,12 +1,19 @@
 package com.functest.jpwise;
 
-import com.functest.jpwise.algo.CombinatorialAlgorithm;
-import com.functest.jpwise.algo.PairwiseAlgorithm;
-import com.functest.jpwise.core.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import com.functest.jpwise.algo.CombinatorialAlgorithm;
+import com.functest.jpwise.algo.PairwiseAlgorithm;
+import com.functest.jpwise.core.CombinationTable;
+import com.functest.jpwise.core.CompatibilityPredicate;
+import com.functest.jpwise.core.EquivalencePartition;
+import com.functest.jpwise.core.GenerationAlgorithm;
+import com.functest.jpwise.core.TestGenerator;
+import com.functest.jpwise.core.TestInput;
+import com.functest.jpwise.core.TestParameter;
 
 /**
  * A facade class providing a simplified API for the JPWise test generation framework. This class
@@ -276,7 +283,7 @@ public final class JPWise {
      * @return This builder instance
      * @throws NullPointerException if name or partitions array is null
      */
-    public InputBuilder parameter(String name, EquivalencePartition<?>... partitions) {
+    public InputBuilder parameter(String name, EquivalencePartition... partitions) {
       Objects.requireNonNull(name, "name must not be null");
       Objects.requireNonNull(partitions, "partitions must not be null");
       return parameter(new TestParameter(name, Arrays.asList(partitions)));
@@ -292,7 +299,7 @@ public final class JPWise {
      * @throws NullPointerException if any argument is null
      */
     public InputBuilder parameter(
-        String name, List<EquivalencePartition<?>> partitions, List<CompatibilityPredicate> rules) {
+        String name, List<EquivalencePartition> partitions, List<CompatibilityPredicate> rules) {
       Objects.requireNonNull(name, "name must not be null");
       Objects.requireNonNull(partitions, "partitions must not be null");
       Objects.requireNonNull(rules, "rules must not be null");
@@ -331,7 +338,11 @@ public final class JPWise {
      * @return The constructed test input
      */
     public TestInput build() {
-      return testInput;
+      TestInput copy = new TestInput();
+      for (TestParameter param : testInput.getTestParameters()) {
+        copy.add(param);
+      }
+      return copy;
     }
 
     /**

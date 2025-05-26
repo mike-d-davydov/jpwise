@@ -3,14 +3,14 @@ package com.functest.jpwise.core;
 /**
  * @author DavydovMD Date: 17.06.13 Time: 15:49
  */
-public interface EquivalencePartition<T> {
+public interface EquivalencePartition {
   TestParameter getParentParameter();
 
   void setParentParameter(TestParameter parameter);
 
-  T getValue();
+  Object getValue();
 
   String getName();
 
-  boolean isCompatibleWith(EquivalencePartition<?> v2);
+  boolean isCompatibleWith(EquivalencePartition v2);
 }

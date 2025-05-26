@@ -18,9 +18,10 @@
  */
 package com.functest.jpwise.core;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * The problem domain which we want to cover. It has many testParameters, each having several
@@ -36,6 +37,12 @@ public class TestInput {
   public TestInput() {
     super();
     testParameters = new ArrayList<>();
+  }
+
+  /** Copy constructor. */
+  public TestInput(TestInput other) {
+    super();
+    testParameters = new ArrayList<>(other.testParameters);
   }
 
   public List<TestParameter> getTestParameters() {

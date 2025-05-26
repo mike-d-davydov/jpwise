@@ -5,6 +5,7 @@ import static org.testng.Assert.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -13,10 +14,10 @@ public class CombinationTableTest {
   private CombinationTable table;
   private Combination combination1;
   private Combination combination2;
-  private SimpleValue<String> chrome;
-  private SimpleValue<String> firefox;
-  private SimpleValue<String> windows;
-  private SimpleValue<String> linux;
+  private SimpleValue chrome;
+  private SimpleValue firefox;
+  private SimpleValue windows;
+  private SimpleValue linux;
   private TestParameter browser;
   private TestParameter os;
 
@@ -31,8 +32,8 @@ public class CombinationTableTest {
     linux = SimpleValue.of("Linux");
 
     // Create parameters with their values
-    browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox));
-    os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(windows, linux));
+    browser = new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox));
+    os = new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, linux));
 
     // Create test combinations using the parameters
     combination1 = new Combination(2);
