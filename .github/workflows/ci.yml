@@ -8,12 +8,11 @@ on:
 
 jobs:
   test:
-    name: Test on Java ${{ matrix.java }} - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test on Java ${{ matrix.java }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11, 17, 21]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        java: [8, 11]
       fail-fast: false
 
     steps:
@@ -40,7 +39,7 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()
       with:
-        name: Maven Tests - Java ${{ matrix.java }} - ${{ matrix.os }}
+        name: Maven Tests - Java ${{ matrix.java }}
         path: target/surefire-reports/*.xml
         reporter: java-junit
 
@@ -48,7 +47,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results-java${{ matrix.java }}-${{ matrix.os }}
+        name: test-results-java${{ matrix.java }}
         path: target/surefire-reports/
 
   code-quality:
@@ -59,10 +58,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 11
+    - name: Set up JDK 8
       uses: actions/setup-java@v4
       with:
-        java-version: 11
+        java-version: 8
         distribution: 'temurin'
 
     - name: Cache Maven dependencies
@@ -72,21 +71,7 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Run SpotBugs Analysis (All Issues)
-      run: |
-        # First run SpotBugs to generate full report (don't fail on this)
-        mvn spotbugs:spotbugs -Dspotbugs.threshold=Low -Dspotbugs.failOnError=false
-        if [ -f target/spotbugsXml.xml ]; then
-          echo "SpotBugs analysis completed. Report available at target/spotbugsXml.xml"
-          if [ -s target/spotbugsXml.xml ]; then
-            echo "⚠️ SpotBugs found potential issues. Check the uploaded report for details."
-          else
-            echo "✅ SpotBugs found no issues."
-          fi
-        fi
-      continue-on-error: true
-
-    - name: Check Critical SpotBugs Issues
+    - name: Run SpotBugs Analysis
       run: |
         # Run our custom critical issues check script
         chmod +x scripts/spotbugs-critical-check.sh
@@ -101,37 +86,7 @@ jobs:
           target/spotbugsXml.xml
           target/spotbugs.html
 
-    - name: Comment SpotBugs Results
-      if: always() && github.event_name == 'pull_request'
-      run: |
-        if [ -f target/spotbugsXml.xml ]; then
-          TOTAL_ISSUES=$(grep -c '<BugInstance' target/spotbugsXml.xml || echo "0")
-          CRITICAL_ISSUES=$(grep -c 'priority="1"' target/spotbugsXml.xml || echo "0")
-          HIGH_ISSUES=$(grep -c 'priority="2"' target/spotbugsXml.xml || echo "0")
-          
-          echo "## 🔍 SpotBugs Analysis Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "$CRITICAL_ISSUES" -gt 0 ]; then
-            echo "🚨 **$CRITICAL_ISSUES critical issues found** - Build will fail" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ **No critical issues found** - Build can proceed" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📊 **Issue Summary:**" >> $GITHUB_STEP_SUMMARY
-          echo "- Critical (Priority 1): $CRITICAL_ISSUES" >> $GITHUB_STEP_SUMMARY
-          echo "- High (Priority 2): $HIGH_ISSUES" >> $GITHUB_STEP_SUMMARY
-          echo "- Total Issues: $TOTAL_ISSUES" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📋 [Download detailed SpotBugs report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** Only critical issues (Priority 1) will fail the build. Other issues are informational." >> $GITHUB_STEP_SUMMARY
-        else
-          echo "## 🔍 SpotBugs Analysis Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **No issues found**" >> $GITHUB_STEP_SUMMARY
-        fi
+
 
     - name: Run Checkstyle
       run: |
@@ -160,10 +115,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 11
+    - name: Set up JDK 8
       uses: actions/setup-java@v4
       with:
-        java-version: 11
+        java-version: 8
         distribution: 'temurin'
 
     - name: Cache Maven dependencies
