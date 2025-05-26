@@ -2,13 +2,15 @@ package com.functest.jpwise;
 
 import static org.testng.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.functest.jpwise.algo.CombinatorialAlgorithm;
 import com.functest.jpwise.algo.PairwiseAlgorithm;
 import com.functest.jpwise.core.*;
-import java.util.Arrays;
-import java.util.List;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 /** Tests for the JPWise facade class. */
 public class JPWiseTest {

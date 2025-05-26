@@ -1,9 +1,10 @@
 package com.functest.jpwise.algo;
 
-import com.functest.jpwise.core.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.functest.jpwise.core.*;
 
 /**
  * Implements a full combinatorial test case generation algorithm. This algorithm generates all

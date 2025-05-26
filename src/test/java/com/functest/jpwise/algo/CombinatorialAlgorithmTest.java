@@ -2,13 +2,15 @@ package com.functest.jpwise.algo;
 
 import static org.testng.Assert.*;
 
-import com.functest.jpwise.core.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.functest.jpwise.core.*;
 
 /** Unit tests for {@link CombinatorialAlgorithm} class. */
 public class CombinatorialAlgorithmTest {

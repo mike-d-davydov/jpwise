@@ -1,6 +1,7 @@
 package com.functest.jpwise.util;
 
 import java.util.Collection;
+
 import javax.annotation.Nullable;
 
 /**

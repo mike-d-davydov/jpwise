@@ -1,10 +1,12 @@
 package com.functest.jpwise.algo;
 
-import com.functest.jpwise.core.*;
-import com.google.common.base.Preconditions;
 import java.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.functest.jpwise.core.*;
+import com.google.common.base.Preconditions;
 
 /**
  * Implements the pairwise (2-wise) test case generation algorithm. This algorithm generates a

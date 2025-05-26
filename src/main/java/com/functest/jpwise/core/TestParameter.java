@@ -18,10 +18,11 @@
  */
 package com.functest.jpwise.core;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Represents a test parameter with its equivalence partitions and compatibility rules. A test

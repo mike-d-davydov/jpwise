@@ -2,11 +2,13 @@ package com.functest.jpwise;
 
 import static org.testng.Assert.*;
 
-import com.functest.jpwise.core.*;
 import java.util.Arrays;
 import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.functest.jpwise.core.*;
 
 /** Integration tests for JPWise demonstrating real-world web application testing scenarios. */
 public class JpWiseDemoTest {

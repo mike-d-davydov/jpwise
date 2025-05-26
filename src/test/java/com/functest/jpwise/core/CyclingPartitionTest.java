@@ -4,6 +4,7 @@ import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.testng.annotations.Test;
 
 /** Tests for {@link CyclingPartition} class. */

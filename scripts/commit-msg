@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# JPWise Commit Message Hook
+# This hook validates commit messages follow conventional commit format
+
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)(\(.+\))?: .{1,50}'
+
+error_msg="Aborting commit. Your commit message is invalid. See examples below:
+
+Valid commit message format:
+  <type>[optional scope]: <description>
+
+Examples:
+  feat: add new pairwise algorithm
+  fix(core): resolve compatibility rule bug
+  docs: update README with examples
+  test: add integration tests for JPWise
+  refactor: simplify TestParameter class
+  chore: update dependencies
+
+Types:
+  feat:     A new feature
+  fix:      A bug fix
+  docs:     Documentation only changes
+  style:    Changes that do not affect the meaning of the code
+  refactor: A code change that neither fixes a bug nor adds a feature
+  test:     Adding missing tests or correcting existing tests
+  chore:    Changes to the build process or auxiliary tools
+  ci:       Changes to CI configuration files and scripts
+  build:    Changes that affect the build system or external dependencies
+  perf:     A code change that improves performance
+  revert:   Reverts a previous commit
+
+The description should be:
+  - lowercase
+  - no period at the end
+  - maximum 50 characters"
+
+if ! grep -qE "$commit_regex" "$1"; then
+    echo "$error_msg" >&2
+    exit 1
+fi 

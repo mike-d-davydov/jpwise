@@ -140,14 +140,17 @@
                         </googleJavaFormat>
                         <removeUnusedImports />
                         <formatAnnotations />
+                        <importOrder>
+                            <order>java,javax,org,com</order>
+                        </importOrder>
                     </java>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>apply</goal>
+                            <goal>check</goal>
                         </goals>
-                        <phase>compile</phase>
+                        <phase>validate</phase>
                     </execution>
                 </executions>
             </plugin>
@@ -161,14 +164,11 @@
                     <effort>Max</effort>
                     <threshold>Low</threshold>
                     <failOnError>false</failOnError>
+                    <xmlOutput>true</xmlOutput>
+                    <htmlOutput>true</htmlOutput>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <!-- No automatic executions - run manually or via CI -->
             </plugin>
 
             <!-- Compiler plugin with all warnings enabled -->
@@ -186,6 +186,120 @@
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
+
+            <!-- Surefire plugin for running tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <reportFormat>xml</reportFormat>
+                </configuration>
+            </plugin>
+
+            <!-- JaCoCo for code coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Checkstyle for code style checking -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <configLocation>google_checks.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>false</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Source plugin for creating source JARs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- JavaDoc plugin for creating JavaDoc JARs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <source>8</source>
+                    <doclint>none</doclint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Versions plugin for updating dependencies -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.2</version>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- Distribution management for GitHub Packages -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/mikhail-davydov/jpwise</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- SCM information -->
+    <scm>
+        <connection>scm:git:git://github.com/mikhail-davydov/jpwise.git</connection>
+        <developerConnection>scm:git:ssh://github.com:mikhail-davydov/jpwise.git</developerConnection>
+        <url>http://github.com/mikhail-davydov/jpwise/tree/main</url>
+    </scm>
 </project>

@@ -2,12 +2,14 @@ package com.functest.jpwise.core;
 
 import static org.testng.Assert.*;
 
-import com.functest.jpwise.algo.CombinatorialAlgorithm;
-import com.functest.jpwise.algo.PairwiseAlgorithm;
 import java.util.Arrays;
 import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.functest.jpwise.algo.CombinatorialAlgorithm;
+import com.functest.jpwise.algo.PairwiseAlgorithm;
 
 /** Unit tests for {@link TestGenerator} class. */
 public class TestGeneratorTest {

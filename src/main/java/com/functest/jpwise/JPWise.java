@@ -1,12 +1,13 @@
 package com.functest.jpwise;
 
-import com.functest.jpwise.algo.CombinatorialAlgorithm;
-import com.functest.jpwise.algo.PairwiseAlgorithm;
-import com.functest.jpwise.core.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import com.functest.jpwise.algo.CombinatorialAlgorithm;
+import com.functest.jpwise.algo.PairwiseAlgorithm;
+import com.functest.jpwise.core.*;
 
 /**
  * A facade class providing a simplified API for the JPWise test generation framework. This class

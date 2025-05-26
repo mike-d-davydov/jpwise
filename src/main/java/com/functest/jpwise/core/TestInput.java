@@ -18,9 +18,10 @@
  */
 package com.functest.jpwise.core;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * The problem domain which we want to cover. It has many testParameters, each having several

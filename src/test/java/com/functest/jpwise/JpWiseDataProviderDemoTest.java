@@ -2,12 +2,14 @@ package com.functest.jpwise;
 
 import static org.testng.Assert.*;
 
-import com.functest.jpwise.algo.PairwiseAlgorithm;
-import com.functest.jpwise.core.*;
 import java.util.Arrays;
 import java.util.List;
+
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import com.functest.jpwise.algo.PairwiseAlgorithm;
+import com.functest.jpwise.core.*;
 
 /**
  * Demonstrates how to use JPWise with TestNG's data provider feature. This allows running the same

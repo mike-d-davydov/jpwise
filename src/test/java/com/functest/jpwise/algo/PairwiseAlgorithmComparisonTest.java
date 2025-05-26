@@ -2,10 +2,12 @@ package com.functest.jpwise.algo;
 
 import static org.testng.Assert.*;
 
-import com.functest.jpwise.core.*;
 import java.util.*;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.functest.jpwise.core.*;
 
 /**
  * Tests that compare the results of the old and new pairwise algorithms to ensure they generate
