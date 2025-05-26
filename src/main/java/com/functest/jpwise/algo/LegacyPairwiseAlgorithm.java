@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author panwei
  */
+@SuppressWarnings("rawtypes")
 public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
   /** Flag value to indicate that a combination pair has been generated. */
   private static final int COMPLETED = 1;
@@ -28,13 +29,12 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
   private Map<String, Integer> _combinationMap = new HashMap<>();
 
   /** List of unprocessed combination pairs. */
-  private List<Combination> _combinationQueue = new ArrayList<Combination>() {};
+  private List<Combination> _combinationQueue = new ArrayList<Combination>();
 
   /** parameter to tune the selection of unprocessed combination pairs. */
   private int _jump;
 
   private final Random random = new Random();
-  private TestGenerator testGenerator;
 
   /** Constructor. */
   public LegacyPairwiseAlgorithm(int jump) {

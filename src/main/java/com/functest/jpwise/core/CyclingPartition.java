@@ -24,13 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     Arrays.asList("116.0", "116.1", "116.2")  // Values to cycle through
  * );
  * </pre>
- *
- * @param <T> The type of values this partition cycles through
  */
-public class CyclingPartition<T> extends BaseEquivalencePartition<T> {
-  private final List<T> equivalentValues;
+public class CyclingPartition extends BaseEquivalencePartition {
+  private final List<Object> equivalentValues;
   private final AtomicInteger currentIndex = new AtomicInteger(0);
-  private final T defaultValue;
 
   /**
    * Creates a new cycling partition with a name, default value, and a collection of equivalent
@@ -40,14 +37,13 @@ public class CyclingPartition<T> extends BaseEquivalencePartition<T> {
    * @param defaultValue The default value to start with
    * @param equivalentValues Collection of values to cycle through
    */
-  public CyclingPartition(String name, T defaultValue, Collection<T> equivalentValues) {
+  public CyclingPartition(String name, Object defaultValue, Collection<Object> equivalentValues) {
     super(name);
-    List<T> values = new ArrayList<>(equivalentValues);
+    List<Object> values = new ArrayList<>(equivalentValues);
     if (!values.contains(defaultValue)) {
       values.add(0, defaultValue);
     }
     this.equivalentValues = Collections.unmodifiableList(values);
-    this.defaultValue = defaultValue;
   }
 
   /**
@@ -57,14 +53,13 @@ public class CyclingPartition<T> extends BaseEquivalencePartition<T> {
    * @param name The name of this partition (e.g., "Chrome")
    * @param equivalentValues Collection of values to cycle through
    */
-  public CyclingPartition(String name, Collection<T> equivalentValues) {
+  public CyclingPartition(String name, Collection<Object> equivalentValues) {
     super(name);
-    List<T> immutableValues = Collections.unmodifiableList(new ArrayList<>(equivalentValues));
+    List<Object> immutableValues = Collections.unmodifiableList(new ArrayList<>(equivalentValues));
     if (immutableValues.isEmpty()) {
       throw new IllegalArgumentException("Must provide at least one value");
     }
     this.equivalentValues = immutableValues;
-    this.defaultValue = immutableValues.get(0);
   }
 
   /**
@@ -74,7 +69,7 @@ public class CyclingPartition<T> extends BaseEquivalencePartition<T> {
    * @return The next value in the cycle
    */
   @Override
-  public T getValue() {
+  public Object getValue() {
     return equivalentValues.get(currentIndex.getAndUpdate(i -> (i + 1) % equivalentValues.size()));
   }
 }

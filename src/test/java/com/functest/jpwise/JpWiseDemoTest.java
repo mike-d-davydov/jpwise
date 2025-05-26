@@ -1,6 +1,5 @@
 package com.functest.jpwise;
 
-import static com.functest.jpwise.core.PartitionPredicates.*;
 import static org.testng.Assert.*;
 
 import com.functest.jpwise.core.*;
@@ -11,43 +10,37 @@ import org.testng.annotations.Test;
 
 /** Integration tests for JPWise demonstrating real-world web application testing scenarios. */
 public class JpWiseDemoTest {
-  private CyclingPartition<String> chrome;
-  private CyclingPartition<String> firefox;
-  private CyclingPartition<String> safari;
-  private CyclingPartition<String> edge;
-  private GenericPartition<String> windows11;
-  private GenericPartition<String> windows10;
-  private GenericPartition<String> macOS;
-  private GenericPartition<String> ubuntu;
-  private GenericPartition<String> fedora;
-  private SimpleValue<String> hd;
-  private SimpleValue<String> qhd;
-  private SimpleValue<String> uhd;
-  private SimpleValue<String> hdReady;
-  private SimpleValue<String> network4g;
-  private SimpleValue<String> network5g;
-  private SimpleValue<String> networkFiber;
-  private SimpleValue<String> network3g;
-  private SimpleValue<String> admin;
-  private SimpleValue<String> manager;
-  private SimpleValue<String> user;
-  private SimpleValue<String> guest;
+  private CyclingPartition chrome;
+  private CyclingPartition firefox;
+  private CyclingPartition safari;
+  private CyclingPartition edge;
+  private GenericPartition windows11;
+  private GenericPartition windows10;
+  private GenericPartition macOS;
+  private GenericPartition ubuntu;
+  private GenericPartition fedora;
+  private SimpleValue hd;
+  private SimpleValue qhd;
+  private SimpleValue uhd;
+  private SimpleValue hdReady;
+  private SimpleValue network4g;
+  private SimpleValue network5g;
+  private SimpleValue networkFiber;
+  private SimpleValue network3g;
+  private SimpleValue admin;
+  private SimpleValue manager;
+  private SimpleValue user;
+  private SimpleValue guest;
 
   @BeforeMethod
   public void setUp() {
     // Browser versions with cycling
     chrome =
-        new CyclingPartition<>(
-            "Chrome",
-            "116.0.5845.96",
-            Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98"));
-    firefox =
-        new CyclingPartition<>(
-            "Firefox", "118.0.2", Arrays.asList("118.0.2", "118.0.3", "118.1.0"));
-    safari = new CyclingPartition<>("Safari", "17.0", Arrays.asList("17.0", "17.0.1", "17.1"));
-    edge =
-        new CyclingPartition<>(
-            "Edge", "117.0.2045.47", Arrays.asList("117.0.2045.47", "117.0.2045.48", "117.1.0"));
+        new CyclingPartition(
+            "Chrome", Arrays.asList("116.0.5845.96", "116.0.5845.97", "116.0.5845.98"));
+    firefox = new CyclingPartition("Firefox", Arrays.asList("118.0.2", "118.0.3", "118.1.0"));
+    safari = new CyclingPartition("Safari", Arrays.asList("17.0", "17.0.1", "17.1"));
+    edge = new CyclingPartition("Edge", Arrays.asList("117.0.2045.47", "117.0.2045.48", "117.1.0"));
 
     // OS with dynamic versions
     windows11 = GenericPartition.of("Windows 11", () -> "22H2 22621.2428");
@@ -77,33 +70,25 @@ public class JpWiseDemoTest {
 
   @Test
   public void testBrowserCompatibilityRules() {
-    // Define browser-OS compatibility rules using fluent API
+    // Define browser-OS compatibility rules using direct method calls
+
     List<CompatibilityPredicate> browserOsRules =
         Arrays.asList(
             (v1, v2) -> {
               // Only apply rules if we're dealing with browser and OS parameters
-              if (!(parameterNameIs("browser").test(v1)
-                      && parameterNameIs("operatingSystem").test(v2))
-                  && !(parameterNameIs("operatingSystem").test(v1)
-                      && parameterNameIs("browser").test(v2))) {
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("operatingSystem"))) {
                 return true;
               }
 
-              // Ensure v1 is the browser value
-              if (parameterNameIs("operatingSystem").test(v1)) {
-                EquivalencePartition<?> temp = v1;
-                v1 = v2;
-                v2 = temp;
-              }
-
               // Safari only works with macOS
-              if (nameIs("Safari").test(v1)) {
-                return nameIs("macOS").test(v2);
+              if (v1.getName().equals("Safari")) {
+                return v2.getName().equals("macOS");
               }
 
               // Edge only works with Windows
-              if (nameIs("Edge").test(v1)) {
-                return or(nameIs("Windows 11"), nameIs("Windows 10")).test(v2);
+              if (v1.getName().equals("Edge")) {
+                return v2.getName().equals("Windows 11") || v2.getName().equals("Windows 10");
               }
 
               // Chrome and Firefox work with all OS
@@ -122,16 +107,16 @@ public class JpWiseDemoTest {
 
     // Verify browser-OS compatibility rules
     for (Combination combination : results.combinations()) {
-      EquivalencePartition<?> browserValue = combination.getValue(0);
-      EquivalencePartition<?> osValue = combination.getValue(1);
+      EquivalencePartition browserValue = combination.getValue(0);
+      EquivalencePartition osValue = combination.getValue(1);
 
-      if (nameIs("Safari").test(browserValue)) {
-        assertTrue(nameIs("macOS").test(osValue), "Safari should only work with macOS");
+      if (browserValue.getName().equals("Safari")) {
+        assertTrue(osValue.getName().equals("macOS"), "Safari should only work with macOS");
       }
 
-      if (nameIs("Edge").test(browserValue)) {
+      if (browserValue.getName().equals("Edge")) {
         assertTrue(
-            or(nameIs("Windows 11"), nameIs("Windows 10")).test(osValue),
+            osValue.getName().equals("Windows 11") || osValue.getName().equals("Windows 10"),
             "Edge should only work with Windows");
       }
     }
@@ -140,52 +125,44 @@ public class JpWiseDemoTest {
   @Test
   public void testEnterpriseAccessControl() {
     // Enterprise department classes
-    SimpleValue<String> sales = SimpleValue.of("Sales", "REVENUE_CRITICAL");
-    SimpleValue<String> engineering = SimpleValue.of("Engineering", "TECHNICAL");
-    SimpleValue<String> marketing = SimpleValue.of("Marketing", "CONTENT_FOCUSED");
-    SimpleValue<String> support = SimpleValue.of("Support", "CUSTOMER_FACING");
+    SimpleValue sales = SimpleValue.of("Sales", "REVENUE_CRITICAL");
+    SimpleValue engineering = SimpleValue.of("Engineering", "TECHNICAL");
+    SimpleValue marketing = SimpleValue.of("Marketing", "CONTENT_FOCUSED");
+    SimpleValue support = SimpleValue.of("Support", "CUSTOMER_FACING");
 
     // Access level classes
-    SimpleValue<String> fullAccess = SimpleValue.of("Full", "ALL_OPERATIONS");
-    SimpleValue<String> readWrite = SimpleValue.of("ReadWrite", "MODIFY_CONTENT");
-    SimpleValue<String> readOnly = SimpleValue.of("ReadOnly", "VIEW_CONTENT");
-    SimpleValue<String> restricted = SimpleValue.of("Restricted", "LIMITED_VIEW");
+    SimpleValue fullAccess = SimpleValue.of("Full", "ALL_OPERATIONS");
+    SimpleValue readWrite = SimpleValue.of("ReadWrite", "MODIFY_CONTENT");
+    SimpleValue readOnly = SimpleValue.of("ReadOnly", "VIEW_CONTENT");
+    SimpleValue restricted = SimpleValue.of("Restricted", "LIMITED_VIEW");
 
-    // Define access control rules using predicates
+    // Define access control rules using direct method calls
     List<CompatibilityPredicate> accessRules =
         Arrays.asList(
             (v1, v2) -> {
               // Only apply rules if we're dealing with role and access level
-              if (!(parameterNameIs("userRole").test(v1) && parameterNameIs("accessLevel").test(v2))
-                  && !(parameterNameIs("accessLevel").test(v1)
-                      && parameterNameIs("userRole").test(v2))) {
+              if (!(v1.getParentParameter().getName().equals("userRole")
+                  && v2.getParentParameter().getName().equals("accessLevel"))) {
                 return true;
               }
 
-              // Ensure v1 is the role value
-              if (parameterNameIs("accessLevel").test(v1)) {
-                EquivalencePartition<?> temp = v1;
-                v1 = v2;
-                v2 = temp;
-              }
-
               // Only admins get full access
-              if (nameIs("Full").test(v2)) {
-                return nameIs("Admin").test(v1);
+              if (v2.getName().equals("Full")) {
+                return v1.getName().equals("Admin");
               }
 
               // ReadWrite access is only for Admin and Manager
-              if (nameIs("ReadWrite").test(v2)) {
-                return or(nameIs("Admin"), nameIs("Manager")).test(v1);
+              if (v2.getName().equals("ReadWrite")) {
+                return v1.getName().equals("Admin") || v1.getName().equals("Manager");
               }
 
               // Guests are always restricted
-              if (nameIs("Guest").test(v1)) {
-                return nameIs("Restricted").test(v2);
+              if (v1.getName().equals("Guest")) {
+                return v2.getName().equals("Restricted");
               }
 
               // Other roles get ReadOnly or Restricted
-              return or(nameIs("ReadOnly"), nameIs("Restricted")).test(v2);
+              return v2.getName().equals("ReadOnly") || v2.getName().equals("Restricted");
             });
 
     // Create parameters with rules and generate combinations
@@ -198,22 +175,25 @@ public class JpWiseDemoTest {
 
     // Verify access control rules
     for (Combination combination : results.combinations()) {
-      EquivalencePartition<?> roleValue = combination.getValue(0);
-      EquivalencePartition<?> accessValue = combination.getValue(2);
+      EquivalencePartition roleValue = combination.getValue(0);
+      EquivalencePartition accessValue = combination.getValue(2);
 
-      if (nameIs("Admin").test(roleValue)) {
+      if (roleValue.getName().equals("Admin")) {
         // Admin can have any access level
         assertTrue(true);
-      } else if (nameIs("Guest").test(roleValue)) {
+      } else if (roleValue.getName().equals("Guest")) {
         assertTrue(
-            nameIs("Restricted").test(accessValue), "Guests should only have Restricted access");
-      } else if (nameIs("Manager").test(roleValue)) {
+            accessValue.getName().equals("Restricted"),
+            "Guests should only have Restricted access");
+      } else if (roleValue.getName().equals("Manager")) {
         assertTrue(
-            or(nameIs("ReadWrite"), nameIs("ReadOnly"), nameIs("Restricted")).test(accessValue),
+            accessValue.getName().equals("ReadWrite")
+                || accessValue.getName().equals("ReadOnly")
+                || accessValue.getName().equals("Restricted"),
             "Managers should have appropriate access level");
       } else {
         assertTrue(
-            or(nameIs("ReadOnly"), nameIs("Restricted")).test(accessValue),
+            accessValue.getName().equals("ReadOnly") || accessValue.getName().equals("Restricted"),
             "Other roles should have ReadOnly or Restricted access");
       }
     }
@@ -222,38 +202,29 @@ public class JpWiseDemoTest {
   @Test
   public void testDeviceCompatibility() {
     // Device types
-    SimpleValue<String> desktop = SimpleValue.of("Desktop", "WORKSTATION");
-    SimpleValue<String> laptop = SimpleValue.of("Laptop", "PORTABLE");
-    SimpleValue<String> tablet = SimpleValue.of("Tablet", "TOUCH_ENABLED");
-    SimpleValue<String> mobile = SimpleValue.of("Mobile", "HANDHELD");
+    SimpleValue desktop = SimpleValue.of("Desktop", "WORKSTATION");
+    SimpleValue laptop = SimpleValue.of("Laptop", "PORTABLE");
+    SimpleValue tablet = SimpleValue.of("Tablet", "TOUCH_ENABLED");
+    SimpleValue mobile = SimpleValue.of("Mobile", "HANDHELD");
 
     // Define device-resolution compatibility rules
     List<CompatibilityPredicate> deviceRules =
         Arrays.asList(
             (v1, v2) -> {
               // Only apply rules if we're dealing with device and resolution
-              if (!(parameterNameIs("deviceType").test(v1)
-                      && parameterNameIs("screenResolution").test(v2))
-                  && !(parameterNameIs("screenResolution").test(v1)
-                      && parameterNameIs("deviceType").test(v2))) {
+              if (!(v1.getParentParameter().getName().equals("deviceType")
+                  && v2.getParentParameter().getName().equals("screenResolution"))) {
                 return true;
               }
 
-              // Ensure v1 is the device value
-              if (parameterNameIs("screenResolution").test(v1)) {
-                EquivalencePartition<?> temp = v1;
-                v1 = v2;
-                v2 = temp;
-              }
-
               // Mobile devices don't support 4K
-              if (nameIs("Mobile").test(v1)) {
-                return !nameIs("4K").test(v2);
+              if (v1.getName().equals("Mobile")) {
+                return !v2.getName().equals("4K");
               }
 
               // Tablets don't use HD Ready
-              if (nameIs("Tablet").test(v1)) {
-                return !nameIs("HD Ready").test(v2);
+              if (v1.getName().equals("Tablet")) {
+                return !v2.getName().equals("HD Ready");
               }
 
               return true;
@@ -268,16 +239,17 @@ public class JpWiseDemoTest {
 
     // Verify device compatibility rules
     for (Combination combination : results.combinations()) {
-      EquivalencePartition<?> deviceValue = combination.getValue(0);
-      EquivalencePartition<?> resolutionValue = combination.getValue(1);
+      EquivalencePartition deviceValue = combination.getValue(0);
+      EquivalencePartition resolutionValue = combination.getValue(1);
 
-      if (nameIs("Mobile").test(deviceValue)) {
+      if (deviceValue.getName().equals("Mobile")) {
         assertFalse(
-            nameIs("4K").test(resolutionValue), "Mobile devices should not use 4K resolution");
+            resolutionValue.getName().equals("4K"), "Mobile devices should not use 4K resolution");
       }
-      if (nameIs("Tablet").test(deviceValue)) {
+      if (deviceValue.getName().equals("Tablet")) {
         assertFalse(
-            nameIs("HD Ready").test(resolutionValue), "Tablets should not use HD Ready resolution");
+            resolutionValue.getName().equals("HD Ready"),
+            "Tablets should not use HD Ready resolution");
       }
     }
   }
@@ -285,43 +257,34 @@ public class JpWiseDemoTest {
   @Test
   public void testPerformanceScenarios() {
     // Load conditions
-    SimpleValue<String> lightLoad = SimpleValue.of("Light", "100_USERS");
-    SimpleValue<String> mediumLoad = SimpleValue.of("Medium", "1000_USERS");
-    SimpleValue<String> heavyLoad = SimpleValue.of("Heavy", "10000_USERS");
-    SimpleValue<String> peakLoad = SimpleValue.of("Peak", "100000_USERS");
+    SimpleValue lightLoad = SimpleValue.of("Light", "100_USERS");
+    SimpleValue mediumLoad = SimpleValue.of("Medium", "1000_USERS");
+    SimpleValue heavyLoad = SimpleValue.of("Heavy", "10000_USERS");
+    SimpleValue peakLoad = SimpleValue.of("Peak", "100000_USERS");
 
     // Cache status
-    SimpleValue<String> warmCache = SimpleValue.of("Warm", "FULLY_POPULATED");
-    SimpleValue<String> coldCache = SimpleValue.of("Cold", "EMPTY");
-    SimpleValue<String> partialCache = SimpleValue.of("Partial", "PARTIALLY_POPULATED");
+    SimpleValue warmCache = SimpleValue.of("Warm", "FULLY_POPULATED");
+    SimpleValue coldCache = SimpleValue.of("Cold", "EMPTY");
+    SimpleValue partialCache = SimpleValue.of("Partial", "PARTIALLY_POPULATED");
 
     // Define performance compatibility rules
     List<CompatibilityPredicate> performanceRules =
         Arrays.asList(
             (v1, v2) -> {
               // Only apply rules if we're dealing with load and network conditions
-              if (!(parameterNameIs("loadCondition").test(v1)
-                      && parameterNameIs("networkCondition").test(v2))
-                  && !(parameterNameIs("networkCondition").test(v1)
-                      && parameterNameIs("loadCondition").test(v2))) {
+              if (!(v1.getParentParameter().getName().equals("loadCondition")
+                  && v2.getParentParameter().getName().equals("networkCondition"))) {
                 return true;
               }
 
-              // Ensure v1 is the load value
-              if (parameterNameIs("networkCondition").test(v1)) {
-                EquivalencePartition<?> temp = v1;
-                v1 = v2;
-                v2 = temp;
-              }
-
               // Peak load requires high-speed networks
-              if (nameIs("Peak").test(v1)) {
-                return or(nameIs("5G"), nameIs("Fiber")).test(v2);
+              if (v1.getName().equals("Peak")) {
+                return v2.getName().equals("5G") || v2.getName().equals("Fiber");
               }
 
               // Heavy load doesn't work well with 3G
-              if (nameIs("Heavy").test(v1)) {
-                return not(nameIs("3G")).test(v2);
+              if (v1.getName().equals("Heavy")) {
+                return !v2.getName().equals("3G");
               }
 
               return true;
@@ -340,17 +303,17 @@ public class JpWiseDemoTest {
 
     // Verify performance rules
     for (Combination combination : results.combinations()) {
-      EquivalencePartition<?> loadValue = combination.getValue(0);
-      EquivalencePartition<?> networkValue = combination.getValue(1);
+      EquivalencePartition loadValue = combination.getValue(0);
+      EquivalencePartition networkValue = combination.getValue(1);
 
-      if (nameIs("Peak").test(loadValue)) {
+      if (loadValue.getName().equals("Peak")) {
         assertTrue(
-            or(nameIs("5G"), nameIs("Fiber")).test(networkValue),
+            networkValue.getName().equals("5G") || networkValue.getName().equals("Fiber"),
             "Peak load should only use high-speed networks");
       }
 
-      if (nameIs("Heavy").test(loadValue)) {
-        assertFalse(nameIs("3G").test(networkValue), "Heavy load should not use 3G network");
+      if (loadValue.getName().equals("Heavy")) {
+        assertFalse(networkValue.getName().equals("3G"), "Heavy load should not use 3G network");
       }
     }
   }

@@ -38,16 +38,17 @@ import java.util.List;
  * // Simple parameter without compatibility rules
  * TestParameter browser = new TestParameter("browser", Arrays.asList(
  *     SimpleValue.of("Chrome"),
- *     SimpleValue.of("Firefox")
- * ));
+ *     SimpleValue.of("Firefox")));
  *
- * // Parameter with compatibility rules
+ * // Parameter with compatibility rules using direct method calls
  * List<CompatibilityPredicate> rules = Arrays.asList(
- *     PartitionCompatibility.partitionsAre(
- *         new PartitionMatcher(Field.NAME, ConditionOperator.EQ, "Safari"),
- *         new PartitionMatcher(Field.NAME, ConditionOperator.EQ, "MacOS")
- *     )
- * );
+ *     (ep1, ep2) -> {
+ *         // Safari only works with macOS
+ *         if (ep1.getName().equals("Safari") && ep2.getParentParameter().getName().equals("operatingSystem")) {
+ *             return ep2.getName().equals("macOS");
+ *         }
+ *         return true;
+ *     });
  * TestParameter browser = new TestParameter("browser", partitions, rules);
  * </pre>
  *
@@ -57,7 +58,7 @@ import java.util.List;
  */
 public class TestParameter {
   private String name;
-  private ImmutableList<EquivalencePartition<?>> partitions;
+  private ImmutableList<EquivalencePartition> partitions;
   private Collection<CompatibilityPredicate> dependencies = new ArrayList<>();
 
   /**
@@ -67,12 +68,12 @@ public class TestParameter {
    * @param theName The name of the parameter (used for reporting and identification)
    * @param partitions Collection of equivalence partitions for this parameter
    */
-  public TestParameter(String theName, Collection<? extends EquivalencePartition<?>> partitions) {
+  public TestParameter(String theName, Collection<EquivalencePartition> partitions) {
     super();
     name = theName;
     this.partitions = ImmutableList.copyOf(partitions);
 
-    for (EquivalencePartition<?> partition : partitions) {
+    for (EquivalencePartition partition : partitions) {
       partition.setParentParameter(this);
     }
   }
@@ -88,13 +89,13 @@ public class TestParameter {
    */
   public TestParameter(
       String theName,
-      Collection<? extends EquivalencePartition<?>> partitions,
+      Collection<EquivalencePartition> partitions,
       List<CompatibilityPredicate> dependencies) {
     super();
     name = theName;
     this.dependencies = ImmutableList.copyOf(dependencies);
     this.partitions = ImmutableList.copyOf(partitions);
-    for (EquivalencePartition<?> partition : partitions) {
+    for (EquivalencePartition partition : partitions) {
       partition.setParentParameter(this);
     }
   }
@@ -105,8 +106,8 @@ public class TestParameter {
    * @param name The name of the partition to find
    * @return The partition with the given name, or null if not found
    */
-  public EquivalencePartition<?> getPartitionByName(String name) {
-    for (EquivalencePartition<?> partition : partitions) {
+  public EquivalencePartition getPartitionByName(String name) {
+    for (EquivalencePartition partition : partitions) {
       if (partition.getName().equals(name)) return partition;
     }
     return null;
@@ -119,7 +120,7 @@ public class TestParameter {
    * @return The partition at the given index
    * @throws IndexOutOfBoundsException if the index is out of range
    */
-  public EquivalencePartition<?> getPartitionByIndex(int i) {
+  public EquivalencePartition getPartitionByIndex(int i) {
     return partitions.get(i);
   }
 
@@ -137,7 +138,7 @@ public class TestParameter {
    *
    * @return An immutable list of all equivalence partitions
    */
-  public List<EquivalencePartition<?>> getPartitions() {
+  public List<EquivalencePartition> getPartitions() {
     return partitions;
   }
 
@@ -159,19 +160,21 @@ public class TestParameter {
    * @param partition2 The second equivalence partition to check
    * @return true if the partitions are compatible, false otherwise
    */
-  public boolean areCompatible(
-      EquivalencePartition<?> partition1, EquivalencePartition<?> partition2) {
+  public boolean areCompatible(EquivalencePartition partition1, EquivalencePartition partition2) {
     // If no dependencies, everything is compatible
     if (dependencies.isEmpty()) return true;
 
-    // Check all dependencies - if any returns false, the partitions are incompatible
+    // Check all dependencies - if any returns false, the partitions are
+    // incompatible
     for (CompatibilityPredicate predicate : dependencies) {
-      if (!predicate.isCompatible(partition1, partition2)) {
+      if (!predicate.areCompatible(partition1, partition2)
+          || !predicate.areCompatible(partition2, partition1)) {
         return false;
       }
     }
 
-    // All dependencies returned true (either because they don't apply or they approve)
+    // All dependencies returned true (either because they don't apply or they
+    // approve)
     return true;
   }
 }

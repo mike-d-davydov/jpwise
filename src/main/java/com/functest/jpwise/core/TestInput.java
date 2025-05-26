@@ -28,6 +28,7 @@ import java.util.List;
  *
  * @author panwei, davydovmd
  */
+@SuppressWarnings("rawtypes")
 public class TestInput {
   /** List of testParameters. */
   private List<TestParameter> testParameters;

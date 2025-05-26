@@ -74,18 +74,18 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
 
     // Get current parameter and its values
     TestParameter parameter = input().get(paramIndex);
-    List<EquivalencePartition<?>> partitions = parameter.getPartitions();
+    List<EquivalencePartition> partitions = parameter.getPartitions();
 
     // Try each value for current parameter
-    for (EquivalencePartition<?> partition : partitions) {
+    for (EquivalencePartition partition : partitions) {
       // Set value in combination
       currentCombination.setValue(paramIndex, partition);
 
       // Check if current partial combination is valid before continuing
       boolean isValid = true;
       for (int i = 0; i <= paramIndex; i++) {
-        EquivalencePartition<?> v1 = currentCombination.getValue(i);
-        EquivalencePartition<?> v2 = currentCombination.getValue(paramIndex);
+        EquivalencePartition v1 = currentCombination.getValue(i);
+        EquivalencePartition v2 = currentCombination.getValue(paramIndex);
 
         // Check compatibility between values if both are set
         if (v1 != null && v2 != null && !isCompatible(v1, v2)) {

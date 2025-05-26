@@ -99,13 +99,14 @@
             <plugin>
                 <groupId>com.rudikershaw.gitbuildhook</groupId>
                 <artifactId>git-build-hook-maven-plugin</artifactId>
-                <version>3.5.0</version>                
-                   
+                <version>3.5.0</version>
+
                 <executions>
                     <execution>
                         <?m2e execute onConfiguration?>
                         <goals>
-                            <goal>install</goal> </goals>
+                            <goal>install</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

@@ -12,5 +12,5 @@ public interface CompatibilityPredicate {
    * @param v2 The second parameter value
    * @return true if the values are compatible, false otherwise
    */
-  boolean isCompatible(EquivalencePartition<?> v1, EquivalencePartition<?> v2);
+  boolean areCompatible(EquivalencePartition v1, EquivalencePartition v2);
 }

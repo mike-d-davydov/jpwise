@@ -3,16 +3,14 @@ package com.functest.jpwise.core;
 /**
  * A simple equivalence partition that always returns the same value. This is useful for constant
  * values that don't change during testing.
- *
- * @param <T> The type of value this partition represents
  */
-public class SimpleValue<T> extends GenericPartition<T> {
+public class SimpleValue extends GenericPartition {
   /**
    * Creates a new simple value partition with the same name as its string value.
    *
    * @param value The constant value for this partition
    */
-  public SimpleValue(T value) {
+  public SimpleValue(Object value) {
     this(String.valueOf(value), value);
   }
 
@@ -22,7 +20,7 @@ public class SimpleValue<T> extends GenericPartition<T> {
    * @param name The name of this partition
    * @param value The constant value for this partition
    */
-  public SimpleValue(String name, T value) {
+  public SimpleValue(String name, Object value) {
     super(name, () -> value);
   }
 
@@ -32,8 +30,8 @@ public class SimpleValue<T> extends GenericPartition<T> {
    * @param value The constant value for this partition
    * @return A new simple value partition
    */
-  public static <T> SimpleValue<T> of(T value) {
-    return new SimpleValue<>(value);
+  public static SimpleValue of(Object value) {
+    return new SimpleValue(value);
   }
 
   /**
@@ -43,8 +41,8 @@ public class SimpleValue<T> extends GenericPartition<T> {
    * @param value The constant value for this partition
    * @return A new simple value partition
    */
-  public static <T> SimpleValue<T> of(String name, T value) {
-    return new SimpleValue<>(name, value);
+  public static SimpleValue of(String name, Object value) {
+    return new SimpleValue(name, value);
   }
 
   /**
@@ -54,7 +52,7 @@ public class SimpleValue<T> extends GenericPartition<T> {
    * @param name The name and value of this partition
    * @return A new SimpleValue instance
    */
-  public static SimpleValue<String> of(String name) {
-    return new SimpleValue<>(name, name);
+  public static SimpleValue of(String name) {
+    return new SimpleValue(name, name);
   }
 }

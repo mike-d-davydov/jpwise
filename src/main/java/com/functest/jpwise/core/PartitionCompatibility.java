@@ -21,8 +21,8 @@ public final class PartitionCompatibility {
    * @return A compatibility predicate that tests both conditions
    */
   public static CompatibilityPredicate conditionsHold(
-      Predicate<EquivalencePartition<?>> conditionForLeft,
-      Predicate<EquivalencePartition<?>> conditionForRight) {
+      Predicate<EquivalencePartition> conditionForLeft,
+      Predicate<EquivalencePartition> conditionForRight) {
     return (left, right) -> {
       boolean leftResult = conditionForLeft == null || conditionForLeft.test(left);
       boolean rightResult = conditionForRight == null || conditionForRight.test(right);
@@ -38,7 +38,7 @@ public final class PartitionCompatibility {
    * @return A compatibility predicate that only tests the left condition
    */
   public static CompatibilityPredicate leftSatisfies(
-      Predicate<EquivalencePartition<?>> conditionForLeft) {
+      Predicate<EquivalencePartition> conditionForLeft) {
     return conditionsHold(conditionForLeft, null);
   }
 
@@ -50,7 +50,7 @@ public final class PartitionCompatibility {
    * @return A compatibility predicate that only tests the right condition
    */
   public static CompatibilityPredicate rightSatisfies(
-      Predicate<EquivalencePartition<?>> conditionForRight) {
+      Predicate<EquivalencePartition> conditionForRight) {
     return conditionsHold(null, conditionForRight);
   }
 }

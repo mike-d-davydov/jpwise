@@ -13,10 +13,10 @@ import org.testng.annotations.Test;
 public class TestGeneratorTest {
   private TestGenerator generator;
   private TestInput input;
-  private SimpleValue<String> chrome;
-  private SimpleValue<String> firefox;
-  private SimpleValue<String> windows;
-  private SimpleValue<String> linux;
+  private SimpleValue chrome;
+  private SimpleValue firefox;
+  private SimpleValue windows;
+  private SimpleValue linux;
   private TestParameter browser;
   private TestParameter os;
 
@@ -29,8 +29,8 @@ public class TestGeneratorTest {
     linux = SimpleValue.of("Linux");
 
     // Create test parameters
-    browser = new TestParameter("browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox));
-    os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(windows, linux));
+    browser = new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox));
+    os = new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, linux));
 
     // Create test input
     input = new TestInput();
@@ -129,18 +129,21 @@ public class TestGeneratorTest {
     List<CompatibilityPredicate> rules =
         Arrays.asList(
             (v1, v2) -> {
+              // Only apply rules if we're dealing with browser and OS parameters
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("os"))) {
+                return true;
+              }
+
+              // Firefox only works with Linux
               if (v1.getName().equals("Firefox")) {
                 return v2.getName().equals("Linux");
-              }
-              if (v2.getName().equals("Firefox")) {
-                return v1.getName().equals("Linux");
               }
               return true;
             });
 
     TestParameter browserWithRules =
-        new TestParameter(
-            "browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox), rules);
+        new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox), rules);
 
     TestInput inputWithRules = new TestInput();
     inputWithRules.add(browserWithRules);

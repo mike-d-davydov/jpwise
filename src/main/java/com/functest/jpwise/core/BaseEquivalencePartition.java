@@ -3,10 +3,8 @@ package com.functest.jpwise.core;
 /**
  * Base class for equivalence partitions. An equivalence partition represents a set of values that
  * are considered equivalent for testing purposes.
- *
- * @param <T> The type of values in this partition
  */
-public abstract class BaseEquivalencePartition<T> implements EquivalencePartition<T> {
+public abstract class BaseEquivalencePartition implements EquivalencePartition {
   private final String name;
   private TestParameter parent;
 
@@ -51,7 +49,7 @@ public abstract class BaseEquivalencePartition<T> implements EquivalencePartitio
    * @return The current value of this partition
    */
   @Override
-  public abstract T getValue();
+  public abstract Object getValue();
 
   @Override
   public String toString() {
@@ -63,7 +61,7 @@ public abstract class BaseEquivalencePartition<T> implements EquivalencePartitio
     if (this == o) return true;
     if (!(o instanceof EquivalencePartition)) return false;
 
-    EquivalencePartition<?> that = (EquivalencePartition<?>) o;
+    EquivalencePartition that = (EquivalencePartition) o;
 
     return getName().equals(that.getName());
   }
@@ -74,7 +72,7 @@ public abstract class BaseEquivalencePartition<T> implements EquivalencePartitio
   }
 
   @Override
-  public boolean isCompatibleWith(EquivalencePartition<?> other) {
+  public boolean isCompatibleWith(EquivalencePartition other) {
     return getParentParameter() == null || getParentParameter().areCompatible(this, other);
   }
 }

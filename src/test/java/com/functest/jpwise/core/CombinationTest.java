@@ -12,14 +12,14 @@ public class CombinationTest {
   private TestParameter browser;
   private TestParameter operatingSystem;
   private TestParameter resolution;
-  private SimpleValue<String> chrome;
-  private SimpleValue<String> firefox;
-  private SimpleValue<String> safari;
-  private SimpleValue<String> windows;
-  private SimpleValue<String> macOS;
-  private SimpleValue<String> linux;
-  private SimpleValue<String> hd;
-  private SimpleValue<String> uhd;
+  private SimpleValue chrome;
+  private SimpleValue firefox;
+  private SimpleValue safari;
+  private SimpleValue windows;
+  private SimpleValue macOS;
+  private SimpleValue linux;
+  private SimpleValue hd;
+  private SimpleValue uhd;
 
   @BeforeMethod
   public void setUp() {
@@ -37,12 +37,15 @@ public class CombinationTest {
     List<CompatibilityPredicate> browserOsRules =
         Arrays.asList(
             (v1, v2) -> {
+              // Only apply rules if we're dealing with browser and OS parameters
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("operatingSystem"))) {
+                return true;
+              }
+
               // Safari only works with macOS
               if (v1.getName().equals("Safari")) {
                 return v2.getName().equals("macOS");
-              }
-              if (v2.getName().equals("Safari")) {
-                return v1.getName().equals("macOS");
               }
               // Chrome and Firefox work with all OS
               return true;
@@ -52,12 +55,12 @@ public class CombinationTest {
     browser =
         new TestParameter(
             "browser",
-            Arrays.<EquivalencePartition<?>>asList(chrome, firefox, safari),
+            Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
             browserOsRules);
     operatingSystem =
         new TestParameter(
-            "operatingSystem", Arrays.<EquivalencePartition<?>>asList(windows, macOS, linux));
-    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition<?>>asList(hd, uhd));
+            "operatingSystem", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
+    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd, uhd));
   }
 
   @Test

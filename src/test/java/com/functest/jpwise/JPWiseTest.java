@@ -15,14 +15,14 @@ public class JPWiseTest {
   private TestParameter browser;
   private TestParameter os;
   private TestParameter resolution;
-  private SimpleValue<String> chrome;
-  private SimpleValue<String> firefox;
-  private SimpleValue<String> safari;
-  private SimpleValue<String> windows;
-  private SimpleValue<String> macOS;
-  private SimpleValue<String> linux;
-  private SimpleValue<String> hd;
-  private SimpleValue<String> uhd;
+  private SimpleValue chrome;
+  private SimpleValue firefox;
+  private SimpleValue safari;
+  private SimpleValue windows;
+  private SimpleValue macOS;
+  private SimpleValue linux;
+  private SimpleValue hd;
+  private SimpleValue uhd;
 
   @BeforeMethod
   public void setUp() {
@@ -38,10 +38,9 @@ public class JPWiseTest {
 
     // Create test parameters
     browser =
-        new TestParameter(
-            "browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox, safari));
-    os = new TestParameter("os", Arrays.<EquivalencePartition<?>>asList(windows, macOS, linux));
-    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition<?>>asList(hd, uhd));
+        new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox, safari));
+    os = new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
+    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd, uhd));
   }
 
   @Test
@@ -123,11 +122,15 @@ public class JPWiseTest {
     List<CompatibilityPredicate> rules =
         Arrays.asList(
             (v1, v2) -> {
+              // Only apply rules if we're dealing with browser and OS parameters
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("os"))) {
+                return true;
+              }
+
+              // Safari only works with macOS
               if (v1.getName().equals("Safari")) {
                 return v2.getName().equals("macOS");
-              }
-              if (v2.getName().equals("Safari")) {
-                return v1.getName().equals("macOS");
               }
               return true;
             });
@@ -135,10 +138,10 @@ public class JPWiseTest {
     CombinationTable results =
         JPWise.builder()
             .parameter(
-                "browser", Arrays.<EquivalencePartition<?>>asList(chrome, firefox, safari), rules)
+                "browser", Arrays.<EquivalencePartition>asList(chrome, firefox, safari), rules)
             .parameter(
                 "os",
-                Arrays.<EquivalencePartition<?>>asList(windows, macOS, linux),
+                Arrays.<EquivalencePartition>asList(windows, macOS, linux),
                 Arrays.<CompatibilityPredicate>asList())
             .generatePairwise();
 
@@ -252,7 +255,7 @@ public class JPWiseTest {
 
   @Test(expectedExceptions = NullPointerException.class)
   public void testNullPartitionsArray() {
-    JPWise.builder().parameter("browser", (EquivalencePartition<?>[]) null);
+    JPWise.builder().parameter("browser", (EquivalencePartition[]) null);
   }
 
   @Test(expectedExceptions = NullPointerException.class)

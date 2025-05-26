@@ -15,13 +15,14 @@ import org.testng.annotations.Test;
  */
 public class JpWiseDataProviderDemoTest {
 
+  @SuppressWarnings("rawtypes")
   @DataProvider(name = "browserConfigurations")
   public Object[][] getBrowserConfigurations() {
     // Define test parameters
     TestParameter browser =
         new TestParameter(
             "browser",
-            Arrays.asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Chrome", "116.0"),
                 SimpleValue.of("Firefox", "118.0"),
                 SimpleValue.of("Safari", "17.0")));
@@ -29,20 +30,24 @@ public class JpWiseDataProviderDemoTest {
     TestParameter os =
         new TestParameter(
             "os",
-            Arrays.asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Windows", "10.0"),
                 SimpleValue.of("macOS", "14.1"),
                 SimpleValue.of("Linux", "6.5")));
 
     // Define compatibility rules (Safari only works with macOS)
     List<CompatibilityPredicate> rules =
-        Arrays.<CompatibilityPredicate>asList(
-            (EquivalencePartition<?> v1, EquivalencePartition<?> v2) -> {
+        Arrays.asList(
+            (EquivalencePartition v1, EquivalencePartition v2) -> {
+              // Only apply rules if we're dealing with browser and OS parameters
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("os"))) {
+                return true;
+              }
+
+              // Safari only works with macOS
               if (v1.getName().equals("Safari")) {
                 return v2.getName().equals("macOS");
-              }
-              if (v2.getName().equals("Safari")) {
-                return v1.getName().equals("macOS");
               }
               return true;
             });

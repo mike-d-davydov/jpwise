@@ -33,6 +33,7 @@ import java.util.Objects;
  * CombinationTable results = JPWise.generatePairwise(input);
  * </pre>
  */
+@SuppressWarnings("rawtypes")
 public final class JPWise {
 
   private JPWise() {
@@ -276,7 +277,8 @@ public final class JPWise {
      * @return This builder instance
      * @throws NullPointerException if name or partitions array is null
      */
-    public InputBuilder parameter(String name, EquivalencePartition<?>... partitions) {
+    @SuppressWarnings("unchecked")
+    public InputBuilder parameter(String name, EquivalencePartition... partitions) {
       Objects.requireNonNull(name, "name must not be null");
       Objects.requireNonNull(partitions, "partitions must not be null");
       return parameter(new TestParameter(name, Arrays.asList(partitions)));
@@ -292,7 +294,7 @@ public final class JPWise {
      * @throws NullPointerException if any argument is null
      */
     public InputBuilder parameter(
-        String name, List<EquivalencePartition<?>> partitions, List<CompatibilityPredicate> rules) {
+        String name, List<EquivalencePartition> partitions, List<CompatibilityPredicate> rules) {
       Objects.requireNonNull(name, "name must not be null");
       Objects.requireNonNull(partitions, "partitions must not be null");
       Objects.requireNonNull(rules, "rules must not be null");

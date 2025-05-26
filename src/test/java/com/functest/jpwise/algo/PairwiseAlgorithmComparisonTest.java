@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
  * Tests that compare the results of the old and new pairwise algorithms to ensure they generate
  * equivalent test cases.
  */
+@SuppressWarnings("rawtypes")
 public class PairwiseAlgorithmComparisonTest {
   private TestInput browserInput;
   private TestInput simpleInput;
@@ -23,20 +24,14 @@ public class PairwiseAlgorithmComparisonTest {
         Arrays.asList(
             (v1, v2) -> {
               // Only apply Safari-macOS rule if we're dealing with browser and OS
-              if (v1.getParentParameter().getName().equals("browser")
-                      && v2.getParentParameter().getName().equals("os")
-                  || v2.getParentParameter().getName().equals("browser")
-                      && v1.getParentParameter().getName().equals("os")) {
-                // Ensure v1 is the browser value
-                if (v2.getParentParameter().getName().equals("browser")) {
-                  EquivalencePartition<?> temp = v1;
-                  v1 = v2;
-                  v2 = temp;
-                }
-                // Safari only works with macOS
-                if (v1.getName().equals("Safari")) {
-                  return v2.getName().equals("macOS");
-                }
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("os"))) {
+                return true;
+              }
+
+              // Safari only works with macOS
+              if (v1.getName().equals("Safari")) {
+                return v2.getName().equals("macOS");
               }
               // All other combinations are compatible
               return true;
@@ -45,7 +40,7 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter browser =
         new TestParameter(
             "browser",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Chrome", "116.0.5845.96"),
                 SimpleValue.of("Firefox", "118.0.2"),
                 SimpleValue.of("Safari", "17.0")),
@@ -54,7 +49,7 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter os =
         new TestParameter(
             "os",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Windows", "10.0.19045"),
                 SimpleValue.of("macOS", "14.1"),
                 SimpleValue.of("Linux", "6.5.7")));
@@ -62,7 +57,7 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter resolution =
         new TestParameter(
             "resolution",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("HD", "1920x1080"), SimpleValue.of("QHD", "2560x1440")));
 
     browserInput = new TestInput();
@@ -74,12 +69,12 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter color =
         new TestParameter(
             "color",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Primary", "red"), SimpleValue.of("Secondary", "blue")));
     TestParameter size =
         new TestParameter(
             "size",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Compact", "small"), SimpleValue.of("Extended", "large")));
     simpleInput = new TestInput();
     simpleInput.add(color);
@@ -89,7 +84,7 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter userRole =
         new TestParameter(
             "userRole",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Admin", "FULL_ACCESS"),
                 SimpleValue.of("Manager", "DEPARTMENT_ACCESS"),
                 SimpleValue.of("User", "BASIC_ACCESS")));
@@ -97,7 +92,7 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter department =
         new TestParameter(
             "department",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Sales", "REVENUE_CRITICAL"),
                 SimpleValue.of("Engineering", "TECHNICAL"),
                 SimpleValue.of("Support", "CUSTOMER_FACING")));
@@ -105,7 +100,7 @@ public class PairwiseAlgorithmComparisonTest {
     TestParameter accessLevel =
         new TestParameter(
             "accessLevel",
-            Arrays.<EquivalencePartition<?>>asList(
+            Arrays.<EquivalencePartition>asList(
                 SimpleValue.of("Full", "ALL_OPERATIONS"),
                 SimpleValue.of("ReadWrite", "MODIFY_CONTENT"),
                 SimpleValue.of("ReadOnly", "VIEW_CONTENT")));
@@ -233,6 +228,7 @@ public class PairwiseAlgorithmComparisonTest {
     verifyCompatibilityRules(newPairs, input);
   }
 
+  @SuppressWarnings("unchecked")
   private int calculateMinimumExpectedPairs(TestInput input) {
     List<TestParameter> params = input.getTestParameters();
     int totalPairs = 0;
@@ -245,8 +241,8 @@ public class PairwiseAlgorithmComparisonTest {
 
         // Count compatible pairs between these parameters
         int compatiblePairs = 0;
-        for (EquivalencePartition<?> v1 : param1.getPartitions()) {
-          for (EquivalencePartition<?> v2 : param2.getPartitions()) {
+        for (EquivalencePartition v1 : (List<EquivalencePartition>) param1.getPartitions()) {
+          for (EquivalencePartition v2 : (List<EquivalencePartition>) param2.getPartitions()) {
             if (param1.areCompatible(v1, v2) && param2.areCompatible(v2, v1)) {
               compatiblePairs++;
             }
@@ -258,6 +254,7 @@ public class PairwiseAlgorithmComparisonTest {
     return totalPairs;
   }
 
+  @SuppressWarnings("unchecked")
   private void verifyCompatibilityRules(Set<String> pairs, TestInput input) {
     List<TestParameter> params = input.getTestParameters();
 
@@ -276,11 +273,13 @@ public class PairwiseAlgorithmComparisonTest {
         if (param.getName().equals(param2Name)) param2 = param;
       }
 
-      // Only check compatibility if either parameter has rules
-      if (!param1.getDependencies().isEmpty() || !param2.getDependencies().isEmpty()) {
+      // Only check compatibility if both parameters are found and either has rules
+      if (param1 != null
+          && param2 != null
+          && (!param1.getDependencies().isEmpty() || !param2.getDependencies().isEmpty())) {
         // Find the values
-        EquivalencePartition<?> value1 = param1.getPartitionByName(value1Name);
-        EquivalencePartition<?> value2 = param2.getPartitionByName(value2Name);
+        EquivalencePartition value1 = param1.getPartitionByName(value1Name);
+        EquivalencePartition value2 = param2.getPartitionByName(value2Name);
 
         // Verify compatibility
         assertTrue(

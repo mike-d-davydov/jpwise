@@ -11,8 +11,8 @@ public class CyclingPartitionTest {
 
   @Test
   public void testBasicCycling() {
-    CyclingPartition<String> partition =
-        new CyclingPartition<>("Chrome", "116.0", Arrays.asList("116.0", "116.1", "116.2"));
+    CyclingPartition partition =
+        new CyclingPartition("Chrome", "116.0", Arrays.asList("116.0", "116.1", "116.2"));
 
     // Should cycle through values
     assertEquals(partition.getValue(), "116.0", "First value should be default");
@@ -24,8 +24,8 @@ public class CyclingPartitionTest {
   @Test
   public void testDefaultValueNotInList() {
     String defaultValue = "117.0";
-    List<String> values = Arrays.asList("117.1", "117.2");
-    CyclingPartition<String> partition = new CyclingPartition<>("Firefox", defaultValue, values);
+    List<Object> values = Arrays.asList("117.1", "117.2");
+    CyclingPartition partition = new CyclingPartition("Firefox", defaultValue, values);
 
     // Default value should be first in cycling
     assertEquals(partition.getValue(), defaultValue, "Default value should be first");
@@ -35,8 +35,8 @@ public class CyclingPartitionTest {
 
   @Test
   public void testAutomaticReset() {
-    CyclingPartition<Integer> partition =
-        new CyclingPartition<>("Resolution", 1080, Arrays.asList(1080, 1440, 2160));
+    CyclingPartition partition =
+        new CyclingPartition("Resolution", 1080, Arrays.asList(1080, 1440, 2160));
 
     // Should cycle through all values and automatically reset
     assertEquals(partition.getValue(), Integer.valueOf(1080), "First cycle");
@@ -48,17 +48,15 @@ public class CyclingPartitionTest {
 
   @Test
   public void testGetName() {
-    CyclingPartition<String> partition =
-        new CyclingPartition<>("Browser", "Chrome", Arrays.asList("Chrome", "Firefox"));
+    CyclingPartition partition =
+        new CyclingPartition("Browser", "Chrome", Arrays.asList("Chrome", "Firefox"));
     assertEquals(partition.getName(), "Browser", "Should return partition name");
   }
 
   @Test
   public void testCompatibility() {
-    CyclingPartition<String> safari =
-        new CyclingPartition<>("Safari", "17.0", Arrays.asList("17.0", "17.1"));
-    CyclingPartition<String> macOS =
-        new CyclingPartition<>("macOS", "14.1", Arrays.asList("14.1", "14.2"));
+    CyclingPartition safari = new CyclingPartition("Safari", "17.0", Arrays.asList("17.0", "17.1"));
+    CyclingPartition macOS = new CyclingPartition("macOS", "14.1", Arrays.asList("14.1", "14.2"));
 
     // Without parent parameter, should be compatible
     assertTrue(safari.isCompatibleWith(macOS), "Should be compatible without parent parameter");
@@ -67,9 +65,16 @@ public class CyclingPartitionTest {
     TestParameter browserParam =
         new TestParameter(
             "browser",
-            Arrays.<EquivalencePartition<?>>asList(safari),
+            Arrays.<EquivalencePartition>asList(safari),
             Arrays.asList(
-                (v1, v2) -> v1.getName().equals("Safari") && v2.getName().equals("macOS")));
+                (v1, v2) -> {
+                  // Safari is compatible with macOS
+                  if (v1.getName().equals("Safari")) {
+                    return v2.getName().equals("macOS");
+                  }
+                  // For other cases, allow compatibility
+                  return true;
+                }));
     safari.setParentParameter(browserParam);
 
     assertTrue(safari.isCompatibleWith(macOS), "Safari should be compatible with macOS");
@@ -78,8 +83,8 @@ public class CyclingPartitionTest {
   @Test
   public void testEquivalentValuesImmutable() {
     String defaultValue = "Chrome";
-    List<String> values = Arrays.asList("Chrome", "Firefox");
-    CyclingPartition<String> partition = new CyclingPartition<>("Browser", defaultValue, values);
+    List<Object> values = Arrays.asList("Chrome", "Firefox");
+    CyclingPartition partition = new CyclingPartition("Browser", defaultValue, values);
 
     // Verify cycling through all values
     assertEquals(partition.getValue(), defaultValue, "Should start with default value");
