@@ -7,7 +7,13 @@ import java.util.Objects;
 
 import com.functest.jpwise.algo.CombinatorialAlgorithm;
 import com.functest.jpwise.algo.PairwiseAlgorithm;
-import com.functest.jpwise.core.*;
+import com.functest.jpwise.core.CombinationTable;
+import com.functest.jpwise.core.CompatibilityPredicate;
+import com.functest.jpwise.core.EquivalencePartition;
+import com.functest.jpwise.core.GenerationAlgorithm;
+import com.functest.jpwise.core.TestGenerator;
+import com.functest.jpwise.core.TestInput;
+import com.functest.jpwise.core.TestParameter;
 
 /**
  * A facade class providing a simplified API for the JPWise test generation framework. This class
@@ -34,7 +40,6 @@ import com.functest.jpwise.core.*;
  * CombinationTable results = JPWise.generatePairwise(input);
  * </pre>
  */
-@SuppressWarnings("rawtypes")
 public final class JPWise {
 
   private JPWise() {
@@ -278,7 +283,6 @@ public final class JPWise {
      * @return This builder instance
      * @throws NullPointerException if name or partitions array is null
      */
-    @SuppressWarnings("unchecked")
     public InputBuilder parameter(String name, EquivalencePartition... partitions) {
       Objects.requireNonNull(name, "name must not be null");
       Objects.requireNonNull(partitions, "partitions must not be null");
@@ -334,7 +338,11 @@ public final class JPWise {
      * @return The constructed test input
      */
     public TestInput build() {
-      return testInput;
+      TestInput copy = new TestInput();
+      for (TestParameter param : testInput.getTestParameters()) {
+        copy.add(param);
+      }
+      return copy;
     }
 
     /**

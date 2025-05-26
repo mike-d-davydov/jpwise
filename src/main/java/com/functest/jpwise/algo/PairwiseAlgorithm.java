@@ -39,7 +39,6 @@ import com.google.common.base.Preconditions;
  * @see GenerationAlgorithm
  * @see TestGenerator
  */
-@SuppressWarnings("rawtypes")
 public class PairwiseAlgorithm extends GenerationAlgorithm {
   private final Random random = new Random();
 
@@ -225,7 +224,6 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
    *
    * @param combination The partial combination to complete
    */
-  @SuppressWarnings("rawtypes")
   private void completeCombination(Combination combination) {
     TestInput input = pwGenerator.input();
 

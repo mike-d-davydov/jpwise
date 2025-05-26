@@ -46,7 +46,7 @@ import java.util.Map;
  *
  * // Access as combinations
  * for (Combination combination : table.combinations()) {
- *     System.out.println(combination);
+ *     log.info("Generated combination: {}", combination);
  * }
  *
  * // Access as row maps
@@ -78,6 +78,12 @@ public class CombinationTable {
     _combinations = new ArrayList<>();
   }
 
+  /** Copy constructor. */
+  public CombinationTable(CombinationTable other) {
+    super();
+    _combinations = new ArrayList<>(other._combinations);
+  }
+
   /**
    * Adds a test case combination to the table.
    *
@@ -102,7 +108,7 @@ public class CombinationTable {
    * @return The list of combinations
    */
   public List<Combination> combinations() {
-    return _combinations;
+    return new ArrayList<>(_combinations);
   }
 
   /**
@@ -112,7 +118,6 @@ public class CombinationTable {
    *
    * @return A list of maps representing the test cases
    */
-  @SuppressWarnings("rawtypes")
   public List<Map<String, Object>> asRowMapList() {
     List<Map<String, Object>> rows = new ArrayList<>();
 

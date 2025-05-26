@@ -55,11 +55,14 @@ public class CyclingPartition extends BaseEquivalencePartition {
    */
   public CyclingPartition(String name, Collection<Object> equivalentValues) {
     super(name);
-    List<Object> immutableValues = Collections.unmodifiableList(new ArrayList<>(equivalentValues));
-    if (immutableValues.isEmpty()) {
+    // Validate inputs - this approach minimizes the risk of partial initialization
+    if (equivalentValues == null) {
+      throw new IllegalArgumentException("equivalentValues cannot be null");
+    }
+    if (equivalentValues.isEmpty()) {
       throw new IllegalArgumentException("Must provide at least one value");
     }
-    this.equivalentValues = immutableValues;
+    this.equivalentValues = Collections.unmodifiableList(new ArrayList<>(equivalentValues));
   }
 
   /**

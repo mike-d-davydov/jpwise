@@ -59,7 +59,7 @@ public class TestGenerator {
    * @param theTestInput The test input configuration containing parameters and their values
    */
   public TestGenerator(TestInput theTestInput) {
-    _testInput = theTestInput;
+    _testInput = new TestInput(theTestInput);
     _result = new CombinationTable();
   }
 

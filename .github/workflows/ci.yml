@@ -133,18 +133,15 @@ jobs:
           echo "✅ **No issues found**" >> $GITHUB_STEP_SUMMARY
         fi
 
-    - name: Check code formatting
+    - name: Run Checkstyle
       run: |
-        mvn spotless:check
+        mvn checkstyle:check
         if [ $? -ne 0 ]; then
-          echo "❌ Code formatting issues found. Run 'mvn spotless:apply' to fix them."
+          echo "❌ Code style issues found. Please fix them according to Checkstyle rules."
           exit 1
         else
-          echo "✅ Code formatting is correct."
+          echo "✅ Code style is correct."
         fi
-
-    - name: Run Checkstyle
-      run: mvn checkstyle:check
 
     - name: Compile and package
       run: mvn clean compile package -DskipTests

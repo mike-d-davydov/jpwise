@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
  *
  * @author panwei
  */
-@SuppressWarnings("rawtypes")
 public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
   /** Flag value to indicate that a combination pair has been generated. */
   private static final int COMPLETED = 1;

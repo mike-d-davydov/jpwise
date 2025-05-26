@@ -1,5 +1,7 @@
 # JPWise - Java Pairwise Testing Framework
 
+<!-- Test commit for git hooks validation -->
+
 JPWise is a powerful Java framework for generating pairwise test combinations, with support for complex parameter relationships and compatibility rules. This is a heavily reworked and extended version of the original jWise library by Pan Wei.
 
 ## Table of Contents
@@ -92,7 +94,7 @@ CombinationTable results = JPWise.builder()
 for (Combination combination : results.combinations()) {
     Object browserValue = combination.getValue(0).getValue();
     Object osValue = combination.getValue(1).getValue();
-    System.out.println(browserValue + " on " + osValue);
+    log.info("Testing combination: {} on {}", browserValue, osValue);
 }
 ```
 

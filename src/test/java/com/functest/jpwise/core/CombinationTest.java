@@ -11,8 +11,6 @@ import org.testng.annotations.Test;
 /** Tests for Combination class functionality. */
 public class CombinationTest {
   private TestParameter browser;
-  private TestParameter operatingSystem;
-  private TestParameter resolution;
   private SimpleValue chrome;
   private SimpleValue firefox;
   private SimpleValue safari;
@@ -20,7 +18,6 @@ public class CombinationTest {
   private SimpleValue macOS;
   private SimpleValue linux;
   private SimpleValue hd;
-  private SimpleValue uhd;
 
   @BeforeMethod
   public void setUp() {
@@ -32,7 +29,6 @@ public class CombinationTest {
     macOS = SimpleValue.of("macOS");
     linux = SimpleValue.of("Linux");
     hd = SimpleValue.of("1920x1080");
-    uhd = SimpleValue.of("3840x2160");
 
     // Define browser-OS compatibility rules
     List<CompatibilityPredicate> browserOsRules =
@@ -58,10 +54,15 @@ public class CombinationTest {
             "browser",
             Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
             browserOsRules);
-    operatingSystem =
+
+    // Create OS and resolution parameters (needed for parent parameter references)
+    @SuppressWarnings("unused") // Used for side effect: sets parent parameter on partitions
+    TestParameter operatingSystem =
         new TestParameter(
             "operatingSystem", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
-    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd, uhd));
+    @SuppressWarnings("unused") // Used for side effect: sets parent parameter on partitions
+    TestParameter resolution =
+        new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd));
   }
 
   @Test

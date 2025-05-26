@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableList;
  *
  * @author panwei, davydovmd
  */
-@SuppressWarnings("rawtypes")
 public class TestInput {
   /** List of testParameters. */
   private List<TestParameter> testParameters;
@@ -38,6 +37,12 @@ public class TestInput {
   public TestInput() {
     super();
     testParameters = new ArrayList<>();
+  }
+
+  /** Copy constructor. */
+  public TestInput(TestInput other) {
+    super();
+    testParameters = new ArrayList<>(other.testParameters);
   }
 
   public List<TestParameter> getTestParameters() {

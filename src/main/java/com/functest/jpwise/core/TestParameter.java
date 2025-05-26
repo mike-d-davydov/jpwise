@@ -37,19 +37,18 @@ import com.google.common.collect.ImmutableList;
  *
  * <pre>
  * // Simple parameter without compatibility rules
- * TestParameter browser = new TestParameter("browser", Arrays.asList(
- *     SimpleValue.of("Chrome"),
- *     SimpleValue.of("Firefox")));
+ * TestParameter browser = new TestParameter("browser",
+ *     Arrays.asList(SimpleValue.of("Chrome"), SimpleValue.of("Firefox")));
  *
  * // Parameter with compatibility rules using direct method calls
- * List<CompatibilityPredicate> rules = Arrays.asList(
- *     (ep1, ep2) -> {
- *         // Safari only works with macOS
- *         if (ep1.getName().equals("Safari") && ep2.getParentParameter().getName().equals("operatingSystem")) {
- *             return ep2.getName().equals("macOS");
- *         }
- *         return true;
- *     });
+ * List<CompatibilityPredicate> rules = Arrays.asList((ep1, ep2) -> {
+ *   // Safari only works with macOS
+ *   if (ep1.getName().equals("Safari")
+ *       && ep2.getParentParameter().getName().equals("operatingSystem")) {
+ *     return ep2.getName().equals("macOS");
+ *   }
+ *   return true;
+ * });
  * TestParameter browser = new TestParameter("browser", partitions, rules);
  * </pre>
  *
@@ -149,7 +148,7 @@ public class TestParameter {
    * @return An immutable collection of compatibility rules
    */
   public Collection<CompatibilityPredicate> getDependencies() {
-    return dependencies;
+    return new ArrayList<>(dependencies);
   }
 
   /**

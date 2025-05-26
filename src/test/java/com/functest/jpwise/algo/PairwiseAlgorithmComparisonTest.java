@@ -1,19 +1,30 @@
 package com.functest.jpwise.algo;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.functest.jpwise.core.*;
+import com.functest.jpwise.core.Combination;
+import com.functest.jpwise.core.CombinationTable;
+import com.functest.jpwise.core.CompatibilityPredicate;
+import com.functest.jpwise.core.EquivalencePartition;
+import com.functest.jpwise.core.SimpleValue;
+import com.functest.jpwise.core.TestGenerator;
+import com.functest.jpwise.core.TestInput;
+import com.functest.jpwise.core.TestParameter;
 
 /**
  * Tests that compare the results of the old and new pairwise algorithms to ensure they generate
  * equivalent test cases.
  */
-@SuppressWarnings("rawtypes")
 public class PairwiseAlgorithmComparisonTest {
   private TestInput browserInput;
   private TestInput simpleInput;
@@ -230,7 +241,6 @@ public class PairwiseAlgorithmComparisonTest {
     verifyCompatibilityRules(newPairs, input);
   }
 
-  @SuppressWarnings("unchecked")
   private int calculateMinimumExpectedPairs(TestInput input) {
     List<TestParameter> params = input.getTestParameters();
     int totalPairs = 0;
@@ -243,8 +253,8 @@ public class PairwiseAlgorithmComparisonTest {
 
         // Count compatible pairs between these parameters
         int compatiblePairs = 0;
-        for (EquivalencePartition v1 : (List<EquivalencePartition>) param1.getPartitions()) {
-          for (EquivalencePartition v2 : (List<EquivalencePartition>) param2.getPartitions()) {
+        for (EquivalencePartition v1 : param1.getPartitions()) {
+          for (EquivalencePartition v2 : param2.getPartitions()) {
             if (param1.areCompatible(v1, v2) && param2.areCompatible(v2, v1)) {
               compatiblePairs++;
             }
@@ -256,7 +266,6 @@ public class PairwiseAlgorithmComparisonTest {
     return totalPairs;
   }
 
-  @SuppressWarnings("unchecked")
   private void verifyCompatibilityRules(Set<String> pairs, TestInput input) {
     List<TestParameter> params = input.getTestParameters();
 
