@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableList;
  * List<CompatibilityPredicate> rules = Arrays.asList((ep1, ep2) -> {
  *   // Safari only works with macOS
  *   if (ep1.getName().equals("Safari")
- *       && ep2.getParentParameter().getName().equals("operatingSystem")) {
+ *       &amp;&amp; ep2.getParentParameter().getName().equals("operatingSystem")) {
  *     return ep2.getName().equals("macOS");
  *   }
  *   return true;

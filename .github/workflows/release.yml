@@ -61,46 +61,19 @@ jobs:
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create GitHub Release
-      uses: actions/create-release@v1
-      id: create_release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: JPWise v${{ steps.extract_version.outputs.VERSION }}
+        tag_name: v${{ steps.extract_version.outputs.VERSION }}
+        name: JPWise v${{ steps.extract_version.outputs.VERSION }}
         body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
         draft: false
         prerelease: false
-
-    - name: Upload JAR to release
-      uses: actions/upload-release-asset@v1
+        files: |
+          target/jpwise-${{ steps.extract_version.outputs.VERSION }}.jar
+          target/jpwise-${{ steps.extract_version.outputs.VERSION }}-sources.jar
+          target/jpwise-${{ steps.extract_version.outputs.VERSION }}-javadoc.jar
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/jpwise-${{ steps.extract_version.outputs.VERSION }}.jar
-        asset_name: jpwise-${{ steps.extract_version.outputs.VERSION }}.jar
-        asset_content_type: application/java-archive
-
-    - name: Upload Sources JAR to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/jpwise-${{ steps.extract_version.outputs.VERSION }}-sources.jar
-        asset_name: jpwise-${{ steps.extract_version.outputs.VERSION }}-sources.jar
-        asset_content_type: application/java-archive
-
-    - name: Upload JavaDoc JAR to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/jpwise-${{ steps.extract_version.outputs.VERSION }}-javadoc.jar
-        asset_name: jpwise-${{ steps.extract_version.outputs.VERSION }}-javadoc.jar
-        asset_content_type: application/java-archive
 
   publish:
     name: Publish to GitHub Packages
@@ -116,6 +89,16 @@ jobs:
       with:
         java-version: 11
         distribution: 'temurin'
+        server-id: github
+        server-username: GITHUB_ACTOR
+        server-password: GITHUB_TOKEN
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
 
     - name: Extract version from tag
       id: extract_version
@@ -124,7 +107,10 @@ jobs:
     - name: Update version in pom.xml
       run: mvn versions:set -DnewVersion=${{ steps.extract_version.outputs.VERSION }}
 
+    - name: Build and test
+      run: mvn clean compile test
+
     - name: Publish to GitHub Packages
-      run: mvn deploy
+      run: mvn deploy -DskipTests
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

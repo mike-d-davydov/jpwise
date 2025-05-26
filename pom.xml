@@ -7,6 +7,32 @@
     <groupId>io.github.mikeddavydov</groupId>
     <artifactId>jpwise</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>JPWise</name>
+    <description>Java Pairwise Testing Framework - A powerful library for generating pairwise test combinations with support for complex parameter relationships and compatibility rules</description>
+    <url>https://github.com/mikeddavydov/jpwise</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>mikeddavydov</id>
+            <name>Mikhail Davydov</name>
+            <email>mikhail.davydov@example.com</email>
+            <url>https://github.com/mikeddavydov</url>
+            <roles>
+                <role>developer</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+    </developers>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -289,14 +315,14 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/mikhail-davydov/jpwise</url>
+            <url>https://maven.pkg.github.com/mikeddavydov/jpwise</url>
         </repository>
     </distributionManagement>
 
     <!-- SCM information -->
     <scm>
-        <connection>scm:git:git://github.com/mikhail-davydov/jpwise.git</connection>
-        <developerConnection>scm:git:ssh://github.com:mikhail-davydov/jpwise.git</developerConnection>
-        <url>http://github.com/mikhail-davydov/jpwise/tree/main</url>
+        <connection>scm:git:git://github.com/mikeddavydov/jpwise.git</connection>
+        <developerConnection>scm:git:ssh://github.com:mikeddavydov/jpwise.git</developerConnection>
+        <url>http://github.com/mikeddavydov/jpwise/tree/main</url>
     </scm>
 </project>

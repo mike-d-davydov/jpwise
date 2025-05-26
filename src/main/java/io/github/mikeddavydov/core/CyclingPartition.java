@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Example usage:
  *
  * <pre>
- * CyclingPartition<String> chrome = new CyclingPartition<>(
+ * CyclingPartition&lt;String&gt; chrome = new CyclingPartition&lt;&gt;(
  *     "Chrome",
  *     "116.0",  // Default value
  *     Arrays.asList("116.0", "116.1", "116.2")  // Values to cycle through

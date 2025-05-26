@@ -50,8 +50,8 @@ import java.util.Map;
  * }
  *
  * // Access as row maps
- * List<Map<String, Object>> rows = table.asRowMapList();
- * for (Map<String, Object> row : rows) {
+ * List&lt;Map&lt;String, Object&gt;&gt; rows = table.asRowMapList();
+ * for (Map&lt;String, Object&gt; row : rows) {
  *     String browser = (String) row.get("browser");
  *     String os = (String) row.get("os");
  * }
