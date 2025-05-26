@@ -173,7 +173,20 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
+                    <!-- Generate both TestNG and JUnit compatible reports -->
                     <reportFormat>xml</reportFormat>
+                    <useFile>true</useFile>
+                    <!-- This ensures JUnit-style XML is generated alongside TestNG -->
+                    <properties>
+                        <property>
+                            <name>usedefaultlisteners</name>
+                            <value>false</value>
+                        </property>
+                        <property>
+                            <name>listener</name>
+                            <value>org.testng.reporters.JUnitReportReporter</value>
+                        </property>
+                    </properties>
                 </configuration>
             </plugin>
 
