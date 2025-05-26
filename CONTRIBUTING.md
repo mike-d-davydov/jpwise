@@ -5,7 +5,7 @@ Thank you for your interest in contributing to JPWise! This document provides gu
 ## Development Setup
 
 ### Prerequisites
-- Java 8 or higher
+- Java 11 or higher
 - Maven 3.x
 - Git
 

@@ -35,13 +35,12 @@ jobs:
     - name: Run tests
       run: mvn clean test
 
-    - name: Generate test report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
       with:
-        name: Maven Tests - Java ${{ matrix.java }}
-        path: target/surefire-reports/*.xml
-        reporter: java-junit
+        files: |
+          target/surefire-reports/*.xml
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -73,7 +72,25 @@ jobs:
 
     - name: Run SpotBugs Analysis
       run: |
-        # Run our custom critical issues check script
+        echo "🔍 Starting SpotBugs analysis..."
+        echo "Java version:"
+        java -version
+        echo "Maven version:"
+        mvn -version
+        echo "Current directory: $(pwd)"
+        echo "Files in target directory:"
+        ls -la target/ || echo "Target directory doesn't exist yet"
+        
+        echo "🏗️ Compiling project first..."
+        mvn clean compile -X
+        
+        echo "🔍 Running SpotBugs analysis with verbose output..."
+        mvn spotbugs:spotbugs -X
+        
+        echo "📁 Checking generated files..."
+        ls -la target/ || echo "Target directory still doesn't exist"
+        
+        echo "🔍 Running critical issues check..."
         chmod +x scripts/spotbugs-critical-check.sh
         ./scripts/spotbugs-critical-check.sh
 

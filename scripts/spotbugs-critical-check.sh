@@ -8,7 +8,13 @@ set -e
 echo "Running SpotBugs analysis..."
 
 # Run SpotBugs to generate the report (don't fail on this)
-mvn spotbugs:spotbugs -q
+# Note: SpotBugs should already be run by the CI, this is just a fallback
+if [ ! -f "target/spotbugsXml.xml" ]; then
+    echo "SpotBugs report not found, running SpotBugs..."
+    mvn spotbugs:spotbugs
+else
+    echo "SpotBugs report already exists, using existing report."
+fi
 
 # Check if the report was generated
 if [ ! -f "target/spotbugsXml.xml" ]; then
