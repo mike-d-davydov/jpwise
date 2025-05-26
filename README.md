@@ -16,7 +16,6 @@ JPWise is a powerful Java framework for generating pairwise test combinations, w
 - [TestNG DataProvider Integration](#testng-dataprovider-integration)
 - [Running Tests](#running-tests)
 - [Architecture](#architecture)
-- [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 - [Requirements](#requirements)
@@ -31,7 +30,7 @@ JPWise uses specific terminology to describe its concepts:
 - **Combination**: A set of specific values, one from each parameter's partition
 - **Compatibility Rule**: A constraint defining which values from different parameters can be combined
 - **Pairwise Testing**: A test design technique that tests all possible pairs of parameter values
-- **Partition Condition**: A predicate that matches specific characteristics of an equivalence partition
+
 
 ## History
 
@@ -47,7 +46,6 @@ JPWise uses specific terminology to describe its concepts:
   - Improved documentation and examples
   - Added TestNG DataProvider integration
   - Added support for dynamic value generation for partitions
-  - Introduced fluent API for partition conditions
   - Standardized terminology
 
 ## Author
@@ -61,7 +59,6 @@ JPWise uses specific terminology to describe its concepts:
 - TestNG DataProvider integration
 - Dynamic value generation for partitions with GenericPartition
 - Thread-safe value cycling with CyclingPartition
-- Fluent API for building partition conditions
 
 ## Installation
 
@@ -80,21 +77,21 @@ The most concise way to use JPWise is through the builder API:
 
 ```java
 // Define parameter values using convenient factory methods
-SimpleValue<String> chrome = SimpleValue.of("Chrome");  // Value same as name
-SimpleValue<String> firefox = SimpleValue.of("Firefox");
-SimpleValue<String> windows = SimpleValue.of("Windows", "11");  // Explicit value
-SimpleValue<String> macOS = SimpleValue.of("macOS", "14.1");
+SimpleValue chrome = SimpleValue.of("Chrome");  // Value same as name
+SimpleValue firefox = SimpleValue.of("Firefox");
+SimpleValue windows = SimpleValue.of("Windows", "11");  // Explicit value
+SimpleValue macOS = SimpleValue.of("macOS", "14.1");
 
 // Create test combinations using the builder
 CombinationTable results = JPWise.builder()
-    .parameter("browser", Arrays.asList(chrome, firefox))
-    .parameter("os", Arrays.asList(windows, macOS))
+    .parameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox))
+    .parameter("os", Arrays.<EquivalencePartition>asList(windows, macOS))
     .generatePairwise();
 
 // Use the results
 for (Combination combination : results.combinations()) {
-    String browserValue = combination.getValue(0).getValue();
-    String osValue = combination.getValue(1).getValue();
+    Object browserValue = combination.getValue(0).getValue();
+    Object osValue = combination.getValue(1).getValue();
     System.out.println(browserValue + " on " + osValue);
 }
 ```
@@ -103,16 +100,16 @@ You can also use the direct generation method for even more concise code:
 
 ```java
 CombinationTable results = JPWise.generatePairwise(
-    new TestParameter("browser", Arrays.asList(chrome, firefox)),
-    new TestParameter("os", Arrays.asList(windows, macOS))
+    new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox)),
+    new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, macOS))
 );
 ```
 
 Or pre-populate parameters and use them later:
 
 ```java
-TestParameter browser = new TestParameter("browser", Arrays.asList(chrome, firefox));
-TestParameter os = new TestParameter("os", Arrays.asList(windows, macOS));
+TestParameter browser = new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox));
+TestParameter os = new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, macOS));
 
 CombinationTable results = JPWise.withParameters(browser, os)
     .generatePairwise();
@@ -132,30 +129,30 @@ For example, a "Browser" parameter might have separate partitions for:
 
 The framework provides several implementations:
 
-1. **SimpleValue<T>**
+1. **SimpleValue**
    - Most basic implementation for constant values
    - Suitable for static, unchanging test inputs
    ```java
-   SimpleValue<String> chrome = SimpleValue.of("Chrome", "116.0");
+   SimpleValue chrome = SimpleValue.of("Chrome", "116.0");
    ```
 
-2. **GenericPartition<T>**
+2. **GenericPartition**
    - Supports dynamic value generation via a Supplier
    - Useful for values that need to be computed or fetched at runtime
    ```java
    // Dynamic version generation
-   GenericPartition<String> windows = new GenericPartition<>(
+   GenericPartition windows = new GenericPartition(
        "Windows 11", 
        () -> String.format("22H2.%d", getCurrentBuild())
    );
    ```
 
-3. **CyclingPartition<T>**
+3. **CyclingPartition**
    - Cycles through a set of values
    - Thread-safe using AtomicInteger for cycling
    - Useful for testing multiple values in sequence
    ```java
-   CyclingPartition<String> firefox = new CyclingPartition<>(
+   CyclingPartition firefox = new CyclingPartition(
        "Firefox",
        "118.0.2",  // Default value
        Arrays.asList("118.0.2", "118.0.3", "118.1.0")  // Values to cycle through
@@ -164,8 +161,7 @@ The framework provides several implementations:
 
 ### Defining Compatibility Rules
 
-JPWise provides a modern fluent API for defining compatibility rules between parameter partitions:
-
+JPWise provides direct method calls for defining compatibility rules between parameter partitions. When you define a rule on a parameter, the framework ensures that `ep1` represents a value from that parameter and `ep2` represents a value from the other parameter being tested. This eliminates the need for manual parameter identification and swapping logic in your rules.
 
 ```java
 // Define the parameter partitions first
@@ -183,27 +179,13 @@ List<EquivalencePartition> osPartitions = Arrays.asList(
     SimpleValue.of("Ubuntu")
 );
 
-// Define compatibility rules using direct method calls
+// Define compatibility rules using simplified lambdas
 List<CompatibilityPredicate> browserOsRules = Arrays.asList(
     // Safari only works with macOS
+    // Framework ensures ep1 is browser, ep2 is OS for this rule context
     (ep1, ep2) -> {
-        // Check if we're dealing with browser and OS parameters
-        if ((ep1.getParentParameter().getName().equals("browser") && 
-             ep2.getParentParameter().getName().equals("operatingSystem")) ||
-            (ep1.getParentParameter().getName().equals("operatingSystem") && 
-             ep2.getParentParameter().getName().equals("browser"))) {
-            
-            // Ensure ep1 is the browser value
-            if (ep1.getParentParameter().getName().equals("operatingSystem")) {
-                EquivalencePartition temp = ep1;
-                ep1 = ep2;
-                ep2 = temp;
-            }
-            
-            // Safari only works with macOS
-            if (ep1.getName().equals("Safari")) {
-                return ep2.getName().equals("macOS");
-            }
+        if (ep1.getName().equals("Safari")) {
+            return ep2.getName().equals("macOS");
         }
         return true;
     }
@@ -230,6 +212,7 @@ results = JPWise.generatePairwise(
    - Use `CyclingPartition` when you need to test multiple values
 
 2. **Defining Compatibility Rules**
+   - Write focused CompatibilityPredicates assuming a primary parameter context, as the framework handles symmetric evaluation of rules
    - Use direct method calls on EquivalencePartition for readable and maintainable rules
    - Use standard Java logical operators (`&&`, `||`, `!`) for combining conditions
    - Keep rules focused and well-documented
@@ -267,33 +250,29 @@ GenericPartition macOS = GenericPartition.of("macOS",
 SimpleValue hd = SimpleValue.of("HD", "1920x1080");
 SimpleValue uhd = SimpleValue.of("4K", "3840x2160");
 
-// Define compatibility rules using direct method calls
-List<CompatibilityPredicate> rules = Arrays.asList(
+// Define compatibility rules using simplified lambdas
+List<CompatibilityPredicate> browserOsRules = Arrays.asList(
     // Safari only works with macOS
+    // Framework ensures ep1 is browser, ep2 is OS for this rule context
     (ep1, ep2) -> {
-        // Only apply rules if we're dealing with browser and OS parameters
-        if (!(ep1.getParentParameter().getName().equals("browser") && 
-              ep2.getParentParameter().getName().equals("operatingSystem"))) {
-            return true;
-        }
-        
-        // Safari only works with macOS
         if (ep1.getName().equals("Safari")) {
             return ep2.getName().equals("macOS");
         }
         return true;
-    },
-    // 4K not supported on Windows 10
+    }
+);
+
+List<CompatibilityPredicate> resolutionOsRules = Arrays.asList(
+    // 4K not supported on older Windows 10 builds
+    // Framework ensures ep1 is resolution, ep2 is OS for this rule context
     (ep1, ep2) -> {
-        // Only apply rules if we're dealing with resolution and OS parameters
-        if (!(ep1.getParentParameter().getName().equals("resolution") && 
-              ep2.getParentParameter().getName().equals("operatingSystem"))) {
-            return true;
-        }
-        
-        // 4K not supported on Windows 10
         if (ep1.getName().equals("4K") && ep2.getName().equals("Windows 10")) {
-            return false;
+            // Check if this is an older Windows 10 build that doesn't support 4K
+            String osValue = (String) ep2.getValue();
+            if (osValue != null && osValue.contains("22H2") && 
+                osValue.contains("19045")) { // Older build number
+                return false;
+            }
         }
         return true;
     }
@@ -301,9 +280,9 @@ List<CompatibilityPredicate> rules = Arrays.asList(
 
 // Generate test combinations using the builder
 CombinationTable results = JPWise.builder()
-    .parameter("browser", Arrays.asList(chrome, firefox, safari))
-    .parameter("operatingSystem", Arrays.asList(windows11, windows10, macOS), rules)
-    .parameter("resolution", Arrays.asList(hd, uhd))
+    .parameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox, safari), browserOsRules)
+    .parameter("operatingSystem", Arrays.<EquivalencePartition>asList(windows11, windows10, macOS))
+    .parameter("resolution", Arrays.<EquivalencePartition>asList(hd, uhd), resolutionOsRules)
     .generatePairwise();
 
 // Verify the rules are enforced using direct method calls
@@ -318,10 +297,11 @@ for (Combination combination : results.combinations()) {
             "Safari must be paired with macOS";
     }
     
-    // 4K resolution should not appear with Windows 10
-    if (resolutionValue.getName().equals("4K")) {
-        assert !osValue.getName().equals("Windows 10") : 
-            "4K not supported on Windows 10";
+    // 4K resolution should not appear with older Windows 10 builds
+    if (resolutionValue.getName().equals("4K") && osValue.getName().equals("Windows 10")) {
+        String osValueStr = (String) osValue.getValue();
+        assert !(osValueStr != null && osValueStr.contains("22H2") && osValueStr.contains("19045")) : 
+            "4K not supported on older Windows 10 builds";
     }
 }
 ```
@@ -335,7 +315,7 @@ public Object[][] getBrowserConfigs() {
     SimpleValue firefox = SimpleValue.of("Firefox");
     
     CombinationTable results = JPWise.builder()
-        .parameter("browser", Arrays.asList(chrome, firefox))
+        .parameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox))
         .generatePairwise();
     
     return results.asDataProvider();
