@@ -122,7 +122,23 @@ jobs:
     - name: Build and test
       run: mvn clean compile test
 
+    - name: Build sources and javadoc JARs
+      run: |
+        mvn source:jar
+        mvn javadoc:jar
+
+    - name: Install to local repository
+      run: mvn install -DskipTests
+
     - name: Publish to GitHub Packages
-      run: mvn deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/mikeddavydov/jpwise
+      run: |
+        # Deploy main JAR
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=jar -Dfile=target/jpwise-1.0.0.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        # Deploy POM
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=pom -Dfile=pom.xml -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        # Deploy sources JAR
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=jar -Dclassifier=sources -Dfile=target/jpwise-1.0.0-sources.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        # Deploy javadoc JAR
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=jar -Dclassifier=javadoc -Dfile=target/jpwise-1.0.0-javadoc.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
