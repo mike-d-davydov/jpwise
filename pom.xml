@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.mikeddavydov</groupId>
+    <groupId>io.github.mike-d-davydov</groupId>
     <artifactId>jpwise</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -23,9 +23,9 @@
 
     <developers>
         <developer>
-            <id>mikeddavydov</id>
+            <id>mike-d-davydov</id>
             <name>Mikhail Davydov</name>
-            <email>mikhail.davydov@example.com</email>
+            <email>mike.d.davydov@gmail.com</email>
             <url>https://github.com/mike-d-davydov</url>
             <roles>
                 <role>developer</role>
@@ -339,5 +339,6 @@
         <connection>scm:git:git://github.com/mike-d-davydov/jpwise.git</connection>
         <developerConnection>scm:git:ssh://github.com:mike-d-davydov/jpwise.git</developerConnection>
         <url>http://github.com/mike-d-davydov/jpwise/tree/main</url>
+        <tag>HEAD</tag>
     </scm>
 </project>

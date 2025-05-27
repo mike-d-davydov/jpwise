@@ -40,15 +40,6 @@ jobs:
     - name: Build and package
       run: mvn clean package -DskipTests
 
-    - name: Generate JavaDoc
-      run: mvn javadoc:javadoc
-
-    - name: Create sources JAR
-      run: mvn source:jar
-
-    - name: Create JavaDoc JAR
-      run: mvn javadoc:jar
-
     - name: Create release notes
       id: release_notes
       run: |
