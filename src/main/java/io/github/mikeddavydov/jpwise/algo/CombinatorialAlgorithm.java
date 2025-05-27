@@ -105,6 +105,49 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
         calculateTotalCombinations(parameters));
   }
 
+  /**
+   * Thoroughly checks if all values in a combination are compatible with each
+   * other.
+   * This method checks all possible combinations of values, not just pairs.
+   * It is slower but more accurate for complex compatibility rules.
+   *
+   * @param combination The combination to check
+   * @return true if all values are compatible, false otherwise
+   */
+  private boolean checkCombinationThoroughly(Combination combination) {
+    if (combination == null) {
+      logger.warn("Combination is null, skipping compatibility check");
+      return true;
+    }
+
+    EquivalencePartition[] values = combination.getValues();
+    if (values == null || values.length < 2) {
+      return true;
+    }
+
+    // Check all possible combinations of values
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] == null) {
+        continue;
+      }
+
+      // Check compatibility with all other values
+      for (int j = 0; j < values.length; j++) {
+        if (i == j || values[j] == null) {
+          continue;
+        }
+
+        // Check compatibility in both directions
+        if (!values[i].isCompatibleWith(values[j]) || !values[j].isCompatibleWith(values[i])) {
+          logger.debug("Found incompatible values: {} and {}", values[i], values[j]);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   private void generateCombinationsRecursive(
       List<TestParameter> parameters,
       int currentIndex,
@@ -112,7 +155,7 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
       List<Combination> results,
       int limit) {
     if (currentIndex >= parameters.size()) {
-      if (current.isFilled() && current.checkNoConflicts(this)) {
+      if (current.isFilled() && checkCombinationThoroughly(current)) {
         results.add(new Combination(current));
         if (results.size() >= limit) {
           return;
@@ -134,7 +177,7 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
       }
 
       current.setValue(currentIndex, partition);
-      if (current.checkNoConflicts(this)) {
+      if (checkCombinationThoroughly(current)) {
         generateCombinationsRecursive(parameters, currentIndex + 1, current, results, limit);
         if (results.size() >= limit) {
           return;

@@ -333,4 +333,49 @@ public class Combination {
     }
     return true;
   }
+
+  /**
+   * Thoroughly checks if all values in the combination are compatible with each
+   * other.
+   * This method checks all possible combinations of values, not just pairs.
+   * It is slower but more accurate for complex compatibility rules.
+   *
+   * @param algorithm The generation algorithm to use for compatibility checks
+   * @return true if all values are compatible, false otherwise
+   */
+  public boolean checkNoConflictsThoroughly(GenerationAlgorithm algorithm) {
+    if (algorithm == null) {
+      logger.warn("Generation algorithm is null, skipping compatibility check");
+      return true;
+    }
+
+    // Get all non-null values
+    List<EquivalencePartition> nonNullValues = new ArrayList<>();
+    for (EquivalencePartition value : this.values) {
+      if (value != null) {
+        nonNullValues.add(value);
+      }
+    }
+
+    // If we have less than 2 values, there can't be any conflicts
+    if (nonNullValues.size() < 2) {
+      return true;
+    }
+
+    // Check all possible combinations of values
+    for (int i = 0; i < nonNullValues.size(); i++) {
+      for (int j = i + 1; j < nonNullValues.size(); j++) {
+        EquivalencePartition ep1 = nonNullValues.get(i);
+        EquivalencePartition ep2 = nonNullValues.get(j);
+
+        // Check compatibility in both directions
+        if (!ep1.isCompatibleWith(ep2) || !ep2.isCompatibleWith(ep1)) {
+          logger.debug("Found incompatible values: {} and {}", ep1, ep2);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
 }

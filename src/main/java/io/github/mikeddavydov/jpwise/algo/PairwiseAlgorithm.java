@@ -103,7 +103,7 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
    */
   @Override
   public void generate(TestGenerator testGenerator, int nwise) {
-    logger.info("Starting pairwise test generation with jump value {}", jump);
+    logger.debug("Starting pairwise test generation with jump value {}", jump);
     pwGenerator = testGenerator;
 
     // Generate all possible pairs
@@ -113,6 +113,7 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
     // Build complete test cases
     int initialQueueSize = combinationQueue.size();
     while (!combinationQueue.isEmpty()) {
+      logger.debug("Attempting to build a combination, queue size: {}", combinationQueue.size());
       Combination entry = buildCombination();
       if (entry != null) {
         pwGenerator.result().add(new Combination(entry));
@@ -120,6 +121,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
             initialQueueSize - combinationQueue.size(),
             initialQueueSize,
             combinationQueue.size());
+      } else {
+        logger.warn("Failed to build a combination, queue size: {}", combinationQueue.size());
       }
     }
 
@@ -193,18 +196,23 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
     int index = 0;
     Combination result = null;
     int queueSize = combinationQueue.size();
+    int attempts = 0;
 
     // Try different pairs from the queue to find one that can be completed
     while ((index < queueSize) && (result == null)) {
+      attempts++;
+      logger.debug("Attempt {}: trying combination at index {}", attempts, index);
+
       Combination entry = combinationQueue.get(index);
       if (entry == null) {
+        logger.trace("Null entry at index {}, skipping", index);
         index = (index + jump) % queueSize;
         continue;
       }
 
       // Skip incompatible combinations
       if (!entry.checkNoConflicts(this)) {
-        logger.trace("Skipping incompatible combination at index {}", index);
+        logger.trace("Incompatible combination at index {}, skipping", index);
         index = (index + jump) % queueSize;
         continue;
       }
@@ -215,8 +223,20 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
 
       // If we couldn't complete it, try the next one
       if (!result.isFilled()) {
+        logger.trace("Could not complete combination at index {}", index);
         result = null;
         index = (index + jump) % queueSize;
+      } else {
+        // Successfully built a combination, mark it as used and remove from queue
+        logger.debug("Successfully built combination at index {}", index);
+        markUsedCombinations(result);
+        combinationQueue.remove(index);
+      }
+
+      // Safety check to prevent infinite loops
+      if (attempts > queueSize * 2) {
+        logger.warn("Too many attempts ({}) to build combination, giving up", attempts);
+        break;
       }
     }
 
@@ -245,6 +265,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
           if (combination.checkNoConflicts(this)) {
             logger.trace("Added value {} for parameter {}", partition.getName(), parameter.getName());
             break;
+          } else {
+            logger.trace("Value {} for parameter {} is incompatible", partition.getName(), parameter.getName());
           }
         }
       }
