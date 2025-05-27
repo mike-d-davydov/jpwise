@@ -41,7 +41,7 @@ import com.google.common.collect.ImmutableList;
  *     Arrays.asList(SimpleValue.of("Chrome"), SimpleValue.of("Firefox")));
  *
  * // Parameter with compatibility rules using direct method calls
- * List<CompatibilityPredicate> rules = Arrays.asList((ep1, ep2) -> {
+ * List&lt;CompatibilityPredicate&gt; rules = Arrays.asList((ep1, ep2) -&gt; {
  *   // Safari only works with macOS
  *   if (ep1.getName().equals("Safari")
  *       &amp;&amp; ep2.getParentParameter().getName().equals("operatingSystem")) {

@@ -56,7 +56,19 @@ jobs:
         echo "## JPWise v${{ steps.extract_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
         echo "" >> $GITHUB_OUTPUT
         echo "### Changes" >> $GITHUB_OUTPUT
-        git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_OUTPUT
+        # Get all tags and find the previous one
+        PREV_TAG=$(git tag --sort=-version:refname | grep -v "^v${{ steps.extract_version.outputs.VERSION }}$" | head -n 1 || echo "")
+        if [ -n "$PREV_TAG" ]; then
+          echo "Changes since $PREV_TAG:" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %s" $PREV_TAG..HEAD >> $GITHUB_OUTPUT
+        else
+          echo "- Initial release of JPWise v${{ steps.extract_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+          echo "- Java Pairwise Testing Framework with support for complex parameter relationships" >> $GITHUB_OUTPUT
+          echo "- Comprehensive API with fluent builder pattern and direct generation methods" >> $GITHUB_OUTPUT
+          echo "- TestNG DataProvider integration for seamless test automation" >> $GITHUB_OUTPUT
+          echo "- Multiple partition types: SimpleValue, GenericPartition, CyclingPartition" >> $GITHUB_OUTPUT
+          echo "- Modern Java 11+ compatibility with enhanced documentation" >> $GITHUB_OUTPUT
+        fi
         echo "" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
