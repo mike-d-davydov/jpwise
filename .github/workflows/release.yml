@@ -133,12 +133,12 @@ jobs:
     - name: Publish to GitHub Packages
       run: |
         # Deploy main JAR
-        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=jar -Dfile=target/jpwise-1.0.0.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=${{ steps.extract_version.outputs.VERSION }} -Dpackaging=jar -Dfile=target/jpwise-${{ steps.extract_version.outputs.VERSION }}.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
         # Deploy POM
-        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=pom -Dfile=pom.xml -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=${{ steps.extract_version.outputs.VERSION }} -Dpackaging=pom -Dfile=pom.xml -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
         # Deploy sources JAR
-        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=jar -Dclassifier=sources -Dfile=target/jpwise-1.0.0-sources.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=${{ steps.extract_version.outputs.VERSION }} -Dpackaging=jar -Dclassifier=sources -Dfile=target/jpwise-${{ steps.extract_version.outputs.VERSION }}-sources.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
         # Deploy javadoc JAR
-        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=1.0.0 -Dpackaging=jar -Dclassifier=javadoc -Dfile=target/jpwise-1.0.0-javadoc.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
+        mvn deploy:deploy-file -DgroupId=io.github.mikeddavydov -DartifactId=jpwise -Dversion=${{ steps.extract_version.outputs.VERSION }} -Dpackaging=jar -Dclassifier=javadoc -Dfile=target/jpwise-${{ steps.extract_version.outputs.VERSION }}-javadoc.jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/mikeddavydov/jpwise
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
