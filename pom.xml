@@ -307,6 +307,16 @@
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.16.2</version>
             </plugin>
+
+            <!-- Deploy plugin for GitHub Packages -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <deployAtEnd>true</deployAtEnd>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -317,6 +327,11 @@
             <name>GitHub Packages</name>
             <url>https://maven.pkg.github.com/mikeddavydov/jpwise</url>
         </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/mikeddavydov/jpwise</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <!-- SCM information -->
