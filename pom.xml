@@ -4,14 +4,14 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.mikeddavydov</groupId>
+    <groupId>io.github.mike-d-davydov</groupId>
     <artifactId>jpwise</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JPWise</name>
     <description>Java Pairwise Testing Framework - A powerful library for generating pairwise test combinations with support for complex parameter relationships and compatibility rules</description>
-    <url>https://github.com/mikeddavydov/jpwise</url>
+    <url>https://github.com/mike-d-davydov/jpwise</url>
 
     <licenses>
         <license>
@@ -23,10 +23,10 @@
 
     <developers>
         <developer>
-            <id>mikeddavydov</id>
+            <id>mike-d-davydov</id>
             <name>Mikhail Davydov</name>
-            <email>mikhail.davydov@example.com</email>
-            <url>https://github.com/mikeddavydov</url>
+            <email>mike.d.davydov@gmail.com</email>
+            <url>https://github.com/mike-d-davydov</url>
             <roles>
                 <role>developer</role>
                 <role>maintainer</role>
@@ -276,7 +276,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -325,19 +325,20 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/mikeddavydov/jpwise</url>
+            <url>https://maven.pkg.github.com/mike-d-davydov/jpwise</url>
         </repository>
         <snapshotRepository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/mikeddavydov/jpwise</url>
+            <url>https://maven.pkg.github.com/mike-d-davydov/jpwise</url>
         </snapshotRepository>
     </distributionManagement>
 
     <!-- SCM information -->
     <scm>
-        <connection>scm:git:git://github.com/mikeddavydov/jpwise.git</connection>
-        <developerConnection>scm:git:ssh://github.com:mikeddavydov/jpwise.git</developerConnection>
-        <url>http://github.com/mikeddavydov/jpwise/tree/main</url>
+        <connection>scm:git:git://github.com/mike-d-davydov/jpwise.git</connection>
+        <developerConnection>scm:git:ssh://github.com:mike-d-davydov/jpwise.git</developerConnection>
+        <url>http://github.com/mike-d-davydov/jpwise/tree/main</url>
+        <tag>HEAD</tag>
     </scm>
 </project>
