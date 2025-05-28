@@ -203,6 +203,7 @@ public class Combination {
       logger.error("Combination.merge: 'other' combination is null.");
       throw new IllegalArgumentException("Cannot merge with a null combination");
     }
+
     if (this.parameters == null) { // Should not happen if constructor is correct
       logger.error("Combination.merge: 'this.parameters' is null.");
       // This would be a critical internal error.
@@ -210,13 +211,6 @@ public class Combination {
     }
     // The parameters lists should be compatible (ideally same instance or .equals()
     // true)
-    // For LegacyPairwiseAlgorithm, 'this.parameters' (from curCombination) and
-    // 'other.parameters' (from fromQueue)
-    // are both derived from 'input.getTestParameters()', so they should be
-    // compatible.
-    // The original merge logic didn't explicitly check parameters list equality
-    // here,
-    // relying on them having the same size and corresponding TestParameter objects.
 
     Combination result = null;
     try {
