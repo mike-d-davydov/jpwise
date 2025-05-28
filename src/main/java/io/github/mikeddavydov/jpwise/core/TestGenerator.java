@@ -59,39 +59,24 @@ import org.slf4j.LoggerFactory;
  */
 public class TestGenerator {
   private static final Logger logger = LoggerFactory.getLogger(TestGenerator.class);
-  private static final boolean SHOULD_PREPROCESS_RULES;
 
-  static {
-    // Allow overriding via system property, default to true
-    SHOULD_PREPROCESS_RULES = Boolean.parseBoolean(System.getProperty("jpwise.preprocessRules", "true"));
-  }
-
-  private final TestInput input; // The effective TestInput after potential preprocessing
+  private final TestInput input; // The effective TestInput after preprocessing
   private final List<TestParameter> parameters; // Derived from the effective input
   private CombinationTable result; // Holds the generated combinations
   private final RulePreprocessor rulePreprocessor;
 
   /**
    * Initializes a new TestGenerator with the provided test input.
-   * If rule preprocessing is enabled (default), a new preprocessed TestInput will
-   * be used internally.
+   * A new preprocessed TestInput will be used internally.
    *
    * @param initialInput The initial TestInput.
    */
   public TestGenerator(TestInput initialInput) {
     Objects.requireNonNull(initialInput, "Initial TestInput cannot be null");
 
-    if (SHOULD_PREPROCESS_RULES) {
-      logger.info("Rule preprocessing is enabled. Preprocessing initial input.");
-      this.rulePreprocessor = new RulePreprocessor();
-      this.input = this.rulePreprocessor.preprocess(initialInput);
-    } else {
-      logger.info("Rule preprocessing is disabled. Using initial input as is.");
-      // We could do 'this.input = new TestInput(initialInput);' for a defensive copy,
-      // but if initialInput is not modified elsewhere, direct assignment is fine.
-      this.rulePreprocessor = null;
-      this.input = initialInput;
-    }
+    logger.info("Rule preprocessing is enabled by default. Preprocessing initial input.");
+    this.rulePreprocessor = new RulePreprocessor();
+    this.input = this.rulePreprocessor.preprocess(initialInput);
 
     this.parameters = this.input.getTestParameters();
     if (this.parameters.isEmpty()) {
