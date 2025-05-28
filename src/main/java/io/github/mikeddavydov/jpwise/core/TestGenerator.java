@@ -61,13 +61,13 @@ public class TestGenerator {
   private final boolean enableRulePreprocessing;
 
   /**
-   * Initializes a new TestGenerator with the provided test input. Rule preprocessing is enabled by
+   * Initializes a new TestGenerator with the provided test input. Rule preprocessing is disabled by
    * default.
    *
    * @param initialInput The initial TestInput.
    */
   public TestGenerator(TestInput initialInput) {
-    this(initialInput, true); // Default to enabling preprocessing
+    this(initialInput, false); // Default to disabling preprocessing
   }
 
   /**

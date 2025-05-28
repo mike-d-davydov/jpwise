@@ -81,7 +81,8 @@ public abstract class GenerationAlgorithm {
         boolean p2Compatible = param2.areCompatible(value2, value1);
 
         logger.trace(
-            "  isValidCombination: Pair ('{}:{}', '{}:{}') -> p1.areCompatible ({}) = {}, p2.areCompatible ({}) = {}",
+            "  isValidCombination: Pair ('{}:{}', '{}:{}') -> "
+                + "p1.areCompatible ({}) = {}, p2.areCompatible ({}) = {}",
             param1.getName(),
             value1.getName(),
             param2.getName(),

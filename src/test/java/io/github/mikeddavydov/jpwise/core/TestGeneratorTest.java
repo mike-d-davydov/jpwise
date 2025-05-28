@@ -150,7 +150,7 @@ public class TestGeneratorTest {
       // String browserVal = combo.getValue(browserIndex).getName();
       // String osVal = combo.getValue(osIndex).getName();
 
-      if (browserVal.equals("Safari") && osVal.equals("Windows")) {
+      if ("Safari".equals(browserVal) && "Windows".equals(osVal)) {
         foundSafariWindows = true;
         break;
       }
@@ -200,7 +200,7 @@ public class TestGeneratorTest {
     for (Combination combo : result.combinations()) {
       String browserVal = combo.getValue(0).getName(); // Assuming Browser is param 0
       String osVal = combo.getValue(1).getName(); // Assuming OS is param 1
-      if (browserVal.equals("Safari") && osVal.equals("Windows")) {
+      if ("Safari".equals(browserVal) && "Windows".equals(osVal)) {
         foundSafariWindows = true;
         break;
       }

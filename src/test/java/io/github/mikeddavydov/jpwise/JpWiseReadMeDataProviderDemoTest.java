@@ -19,8 +19,8 @@ import io.github.mikeddavydov.jpwise.core.TestParameter;
  * Demonstrates how to use JPWise with TestNG's data provider feature. This test is intended to
  * mirror the JPWiseQuickDemoTest example from README.md.
  */
-public class JpWiseReadMeDataProviderDemoTest {
-  private static final Logger log = LoggerFactory.getLogger(JpWiseReadMeDataProviderDemoTest.class);
+public class JPWiseReadMeDataProviderDemoTest {
+  private static final Logger log = LoggerFactory.getLogger(JPWiseReadMeDataProviderDemoTest.class);
 
   @DataProvider(name = "jpwiseTestData")
   public Object[][] getTestDataFromJPWise() {
@@ -58,7 +58,8 @@ public class JpWiseReadMeDataProviderDemoTest {
           combinations.size());
     } catch (Throwable t) {
       log.error(
-          "JPWISE_DEBUG: ERROR during JPWise.builder()...generatePairwise() in JpWiseReadMeDataProviderDemoTest DataProvider:",
+          "JPWISE_DEBUG: ERROR during JPWise.builder()...generatePairwise() "
+              + "in JpWiseReadMeDataProviderDemoTest DataProvider:",
           t);
       log.error("Error generating test data in JpWiseReadMeDataProviderDemoTest DataProvider", t);
       throw t;

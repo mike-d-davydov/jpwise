@@ -291,7 +291,7 @@ public final class JPWise {
   }
 
   /** A fluent builder for constructing test inputs. */
-  public static class InputBuilder {
+  public static final class InputBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(InputBuilder.class);
     private final TestInput testInput;
 

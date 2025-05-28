@@ -37,7 +37,11 @@ public class TestInput {
     testParameters = new ArrayList<>();
   }
 
-  /** Copy constructor. */
+  /**
+   * Copy constructor.
+   *
+   * @param other The TestInput object to copy from.
+   */
   public TestInput(TestInput other) {
     super();
     testParameters = new ArrayList<>(other.testParameters);
@@ -59,7 +63,7 @@ public class TestInput {
   /**
    * return the number of dimension of the domain.
    *
-   * @return
+   * @return The number of parameters in this test input.
    */
   public int size() {
     return testParameters.size();
@@ -68,8 +72,8 @@ public class TestInput {
   /**
    * Get a dimension via its index.
    *
-   * @param index
-   * @return
+   * @param index The index of the parameter to retrieve.
+   * @return The TestParameter at the specified index.
    */
   public TestParameter get(int index) {
     return testParameters.get(index);

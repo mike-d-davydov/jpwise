@@ -67,7 +67,8 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
 
       if (pairs.size() == lastLoopPairsCount) {
         logger.warn(
-            "No pairs were covered in the previous iteration. Breaking to avoid infinite loop with {} pairs remaining.",
+            "No pairs were covered in the previous iteration. "
+                + "Breaking to avoid infinite loop with {} pairs remaining.",
             pairs.size());
         logRemainingPairs(pairs);
         break;
@@ -142,7 +143,9 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
   }
 
   private void logRemainingPairs(List<ValuePair> pairs) {
-    if (pairs.isEmpty()) return;
+    if (pairs.isEmpty()) {
+      return;
+    }
     logger.warn("Listing up to 10 remaining uncovered pairs:");
     for (int i = 0; i < Math.min(pairs.size(), 10); i++) {
       ValuePair p = pairs.get(i);
@@ -546,7 +549,8 @@ public class LegacyPairwiseAlgorithm extends GenerationAlgorithm {
     }
 
     logger.debug(
-        "       COULD NOT ADJUST combination with current strategy for this pair (P1 and P2 might be null or already match pair, or adjustment attempts failed).");
+        "       COULD NOT ADJUST combination with current strategy for this pair "
+            + "(P1 and P2 might be null or already match pair, or adjustment attempts failed).");
     logger.debug("    -- tryAdjustCombination END (false) --");
     return false;
   }

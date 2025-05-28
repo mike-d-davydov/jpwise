@@ -1,6 +1,7 @@
 package io.github.mikeddavydov.jpwise.algo;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -36,7 +37,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
 
     if (parameters == null) {
       LOGGER.error(
-          "Input getTestParameters() returned null. This should not happen. Returning empty table.");
+          "Input getTestParameters() returned null. This should not happen. "
+              + "Returning empty table.");
       return new CombinationTable(new ArrayList<>());
     }
     LOGGER.trace("Received {} parameters for generation.", parameters.size());
@@ -109,7 +111,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         LOGGER.trace("Primary Pass - buildNextCombination returned: {}", nextCombination);
         if (!isValidCombination(nextCombination)) {
           LOGGER.error(
-              "CRITICAL: Primary Pass - buildNextCombination produced an invalid combination: {}. This should not happen. Stopping primary pass.",
+              "CRITICAL: Primary Pass - buildNextCombination produced an invalid combination: {}. "
+                  + "This should not happen. Stopping primary pass.",
               nextCombination);
           break;
         }
@@ -117,7 +120,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         int newlyCoveredCount =
             updateCoveredPairs(nextCombination, allValidPairs, coveredPairs, parameters);
         LOGGER.debug(
-            "Primary Pass - Iteration {}: Added combination: {}. Newly covered: {}. Total covered: {}/{}. Combinations so far: {}",
+            "Primary Pass - Iteration {}: Added combination: {}. Newly covered: {}. "
+                + "Total covered: {}/{}. Combinations so far: {}",
             iteration,
             nextCombination.getKey(), // Using getKey for concise logging
             newlyCoveredCount,
@@ -126,7 +130,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
             resultingCombinations.size());
       } else {
         LOGGER.warn(
-            "Primary Pass - buildNextCombination returned null in iteration {}. No new combination could be formed. Stopping primary pass.",
+            "Primary Pass - buildNextCombination returned null in iteration {}. "
+                + "No new combination could be formed. Stopping primary pass.",
             iteration);
         if (coveredPairs.size() < allValidPairs.size()) {
           logUncoveredPairs("Primary Pass", allValidPairs, coveredPairs);
@@ -179,7 +184,7 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
           } else {
             resultingCombinations.add(gapCombination);
             LOGGER.debug(
-                "Secondary Pass - Iteration {}: Added gap-fill combination for {}: {}. Combinations so far: {}",
+                "Secondary Pass - Iteration {}: Added gap-fill for {}: {}. Combinations: {}",
                 gapFillIteration,
                 targetPair,
                 gapCombination.getKey(), // Using getKey for concise logging
@@ -230,30 +235,34 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
       Set<ValuePair> allValidPairs,
       Set<ValuePair> alreadyCoveredPairs) {
     LOGGER.trace(
-        "Attempting to build a specific combination for target pair: {}", targetPair.toString());
+        "Attempting to build specific combination for target pair: P1='{}', V1='{}', P2='{}', V2='{}'",
+        targetPair.param1.getName(),
+        targetPair.value1.getName(),
+        targetPair.param2.getName(),
+        targetPair.value2.getName());
 
     Combination newCombination = new Combination(parameters);
 
-    TestParameter P1 = targetPair.param1;
-    EquivalencePartition V1 = targetPair.value1;
-    TestParameter P2 = targetPair.param2;
-    EquivalencePartition V2 = targetPair.value2;
+    TestParameter p1 = targetPair.param1;
+    EquivalencePartition v1 = targetPair.value1;
+    TestParameter p2 = targetPair.param2;
+    EquivalencePartition v2 = targetPair.value2;
 
-    int p1Index = parameters.indexOf(P1);
-    int p2Index = parameters.indexOf(P2);
+    int p1Index = parameters.indexOf(p1);
+    int p2Index = parameters.indexOf(p2);
 
     if (p1Index == -1 || p2Index == -1) {
       LOGGER.error(
           "Error in buildCombinationForSpecificPair: Target pair parameters not found in main list. P1: {}, P2: {}",
-          P1.getName(),
-          P2.getName());
+          p1.getName(),
+          p2.getName());
       return null;
     }
 
-    // LOGGER.debug("Setting P1 ({}) to {} at index {}", P1.getName(), V1.getName(), p1Index);
-    newCombination.setValue(p1Index, V1);
-    // LOGGER.debug("Setting P2 ({}) to {} at index {}", P2.getName(), V2.getName(), p2Index);
-    newCombination.setValue(p2Index, V2);
+    // LOGGER.debug("Setting p1 ({}) to {} at index {}", p1.getName(), v1.getName(), p1Index);
+    newCombination.setValue(p1Index, v1);
+    // LOGGER.debug("Setting p2 ({}) to {} at index {}", p2.getName(), v2.getName(), p2Index);
+    newCombination.setValue(p2Index, v2);
 
     // Fill remaining parameters
     for (int i = 0; i < parameters.size(); i++) {
@@ -285,7 +294,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
       }
       if (!valueSet) {
         LOGGER.warn(
-            "buildCombinationForSpecificPair: Could not find a valid value for parameter '{}' to complete combination for {}. Returning null.",
+            "buildCombinationForSpecificPair: Could not find valid value for param '{}' "
+                + "to complete for {}. Returning null.",
             currentParam.getName(),
             targetPair);
         // logCurrentCombinationState(newCombination);
@@ -454,13 +464,20 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
       }
 
       if (!candidateValues.isEmpty()) {
-        if (candidateValues.size() == 1) {
-          bestValueForThisParam = candidateValues.get(0);
-        } else {
-          candidateValues.sort(
-              (v1, v2) -> v1.getName().compareTo(v2.getName())); // Deterministic tie-break
-          bestValueForThisParam = candidateValues.get(0);
+        // Sort candidates to ensure deterministic tie-breaking if scores are equal
+        candidateValues.sort(Comparator.comparing(EquivalencePartition::getName));
+        bestValueForThisParam = candidateValues.get(0); // Pick the first after sorting
+
+        if (currentParamToFill.getPartitions().size() > 1 && candidateValues.size() > 1) {
+          LOGGER.trace(
+              "    Multiple candidates for param '{}' with different scores. "
+                  + "Best value: '{}', Score: {}. All candidates: {}",
+              currentParamToFill.getName(),
+              bestValueForThisParam.getName(),
+              bestScoreForThisParam,
+              candidateValues);
         }
+
         currentWorkingCombination.setValue(i, bestValueForThisParam);
         LOGGER.trace(
             "    fillRemaining: Set param '{}' to '{}'",
@@ -468,7 +485,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
             bestValueForThisParam.getName());
       } else {
         LOGGER.warn(
-            "    fillRemaining: Could not find a suitable value for param '{}' that is valid and covers new pairs. Combination might be incomplete or sub-optimal.",
+            "    fillRemaining: Could not find suitable value for param '{}' (valid & new pairs). "
+                + "Combination might be incomplete or sub-optimal.",
             currentParamToFill.getName());
         // If we can't find a value that covers new pairs, we might still need to pick a valid one
         // to complete the combination. For now, this might lead to returning null if not all params
@@ -490,7 +508,8 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
         }
         if (bestValueForThisParam == null) {
           LOGGER.error(
-              "    fillRemaining: CRITICAL - Could not find ANY valid value for param '{}'. Returning null for filledCombination.",
+              "    fillRemaining: CRITICAL - Could not find ANY valid value for param '{}'. "
+                  + "Returning null for filledCombination.",
               currentParamToFill.getName());
           return null; // Cannot complete the combination
         }
@@ -711,18 +730,13 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
           if (allValidPairsSet.contains(tempPair)) {
             pairs.add(tempPair);
           } else {
-            // This case should ideally not happen if the combination itself is deemed valid
-            // by isValidCombination, which relies on areValuesCompatible, which in turn
-            // should align with generateAllValidValuePairs.
-            // However, if it does, it means a pair was formed that wasn't in the initial
-            // allValidPairsSet, which could indicate an issue or a very sparse rule set.
-            // LOGGER.warn(
-            //     "  Pair ({}:{}, {}:{}) from combination not found in allValidPairsSet. This is
-            // unexpected if combination is valid.",
-            //     p1.getName(),
-            //     v1.getName(),
-            //     p2.getName(),
-            //     v2.getName());
+            // This pair was not in the pre-generated list of valid pairs.
+            // This can happen if rules are very sparse or if isValidCombination logic
+            // diverges from areValuesCompatible used in pre-generation.
+            // For now, we simply don't add it if it wasn't pre-validated.
+            LOGGER.trace(
+                "Pair {} not found in allValidPairsSet, not adding to combination's pairs.",
+                tempPair);
           }
         }
       }

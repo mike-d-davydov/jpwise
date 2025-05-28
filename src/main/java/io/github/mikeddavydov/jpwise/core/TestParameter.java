@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
  * @see CompatibilityPredicate
  */
 public class TestParameter implements Serializable {
+  private static final long serialVersionUID = 1L;
   private static final Logger logger = LoggerFactory.getLogger(TestParameter.class);
   private final String name;
   private final List<EquivalencePartition> partitions;
@@ -220,18 +221,18 @@ public class TestParameter implements Serializable {
    * method applies all compatibility predicates to determine if the partitions can be used together
    * in a test combination.
    *
-   * @param v_this The first equivalence partition to check
-   * @param v_other The second equivalence partition to check
+   * @param vThis The first equivalence partition to check
+   * @param vOther The second equivalence partition to check
    * @return true if the partitions are compatible, false otherwise
    */
-  public boolean areCompatible(EquivalencePartition v_this, EquivalencePartition v_other) {
+  public boolean areCompatible(EquivalencePartition vThis, EquivalencePartition vOther) {
     logger.trace(
         "TestParameter ('{}'): checking areCompatible(v_this='{}', v_other='{}')",
         this.name,
-        v_this != null ? v_this.getName() : "null",
-        v_other != null ? v_other.getName() : "null");
+        vThis != null ? vThis.getName() : "null",
+        vOther != null ? vOther.getName() : "null");
 
-    if (v_this == null || v_other == null) {
+    if (vThis == null || vOther == null) {
       logger.trace("  One of the values is null, returning true (or handle as error).");
       return true;
     }
@@ -243,19 +244,19 @@ public class TestParameter implements Serializable {
     int ruleCounter = 0;
     for (CompatibilityPredicate rule : dependencies) {
       ruleCounter++;
-      boolean ruleResult = rule.test(v_this, v_other);
+      boolean ruleResult = rule.test(vThis, vOther);
       logger.trace(
           "    Rule {} evaluation: test('{}', '{}') = {}",
           ruleCounter,
-          v_this.getName(),
-          v_other.getName(),
+          vThis.getName(),
+          vOther.getName(),
           ruleResult);
       if (!ruleResult) {
         logger.trace(
             "    Rule {} failed. Partitions '{}' and '{}' are incompatible due to this rule on parameter '{}'.",
             ruleCounter,
-            v_this.getName(),
-            v_other.getName(),
+            vThis.getName(),
+            vOther.getName(),
             this.name);
         return false;
       }
@@ -264,8 +265,8 @@ public class TestParameter implements Serializable {
         "  All {} rules passed for parameter '{}'. Partitions '{}' and '{}' are compatible.",
         dependencies.size(),
         this.name,
-        v_this.getName(),
-        v_other.getName());
+        vThis.getName(),
+        vOther.getName());
     return true;
   }
 
@@ -289,5 +290,14 @@ public class TestParameter implements Serializable {
     int result = name.hashCode();
     result = 31 * result + partitions.hashCode();
     return result;
+  }
+
+  protected boolean arePairwiseValuesExplicitlyAllowed(
+      String ruleContext,
+      EquivalencePartition vThis,
+      TestParameter otherParam,
+      EquivalencePartition vOther) {
+    // Implementation of the method
+    return false; // Placeholder return, actual implementation needed
   }
 }

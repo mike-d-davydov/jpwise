@@ -159,17 +159,17 @@ public class CombinatorialAlgorithmLimitTest {
     String colorDepth = combination.getValue(4).getName();
 
     // Verify Safari-macOS rule
-    if (browser.equals("Safari")) {
+    if ("Safari".equals(browser)) {
       assertEquals(os, "macOS", "Safari should only be paired with macOS");
     }
 
     // Verify Mobile-4K rule
-    if (device.equals("Mobile")) {
-      assert !resolution.equals("3840x2160") : "Mobile should not be paired with 4K resolution";
+    if ("Mobile".equals(device)) {
+      assert !"3840x2160".equals(resolution) : "Mobile should not be paired with 4K resolution";
     }
 
     // Verify 10-bit color depth rule
-    if (colorDepth.equals("10-bit")) {
+    if ("10-bit".equals(colorDepth)) {
       assertEquals(
           resolution, "3840x2160", "10-bit color depth should only be paired with 4K resolution");
     }

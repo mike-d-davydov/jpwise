@@ -100,13 +100,13 @@ public class PairwiseAlgorithmRuleTest {
       String colorDepth = combination.getValue(4).getName(); // ColorDepth
 
       // Verify Safari-macOS rule
-      if (browser.equals("Safari")) {
+      if ("Safari".equals(browser)) {
         org.testng.Assert.assertEquals(
             os, "macOS", "Safari (" + browser + ") should only be paired with macOS, not " + os);
       }
 
       // Verify Mobile-4K rule
-      if (device.equals("Mobile")) {
+      if ("Mobile".equals(device)) {
         org.testng.Assert.assertNotEquals(
             resolution,
             "3840x2160",
@@ -118,7 +118,7 @@ public class PairwiseAlgorithmRuleTest {
       }
 
       // Verify 10-bit color depth rule (10-bit implies 4K)
-      if (colorDepth.equals("10-bit")) {
+      if ("10-bit".equals(colorDepth)) {
         org.testng.Assert.assertEquals(
             resolution,
             "3840x2160",

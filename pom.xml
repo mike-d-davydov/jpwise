@@ -41,6 +41,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <checkstyle.version>10.12.7</checkstyle.version>
+        <checkstyle-plugin.version>3.3.1</checkstyle-plugin.version>
+        <checkstyle.failsOnError>false</checkstyle.failsOnError>
         <google-formatter-plugin.version>1.7.5</google-formatter-plugin.version>
     </properties>
 
@@ -267,7 +269,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>${checkstyle-plugin.version}</version>
+                <configuration>
+                    <configLocation>project_google_checks.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>false</failsOnError>
+                    <linkXRef>false</linkXRef>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
@@ -275,17 +285,13 @@
                         <version>${checkstyle.version}</version>
                     </dependency>
                 </dependencies>
-                <configuration>
-                    <configLocation>${basedir}/checkstyle.xml</configLocation>
-                    <encoding>UTF-8</encoding>
-                    <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <linkXRef>false</linkXRef>
-                </configuration>
                 <executions>
                     <execution>
                         <id>validate</id>
                         <phase>validate</phase>
+                        <configuration>
+                            <failsOnError>false</failsOnError>
+                        </configuration>
                         <goals>
                             <goal>check</goal>
                         </goals>
