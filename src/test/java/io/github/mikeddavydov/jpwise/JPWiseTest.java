@@ -68,7 +68,7 @@ public class JPWiseTest {
 
   @Test
   public void testDirectPairwiseGenerationWithAlgorithm() {
-    PairwiseAlgorithm algorithm = new PairwiseAlgorithm(4);
+    PairwiseAlgorithm algorithm = new PairwiseAlgorithm();
     CombinationTable results = JPWise.generatePairwise(algorithm, browser, os);
     assertNotNull(results, "Should generate results");
     assertTrue(results.size() > 0, "Should generate some combinations");
@@ -91,10 +91,10 @@ public class JPWiseTest {
 
   @Test
   public void testDirectCombinatorialGenerationWithAlgorithm() {
-    CombinatorialAlgorithm algorithm = new CombinatorialAlgorithm();
+    CombinatorialAlgorithm algorithm = new CombinatorialAlgorithm(6);
     CombinationTable results = JPWise.generateCombinatorial(algorithm, 6, browser, os);
     assertNotNull(results, "Should generate results");
-    assertTrue(results.size() <= 6, "Should respect combination limit");
+    assertEquals(results.size(), 6, "Should respect algorithm's configured limit");
   }
 
   @Test
@@ -173,7 +173,7 @@ public class JPWiseTest {
   public void testCustomPairwiseAlgorithm() {
     TestInput input = JPWise.builder().parameter(browser).parameter(os).build();
 
-    PairwiseAlgorithm algorithm = new PairwiseAlgorithm(5);
+    PairwiseAlgorithm algorithm = new PairwiseAlgorithm();
     CombinationTable results = JPWise.generatePairwise(input, algorithm);
 
     assertNotNull(results, "Should generate results");
@@ -184,11 +184,11 @@ public class JPWiseTest {
   public void testCustomCombinatorialAlgorithm() {
     TestInput input = JPWise.builder().parameter(browser).parameter(os).build();
 
-    CombinatorialAlgorithm algorithm = new CombinatorialAlgorithm();
-    CombinationTable results = JPWise.generateCombinatorial(input, algorithm, 6);
+    CombinatorialAlgorithm algorithm = new CombinatorialAlgorithm(5);
+    CombinationTable results = JPWise.generateCombinatorial(input, algorithm, 5);
 
     assertNotNull(results, "Should generate results");
-    assertTrue(results.size() <= 6, "Should respect combination limit");
+    assertTrue(results.size() <= 5, "Should respect combination limit");
   }
 
   @Test(expectedExceptions = NullPointerException.class)

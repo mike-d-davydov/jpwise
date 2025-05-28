@@ -30,15 +30,6 @@ public class PairwiseAlgorithm extends GenerationAlgorithm {
     super();
   }
 
-  /**
-   * Creates a new pairwise algorithm with the specified size.
-   *
-   * @param size The number of parameters to generate combinations for
-   */
-  public PairwiseAlgorithm(int size) {
-    super();
-  }
-
   @Override
   public CombinationTable generate(TestInput input) {
     logger.debug(

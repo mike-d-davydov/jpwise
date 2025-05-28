@@ -26,7 +26,7 @@
     </root>
 
     <!-- Application Logger -->
-    <logger name="io.github.mikeddavydov.jpwise" level="DEBUG" additivity="false">
+    <logger name="io.github.mikeddavydov.jpwise" level="WARN" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </logger>

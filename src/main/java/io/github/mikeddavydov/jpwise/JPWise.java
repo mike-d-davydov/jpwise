@@ -149,7 +149,7 @@ public final class JPWise {
    * @throws NullPointerException if input is null
    */
   public static CombinationTable generatePairwise(TestInput input) {
-    return executeGeneration(input, new PairwiseAlgorithm(), 2);
+    return executeGeneration(input, new PairwiseAlgorithm());
   }
 
   /**
@@ -163,7 +163,7 @@ public final class JPWise {
   public static CombinationTable generatePairwise(TestInput input, PairwiseAlgorithm algorithm) {
     Objects.requireNonNull(input, "input must not be null");
     Objects.requireNonNull(algorithm, "algorithm must not be null");
-    return executeGeneration(input, algorithm, 2);
+    return executeGeneration(input, algorithm);
   }
 
   /**
@@ -249,16 +249,15 @@ public final class JPWise {
       throw new IllegalArgumentException("limit must be positive");
     }
     CombinatorialAlgorithm effectiveAlgorithm = new CombinatorialAlgorithm(limit);
-    return executeGeneration(input, effectiveAlgorithm, limit);
+    return executeGeneration(input, effectiveAlgorithm);
   }
 
   private static CombinationTable executeGeneration(
-      TestInput input, GenerationAlgorithm algorithm, Integer nWiseOrLimit) {
+      TestInput input, GenerationAlgorithm algorithm) {
     logger.info(
         "Executing generation with algorithm: {} for TestInput with {} parameters. NWise/Limit: {}",
         algorithm.getClass().getSimpleName(),
-        input.getTestParameters().size(),
-        nWiseOrLimit == null ? "default" : nWiseOrLimit);
+        input.getTestParameters().size());
 
     // Create the generator and run the algorithm.
     // The nWiseOrLimit is now handled by the algorithm's constructor if needed.
@@ -376,7 +375,7 @@ public final class JPWise {
      */
     public CombinationTable generatePairwise() {
       LOGGER.info("InputBuilder.generatePairwise() called. Using PairwiseAlgorithm by default.");
-      return JPWise.executeGeneration(testInput, new PairwiseAlgorithm(), 2);
+      return JPWise.executeGeneration(testInput, new PairwiseAlgorithm());
     }
 
     /**

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,7 +113,9 @@ public class RulePreprocessor {
 
   /** Finds parameters that have existing rules. */
   private List<TestParameter> findParametersWithRules(List<TestParameter> parameters) {
-    return parameters.stream().filter(param -> !param.getDependencies().isEmpty()).toList();
+    return parameters.stream()
+        .filter(param -> !param.getDependencies().isEmpty())
+        .collect(Collectors.toList());
   }
 
   /** Finds missing rules for a specific parameter. */
@@ -121,7 +124,9 @@ public class RulePreprocessor {
     List<RuleAddition> rulesToAdd = new ArrayList<>();
     for (CompatibilityPredicate rule : sourceParam.getDependencies()) {
       for (TestParameter targetParam : allParameters) {
-        if (targetParam == sourceParam) continue;
+        if (targetParam == sourceParam) {
+          continue;
+        }
         if (shouldAddRule(rule, sourceParam, targetParam)) {
           rulesToAdd.add(new RuleAddition(rule, sourceParam, targetParam));
         }

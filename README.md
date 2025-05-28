@@ -142,6 +142,9 @@ CombinationTable results = JPWise.builder()
         SimpleValue.of("macOS", "14.1"))
     .generatePairwise();
 
+// Alternatively, to generate a limited set of all combinations (combinatorial):
+// CombinationTable combinatorialResults = JPWise.builder()...generateCombinatorial(4);
+
 // Use the results
 for (Combination combination : results.combinations()) {
     EquivalencePartition browserEP = combination.getValues()[0];
@@ -215,7 +218,7 @@ public void testBrowserCompatibility(String description, String browser, String 
 }
 ```
 
-For a complete example with parameter definitions, compatibility rules, and detailed test implementation, see `JpWiseDataProviderDemoTest.java` in the test sources.
+For a complete example with parameter definitions, compatibility rules, and detailed test implementation, please refer to the test classes within the [src/test/java/io/github/mikeddavydov/jpwise/algo/](./src/test/java/io/github/mikeddavydov/jpwise/algo/) directory, such as [CombinatorialAlgorithmTest.java](./src/test/java/io/github/mikeddavydov/jpwise/algo/CombinatorialAlgorithmTest.java) or [PairwiseAlgorithmTest.java](./src/test/java/io/github/mikeddavydov/jpwise/algo/PairwiseAlgorithmTest.java) which demonstrate various usages.
 
 ## Architecture
 

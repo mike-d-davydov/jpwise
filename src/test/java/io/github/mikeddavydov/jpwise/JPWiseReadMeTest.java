@@ -1,51 +1,49 @@
 package io.github.mikeddavydov.jpwise;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import io.github.mikeddavydov.jpwise.core.Combination;
 import io.github.mikeddavydov.jpwise.core.CombinationTable;
+import io.github.mikeddavydov.jpwise.core.EquivalencePartition;
 import io.github.mikeddavydov.jpwise.core.SimpleValue;
 
+// Class name kept as JPWiseReadMeTest
 public class JPWiseReadMeTest {
-  private static final CombinationTable DEMO_COMBINATIONS = generateJPWiseData();
 
-  private static CombinationTable generateJPWiseData() {
-    // No rules for this simplified version
-    // List<CompatibilityPredicate> browserRules = Arrays.asList(
-    // (ep1, ep2) -> {
-    // if (ep1.getName().equals("Safari") && !ep2.getName().equals("macOS")) {
-    // return false; // Safari is incompatible with non-macOS
-    // }
-    // return true; // Otherwise compatible
-    // });
+  @Test
+  public void testBasicUsageExample() {
+    // Generate combinations - Code from README Basic Usage section
+    CombinationTable results =
+        JPWise.builder()
+            .parameter(
+                "browser", // Name from README
+                SimpleValue.of("Chrome"), // Value from README
+                SimpleValue.of("Firefox") // Value from README
+                )
+            .parameter(
+                "os", // Name from README
+                SimpleValue.of("Windows", "11"), // Values from README
+                SimpleValue.of("macOS", "14.1") // Values from README
+                )
+            .generatePairwise();
 
-    return JPWise.builder()
-        .parameter(
-            "Browser", SimpleValue.of("Chrome"), SimpleValue.of("Firefox")
-            // No rules
-            )
-        .parameter("OS", SimpleValue.of("macOS"), SimpleValue.of("Windows"))
-        .generatePairwise();
-  }
+    // Alternatively, to generate a limited set of all combinations (combinatorial):
+    // CombinationTable combinatorialResults = JPWise.builder()...generateCombinatorial(4);
 
-  @DataProvider(name = "jpwiseTestData")
-  public Object[][] getTestDataFromJPWise() {
-    return DEMO_COMBINATIONS.asDataProvider();
-  }
+    // Basic assertions to ensure the example works in a test context
+    assertNotNull(results, "Results should not be null");
+    assertTrue(results.size() > 0, "Should generate some combinations");
 
-  @Test(dataProvider = "jpwiseTestData")
-  public void testFeatureWithVariedConfigs(String description, String browser, String os) {
-    // description provides a summary (e.g., "Browser=Chrome(latest), OS=Windows")
-    assertNotNull(description, "Description should not be null");
-    assertNotNull(browser, "Browser should not be null");
-    assertNotNull(os, "OS should not be null");
-
-    // Verify Safari-macOS rule
-    if (browser.equals("Safari")) {
-      assertEquals(os, "macOS", "Safari should only be paired with macOS");
+    // Use the results - Code from README Basic Usage section
+    for (Combination combination : results.combinations()) {
+      EquivalencePartition browserEP = combination.getValues()[0];
+      EquivalencePartition osEP = combination.getValues()[1];
+      System.out.printf(
+          "Browser: %s, OS: %s%n", // Matches README
+          browserEP.getValue(), osEP.getValue());
     }
   }
 }
