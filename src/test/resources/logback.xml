@@ -29,6 +29,6 @@
     <logger name="org.hibernate" level="WARN" />
     <logger name="org.springframework" level="WARN" />
     <logger name="io.netty" level="WARN" />
-    <logger name="io.github.mikeddavydov.jpwise" level="WARN" />
+    <logger name="io.github.mikeddavydov.jpwise" level="INFO" />
 
 </configuration>

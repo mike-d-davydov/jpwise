@@ -4,7 +4,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -203,19 +202,13 @@ public class CombinationTest {
   public void testNullValueHandling() {
     // Test handling of null values
     Combination combination = new Combination(2);
-    // Assert that setting a null value throws IllegalArgumentException
-    assertThrows(IllegalArgumentException.class, () -> combination.setValue(0, null));
+    // Assert that setting a null value is now allowed and does not throw
+    combination.setValue(0, null);
+    assertNull(combination.getValue(0), "Value at index 0 should be null after setting null");
 
-    // We can still test setting a non-null value afterwards, though the first part
-    // is the main fix
+    // Test setting a non-null value subsequently
     combination.setValue(1, chrome);
-    assertNull(
-        combination.getValue(0),
-        "Value at index 0 should still be null as it was never successfully set");
-    assertEquals(
-        combination.getValue(1),
-        chrome,
-        "Should handle non-null values after failed null set attempt");
+    assertEquals(combination.getValue(1), chrome, "Should handle non-null values correctly");
   }
 
   @Test

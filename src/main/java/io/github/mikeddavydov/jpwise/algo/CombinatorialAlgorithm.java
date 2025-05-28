@@ -24,7 +24,7 @@ import io.github.mikeddavydov.jpwise.core.TestParameter;
  * parameters or values per parameter. Use with caution.
  */
 public class CombinatorialAlgorithm extends GenerationAlgorithm {
-  private static final Logger logger = LoggerFactory.getLogger(CombinatorialAlgorithm.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CombinatorialAlgorithm.class);
   private int limit = Integer.MAX_VALUE;
 
   public CombinatorialAlgorithm() {
@@ -48,7 +48,7 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
   @Override
   public CombinationTable generate(TestInput input) {
     // The nWiseOrLimit parameter is now taken from the constructor's limit.
-    logger.info(
+    LOGGER.info(
         "Generating all possible combinations for {} parameters, limit: {}",
         input.getTestParameters().size(),
         this.limit);
@@ -60,7 +60,7 @@ public class CombinatorialAlgorithm extends GenerationAlgorithm {
     // Pass this.limit (from constructor) to the recursive helper
     generateCombinationsRecursive(combinations, current, parameters, 0, this.limit);
 
-    logger.info("Generated {} combinations (limit was {})", combinations.size(), this.limit);
+    LOGGER.info("Generated {} combinations (limit was {})", combinations.size(), this.limit);
     return new CombinationTable(combinations);
   }
 

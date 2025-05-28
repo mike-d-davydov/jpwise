@@ -66,6 +66,7 @@ public final class JPWise {
    * @return A new InputBuilder instance
    */
   public static InputBuilder builder() {
+    logger.debug("JPWISE_DEBUG: JPWise.builder() entered.");
     return new InputBuilder();
   }
 
@@ -255,15 +256,33 @@ public final class JPWise {
   private static CombinationTable executeGeneration(
       TestInput input, GenerationAlgorithm algorithm) {
     logger.info(
-        "Executing generation with algorithm: {} for TestInput with {} parameters. NWise/Limit: {}",
+        "JPWise.executeGeneration: Entered. Algorithm: {}, TestInput: {}",
         algorithm.getClass().getSimpleName(),
-        input.getTestParameters().size());
+        input);
+    try {
+      logger.debug(
+          "JPWise.executeGeneration: Accessing parameters from input. Parameter count: {}",
+          input.getTestParameters() != null
+              ? input.getTestParameters().size()
+              : "null TestParameters list");
+    } catch (Exception e) {
+      logger.error("JPWise.executeGeneration: Exception while accessing input parameters", e);
+      throw e; // Rethrow to see original failure cause
+    }
 
-    // Create the generator and run the algorithm.
-    // The nWiseOrLimit is now handled by the algorithm's constructor if needed.
-    TestGenerator generator = new TestGenerator(input);
+    TestGenerator generator;
+    try {
+      logger.debug("JPWise.executeGeneration: Creating TestGenerator for input: {}", input);
+      generator = new TestGenerator(input);
+      logger.debug("JPWise.executeGeneration: TestGenerator created successfully.");
+    } catch (Exception e) {
+      logger.error("JPWise.executeGeneration: Exception during TestGenerator instantiation", e);
+      throw e; // Rethrow
+    }
+
     logger.debug(
-        "JPWise.executeGeneration: TestGenerator created. Calling TestGenerator.generate()...");
+        "JPWise.executeGeneration: TestGenerator created. Calling TestGenerator.generate() with algorithm: {}...",
+        algorithm.getClass().getSimpleName());
     CombinationTable result = generator.generate(algorithm);
     logger.debug(
         "JPWise.executeGeneration: TestGenerator.generate() returned. Result size: {}",
@@ -277,7 +296,10 @@ public final class JPWise {
     private final TestInput testInput;
 
     private InputBuilder() {
+      LOGGER.debug("JPWISE_DEBUG: InputBuilder constructor entered.");
+      LOGGER.debug("InputBuilder instance created.");
       this.testInput = new TestInput();
+      LOGGER.debug("JPWISE_DEBUG: InputBuilder constructor exiting.");
     }
 
     /**
@@ -374,8 +396,21 @@ public final class JPWise {
      * @return A table of generated test combinations
      */
     public CombinationTable generatePairwise() {
-      LOGGER.info("InputBuilder.generatePairwise() called. Using PairwiseAlgorithm by default.");
-      return JPWise.executeGeneration(testInput, new PairwiseAlgorithm());
+      LOGGER.info("InputBuilder.generatePairwise() called.");
+      LOGGER.debug("InputBuilder.generatePairwise(): Current testInput: {}", testInput);
+      LOGGER.debug("InputBuilder.generatePairwise(): About to instantiate PairwiseAlgorithm.");
+      PairwiseAlgorithm algo;
+      try {
+        algo = new PairwiseAlgorithm();
+        LOGGER.debug(
+            "InputBuilder.generatePairwise(): PairwiseAlgorithm instantiated successfully.");
+      } catch (Throwable t) { // Catch Throwable to see Errors too
+        LOGGER.error(
+            "InputBuilder.generatePairwise(): CRITICAL - Error during PairwiseAlgorithm instantiation",
+            t);
+        throw t; // Rethrow
+      }
+      return JPWise.executeGeneration(testInput, algo);
     }
 
     /**

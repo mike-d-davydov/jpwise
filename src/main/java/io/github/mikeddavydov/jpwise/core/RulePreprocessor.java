@@ -26,14 +26,15 @@ public class RulePreprocessor {
    * @return A new TestInput instance with preprocessed rules.
    */
   public TestInput preprocess(TestInput originalInput) {
-    logger.info("Preprocessing test input to identify missing rules and create new TestInput");
+    logger.debug("Preprocessing test input to identify missing rules and create new TestInput");
 
     List<RuleAddition> rulesToAdd = findMissingRules(originalInput);
 
     TestInput processedInput = new TestInput(); // Create a new TestInput instance
 
     if (rulesToAdd.isEmpty()) {
-      logger.info("No missing rules identified. Constructing new TestInput identical to original.");
+      logger.debug(
+          "No missing rules identified. Constructing new TestInput identical to original.");
       for (TestParameter p : originalInput.getTestParameters()) {
         // Create new TestParameter with copies of partitions and dependencies
         processedInput.add(
@@ -81,7 +82,7 @@ public class RulePreprocessor {
       processedInput.add(newParam); // Add the new parameter to the new TestInput
     }
 
-    logger.info("Created new TestInput with augmented rules.");
+    logger.debug("Created new TestInput with augmented rules.");
     return processedInput;
   }
 
@@ -122,13 +123,16 @@ public class RulePreprocessor {
   private List<RuleAddition> findMissingRulesForParameter(
       TestParameter sourceParam, List<TestParameter> allParameters) {
     List<RuleAddition> rulesToAdd = new ArrayList<>();
-    for (CompatibilityPredicate rule : sourceParam.getDependencies()) {
+    for (CompatibilityPredicate originalRule : sourceParam.getDependencies()) {
       for (TestParameter targetParam : allParameters) {
         if (targetParam == sourceParam) {
           continue;
         }
-        if (shouldAddRule(rule, sourceParam, targetParam)) {
-          rulesToAdd.add(new RuleAddition(rule, sourceParam, targetParam));
+        if (shouldAddRule(originalRule, sourceParam, targetParam)) {
+          CompatibilityPredicate symmetricRuleForTarget =
+              (valueFromTarget, valueFromSource) ->
+                  originalRule.test(valueFromSource, valueFromTarget);
+          rulesToAdd.add(new RuleAddition(symmetricRuleForTarget, sourceParam, targetParam));
         }
       }
     }
@@ -137,11 +141,15 @@ public class RulePreprocessor {
 
   /** Determines if a rule should be added to a target parameter. */
   private boolean shouldAddRule(
-      CompatibilityPredicate rule, TestParameter sourceParam, TestParameter targetParam) {
-    if (targetParam.getDependencies().contains(rule)) {
+      CompatibilityPredicate ruleFromSource, TestParameter sourceParam, TestParameter targetParam) {
+    if (targetParam.getDependencies().contains(ruleFromSource)) {
+      logger.trace(
+          "  Original rule object from {} already found on {}. Skipping (this might be incorrect for symmetric cases).",
+          sourceParam.getName(),
+          targetParam.getName());
       return false;
     }
-    return ruleInteractsWithParameter(rule, sourceParam, targetParam);
+    return ruleInteractsWithParameter(ruleFromSource, sourceParam, targetParam);
   }
 
   /**

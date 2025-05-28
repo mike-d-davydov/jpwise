@@ -54,33 +54,53 @@ import org.slf4j.LoggerFactory;
 public class TestGenerator {
   private static final Logger logger = LoggerFactory.getLogger(TestGenerator.class);
 
-  private final TestInput input; // The effective TestInput after preprocessing
+  private final TestInput effectiveInput; // Renamed from 'input' to 'effectiveInput'
   private final List<TestParameter> parameters; // Derived from the effective input
   private CombinationTable result; // Holds the generated combinations
   private final RulePreprocessor rulePreprocessor;
+  private final boolean enableRulePreprocessing;
 
   /**
-   * Initializes a new TestGenerator with the provided test input. A new preprocessed TestInput will
-   * be used internally.
+   * Initializes a new TestGenerator with the provided test input. Rule preprocessing is enabled by
+   * default.
    *
    * @param initialInput The initial TestInput.
    */
   public TestGenerator(TestInput initialInput) {
+    this(initialInput, true); // Default to enabling preprocessing
+  }
+
+  /**
+   * Initializes a new TestGenerator with the provided test input and explicit control over rule
+   * preprocessing.
+   *
+   * @param initialInput The initial TestInput.
+   * @param enableRulePreprocessing If true, rules will be preprocessed (e.g., to add symmetric
+   *     rules). If false, the input is used as-is by the generation algorithm.
+   */
+  public TestGenerator(TestInput initialInput, boolean enableRulePreprocessing) {
     Objects.requireNonNull(initialInput, "Initial TestInput cannot be null");
+    this.enableRulePreprocessing = enableRulePreprocessing;
+    this.rulePreprocessor = new RulePreprocessor(); // Instantiated regardless, used if flag is true
 
-    logger.info("Rule preprocessing is enabled by default. Preprocessing initial input.");
-    this.rulePreprocessor = new RulePreprocessor();
-    this.input = this.rulePreprocessor.preprocess(initialInput);
+    if (this.enableRulePreprocessing) {
+      logger.info("Rule preprocessing is ENABLED. Preprocessing initial input.");
+      this.effectiveInput = this.rulePreprocessor.preprocess(initialInput);
+    } else {
+      logger.info("Rule preprocessing is DISABLED. Using initial input as-is.");
+      this.effectiveInput = initialInput;
+    }
 
-    this.parameters = this.input.getTestParameters();
-    if (this.parameters.isEmpty()) {
-      throw new IllegalArgumentException("Test input must contain at least one parameter.");
+    this.parameters = this.effectiveInput.getTestParameters();
+    if (this.parameters == null || this.parameters.isEmpty()) { // Added null check for parameters
+      throw new IllegalArgumentException(
+          "Test input (after potential preprocessing) must contain at least one parameter.");
     }
     this.result = new CombinationTable(new ArrayList<>()); // Initialize result table
   }
 
   public TestInput getInput() {
-    return input;
+    return effectiveInput; // Return the (potentially) processed input
   }
 
   /**
@@ -92,7 +112,8 @@ public class TestGenerator {
    */
   public CombinationTable generate(GenerationAlgorithm algorithm) {
     logger.info("Generating combinations with algorithm: {}", algorithm.getClass().getSimpleName());
-    this.result = algorithm.generate(this.input);
+    // The algorithm now receives the effectiveInput, which may or may not have been preprocessed.
+    this.result = algorithm.generate(this.effectiveInput);
     logger.info("Generated {} combinations", this.result.size());
     return this.result;
   }

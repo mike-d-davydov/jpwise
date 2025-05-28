@@ -18,11 +18,15 @@
  */
 package io.github.mikeddavydov.jpwise.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a test parameter with its equivalence partitions and compatibility rules. A test
@@ -61,9 +65,10 @@ import java.util.List;
  * @see EquivalencePartition
  * @see CompatibilityPredicate
  */
-public class TestParameter {
-  private String name;
-  private List<EquivalencePartition> partitions;
+public class TestParameter implements Serializable {
+  private static final Logger logger = LoggerFactory.getLogger(TestParameter.class);
+  private final String name;
+  private final List<EquivalencePartition> partitions;
   private List<CompatibilityPredicate> dependencies;
 
   /**
@@ -215,19 +220,52 @@ public class TestParameter {
    * method applies all compatibility predicates to determine if the partitions can be used together
    * in a test combination.
    *
-   * @param v1 The first equivalence partition to check
-   * @param v2 The second equivalence partition to check
+   * @param v_this The first equivalence partition to check
+   * @param v_other The second equivalence partition to check
    * @return true if the partitions are compatible, false otherwise
    */
-  public boolean areCompatible(EquivalencePartition v1, EquivalencePartition v2) {
-    if (v1 == null || v2 == null) {
-      return false;
+  public boolean areCompatible(EquivalencePartition v_this, EquivalencePartition v_other) {
+    logger.trace(
+        "TestParameter ('{}'): checking areCompatible(v_this='{}', v_other='{}')",
+        this.name,
+        v_this != null ? v_this.getName() : "null",
+        v_other != null ? v_other.getName() : "null");
+
+    if (v_this == null || v_other == null) {
+      logger.trace("  One of the values is null, returning true (or handle as error).");
+      return true;
     }
+    if (dependencies == null || dependencies.isEmpty()) {
+      logger.trace("  No dependencies for parameter '{}', returning true.", this.name);
+      return true;
+    }
+    logger.trace("  Parameter '{}' has {} dependencies to check.", this.name, dependencies.size());
+    int ruleCounter = 0;
     for (CompatibilityPredicate rule : dependencies) {
-      if (!rule.test(v1, v2)) {
+      ruleCounter++;
+      boolean ruleResult = rule.test(v_this, v_other);
+      logger.trace(
+          "    Rule {} evaluation: test('{}', '{}') = {}",
+          ruleCounter,
+          v_this.getName(),
+          v_other.getName(),
+          ruleResult);
+      if (!ruleResult) {
+        logger.trace(
+            "    Rule {} failed. Partitions '{}' and '{}' are incompatible due to this rule on parameter '{}'.",
+            ruleCounter,
+            v_this.getName(),
+            v_other.getName(),
+            this.name);
         return false;
       }
     }
+    logger.trace(
+        "  All {} rules passed for parameter '{}'. Partitions '{}' and '{}' are compatible.",
+        dependencies.size(),
+        this.name,
+        v_this.getName(),
+        v_other.getName());
     return true;
   }
 

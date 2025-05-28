@@ -56,6 +56,7 @@ public abstract class GenerationAlgorithm {
     if (combination == null) {
       throw new IllegalArgumentException("Combination cannot be null");
     }
+    logger.trace("isValidCombination checking: {}", combination.getKey());
 
     List<TestParameter> parameters = combination.getParameters();
     for (int i = 0; i < parameters.size(); i++) {
@@ -75,14 +76,38 @@ public abstract class GenerationAlgorithm {
           continue; // Skip null values
         }
 
+        boolean p1Compatible = param1.areCompatible(value1, value2);
+        // Arguments to p2.areCompatible are (value_of_p2, value_of_p1)
+        boolean p2Compatible = param2.areCompatible(value2, value1);
+
+        logger.trace(
+            "  isValidCombination: Pair ('{}:{}', '{}:{}') -> p1.areCompatible ({}) = {}, p2.areCompatible ({}) = {}",
+            param1.getName(),
+            value1.getName(),
+            param2.getName(),
+            value2.getName(),
+            param1.getName(),
+            p1Compatible,
+            param2.getName(),
+            p2Compatible);
+
         // Check if values are compatible according to both parameters' rules
-        if (!param1.areCompatible(value1, value2) || !param2.areCompatible(value2, value1)) {
-          logger.debug("Incompatible values: {} and {}", value1, value2);
+        if (!p1Compatible || !p2Compatible) {
+          logger.trace(
+              "  Incompatible pair found by isValidCombination: ('{}:{}', '{}:{}') because p1Compatible={}, p2Compatible={}",
+              param1.getName(),
+              value1.getName(),
+              param2.getName(),
+              value2.getName(),
+              p1Compatible,
+              p2Compatible);
           return false;
         }
       }
     }
-
+    logger.trace(
+        "isValidCombination: All pairs in {} are compatible. Returning true.",
+        combination.getKey());
     return true;
   }
 }

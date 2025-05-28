@@ -179,4 +179,69 @@ public class CombinatorialAlgorithmTest {
     assertTrue(combinations.contains("B:1"), "Should have B-1 combination");
     assertTrue(combinations.contains("B:2"), "Should have B-2 combination");
   }
+
+  @Test
+  public void testCombinatorialAlgorithmHandlesOneSidedRuleWithoutExternalPreprocessing() {
+    // TestInput for this specific test: Browser (with rule) and OS (no rule)
+    TestInput inputOneSidedRule = new TestInput();
+    // These parameters are from setUp(), browser has the rule, os does not.
+    inputOneSidedRule.add(browser);
+    inputOneSidedRule.add(os);
+
+    // Instantiate CombinatorialAlgorithm directly, bypassing TestGenerator
+    CombinatorialAlgorithm algoNoPreprocess = new CombinatorialAlgorithm();
+    CombinationTable result = algoNoPreprocess.generate(inputOneSidedRule);
+
+    // Expected: Safari only pairs with macOS.
+    // Chrome & Firefox pair with Windows, macOS, Linux.
+    // Total expected: (Chrome, Win), (Chrome, macOS), (Chrome, Linux) -> 3
+    //                 (Firefox, Win), (Firefox, macOS), (Firefox, Linux) -> 3
+    //                 (Safari, macOS) -> 1
+    // Total = 7 combinations
+
+    int safariWindowsCount = 0;
+    int safariLinuxCount = 0;
+    int safariMacOsCount = 0;
+    int chromeCombinations = 0;
+    int firefoxCombinations = 0;
+
+    for (Combination combo : result.combinations()) {
+      assertTrue(combo.isFilled(), "Combination should be complete: " + combo.getKey());
+      EquivalencePartition browserVal = combo.getValue(0);
+      EquivalencePartition osVal = combo.getValue(1);
+
+      if (browserVal.getName().equals("Safari")) {
+        if (osVal.getName().equals("Windows")) {
+          safariWindowsCount++;
+        } else if (osVal.getName().equals("Linux")) {
+          safariLinuxCount++;
+        } else if (osVal.getName().equals("macOS")) {
+          safariMacOsCount++;
+        }
+      } else if (browserVal.getName().equals("Chrome")) {
+        chromeCombinations++;
+      } else if (browserVal.getName().equals("Firefox")) {
+        firefoxCombinations++;
+      }
+    }
+
+    assertEquals(
+        safariWindowsCount, 0, "Should be no Safari:Windows combinations without preprocessor.");
+    assertEquals(
+        safariLinuxCount, 0, "Should be no Safari:Linux combinations without preprocessor.");
+    assertTrue(safariMacOsCount >= 1, "Should be at least one Safari:macOS combination.");
+
+    // Check if Safari is ONLY with macOS
+    for (Combination combo : result.combinations()) {
+      if (combo.getValue(0).getName().equals("Safari")) {
+        assertEquals(
+            combo.getValue(1).getName(), "macOS", "Safari should only be paired with macOS.");
+      }
+    }
+
+    // Each browser type that is not Safari should appear with all 3 OS types
+    // (Chrome with 3 OS, Firefox with 3 OS, Safari with 1 OS = 7 total)
+    assertEquals(
+        result.size(), 7, "Expected 7 total combinations for Browser x OS with the Safari rule.");
+  }
 }

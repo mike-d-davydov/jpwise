@@ -125,9 +125,6 @@ public class Combination {
       throw new IndexOutOfBoundsException(
           "Index " + index + " out of bounds for length " + values.length);
     }
-    if (value == null) {
-      throw new IllegalArgumentException("Cannot set null value for combination");
-    }
     values[index] = value;
   }
 
@@ -344,11 +341,44 @@ public class Combination {
 
     Combination that = (Combination) o;
     if (values.length != that.values.length) {
+      // Different number of parameters, so cannot be equal in terms of structure.
+      // This check might be too strict if we allow comparisons of combinations
+      // that might be from different contexts but coincidentally have same values.
+      // However, for typical use (e.g., in a Set or List.contains()), they should
+      // have the same structure.
       return false;
     }
+
+    // Also compare the parameter lists for equality. Two combinations are not truly
+    // equal if they don't refer to the same parameters, even if their values array is
+    // coincidentally the same.
+    // This assumes TestParameter has a proper equals/hashCode implementation.
+    if (!this.parameters.equals(that.parameters)) {
+      // If the parameter lists are not considered structurally equal by List.equals
+      // (which uses element-wise equals), then the combinations are different.
+      // This is important if combinations come from different TestInputs.
+      // However, if parameters list is empty (e.g. constructed with size), this check might be
+      // problematic.
+      // For now, let's rely on parameters being part of the identity.
+      // If this.parameters is empty for both (e.g. constructed with int size), they would pass
+      // this.
+      return false;
+    }
+
     for (int i = 0; i < values.length; i++) {
-      if (!values[i].equals(that.values[i])) {
-        return false;
+      EquivalencePartition thisValue = this.values[i];
+      EquivalencePartition thatValue = that.values[i];
+      if (thisValue == null) {
+        if (thatValue != null) {
+          return false; // One is null, the other is not
+        }
+        // Both are null, continue to next value
+      } else {
+        // thisValue is not null
+        if (!thisValue.equals(thatValue)) {
+          return false; // thisValue is not null, but not equal to thatValue (which could be null or
+          // non-null)
+        }
       }
     }
     return true;
