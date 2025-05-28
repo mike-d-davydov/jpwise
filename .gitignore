@@ -31,11 +31,9 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-
 # Eclipse
 .classpath
 .project
 .settings/
 *.launch
 .externalToolBuilders/
-

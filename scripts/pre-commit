@@ -19,33 +19,23 @@ if ! command -v java &> /dev/null; then
     exit 1
 fi
 
-# Format code with Spotless
-echo "Formatting code with Spotless..."
-if ! mvn spotless:apply -q; then
-    echo "Error: Code formatting failed"
-    exit 1
-fi
-
-# Check if Spotless made any changes
+# Check for uncommitted changes
 if ! git diff --quiet; then
-    echo "Spotless made formatting changes. Please review and add them to your commit:"
-    git diff --name-only
-    echo ""
-    echo "Run 'git add .' to stage the formatting changes, then commit again."
+    echo "Error: You have uncommitted changes. Please commit or stash them first."
     exit 1
 fi
 
-# Compile the code
-echo "Compiling code..."
-if ! mvn compile -q; then
-    echo "Error: Code compilation failed"
+# Run CheckStyle
+echo "Running CheckStyle..."
+if ! mvn checkstyle:check -q; then
+    echo "CheckStyle found issues. Please fix them before committing."
     exit 1
 fi
 
 # Run tests
 echo "Running tests..."
 if ! mvn test -q; then
-    echo "Error: Tests failed"
+    echo "Tests failed. Please fix them before committing."
     exit 1
 fi
 

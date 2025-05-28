@@ -4,12 +4,22 @@ Thank you for your interest in contributing to JPWise! This document provides gu
 
 ## Development Setup
 
-### Prerequisites
-- Java 11 or higher
-- Maven 3.x
-- Git
+1. **Prerequisites**
+   - Java 11 or higher
+   - Maven 3.6 or higher
+   - Git
 
-### Getting Started
+2. **IDE Setup**
+   - Install VS Code with Java extensions
+   - Import the project as a Maven project
+   - Configure CheckStyle plugin
+
+3. **Code Style**
+   - Follow Google Java Style Guide
+   - Use CheckStyle for code formatting
+   - Run `mvn checkstyle:check` before committing
+
+## Development Workflow
 
 1. **Fork and Clone**
    ```bash
@@ -31,9 +41,7 @@ Thank you for your interest in contributing to JPWise! This document provides gu
    mvn clean compile test
    ```
 
-## Development Workflow
-
-### Git Hooks
+## Git Hooks
 
 The project uses Git hooks to maintain code quality:
 
@@ -47,7 +55,7 @@ git commit --no-verify
 git push --no-verify
 ```
 
-### Commit Message Format
+## Commit Message Format
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) format:
 
@@ -88,8 +96,7 @@ refactor: simplify TestParameter class
 The project uses several tools for code quality:
 
 - **SpotBugs**: Static analysis for bug detection (only critical issues fail builds)
-- **Checkstyle**: Code style checking (Google Java Style)
-- **Spotless**: Automatic code formatting
+- **CheckStyle**: Code style checking (Google Java Style)
 - **JaCoCo**: Code coverage reporting
 
 ### Running Quality Checks
@@ -100,9 +107,6 @@ mvn clean compile checkstyle:check
 
 # Check for critical SpotBugs issues only (can fail build)
 ./scripts/spotbugs-critical-check.sh
-
-# Format code automatically
-mvn spotless:apply
 
 # Generate coverage report
 mvn clean test jacoco:report
@@ -188,34 +192,22 @@ mvn clean test jacoco:report
 
 ## Pull Request Process
 
-1. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+1. **Before Submitting**
+   - Run all tests: `mvn test`
+   - Check code style: `mvn checkstyle:check`
+   - Update documentation
+   - Squash commits if needed
 
-2. **Make Changes**
-   - Follow coding standards
-   - Add tests for new functionality
-   - Update documentation if needed
-
-3. **Commit Changes**
-   ```bash
-   git add .
-   git commit -m "feat: add your feature description"
-   ```
-
-4. **Push and Create PR**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-   - Use the PR template
+2. **Pull Request Description**
+   - Describe the changes
    - Link related issues
-   - Ensure all CI checks pass
+   - Include test results
+   - Mention any breaking changes
 
-5. **Code Review**
-   - Address reviewer feedback
-   - Keep PR focused and small
-   - Squash commits if requested
+3. **Review Process**
+   - Address review comments
+   - Update PR if needed
+   - Wait for approval
 
 ## Release Process
 
@@ -238,7 +230,7 @@ Releases are automated through GitHub Actions:
 ### Java Style Guide
 
 - Follow [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)
-- Use Spotless for automatic formatting
+- Use CheckStyle for automatic formatting
 - Maximum line length: 100 characters
 - Use meaningful variable and method names
 - Add JavaDoc for public APIs
