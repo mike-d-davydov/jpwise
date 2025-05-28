@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.mikeddavydov.jpwise.algo.CombinatorialAlgorithm;
-import io.github.mikeddavydov.jpwise.algo.LegacyPairwiseAlgorithm;
 import io.github.mikeddavydov.jpwise.algo.PairwiseAlgorithm;
 import io.github.mikeddavydov.jpwise.core.CombinationTable;
 import io.github.mikeddavydov.jpwise.core.CompatibilityPredicate;
@@ -159,7 +158,7 @@ public final class JPWise {
    * @throws NullPointerException if input is null
    */
   public static CombinationTable generatePairwise(TestInput input) {
-    return executeGeneration(input, new LegacyPairwiseAlgorithm(), 2);
+    return executeGeneration(input, new PairwiseAlgorithm(), 2);
   }
 
   /**
@@ -287,12 +286,11 @@ public final class JPWise {
 
   /** A fluent builder for constructing test inputs. */
   public static class InputBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(InputBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InputBuilder.class);
     private final TestInput testInput;
 
     private InputBuilder() {
       this.testInput = new TestInput();
-      logger.debug("Created new InputBuilder");
     }
 
     /**
@@ -305,7 +303,7 @@ public final class JPWise {
     public InputBuilder parameter(TestParameter parameter) {
       Objects.requireNonNull(parameter, "parameter must not be null");
       testInput.add(parameter);
-      logger.debug("Added parameter: {}", parameter.getName());
+      LOGGER.debug("Added parameter: {}", parameter.getName());
       return this;
     }
 
@@ -350,7 +348,7 @@ public final class JPWise {
      */
     public InputBuilder parameters(TestParameter... parameters) {
       Objects.requireNonNull(parameters, "parameters array must not be null");
-      logger.debug("Adding {} parameters", parameters.length);
+      LOGGER.debug("Adding {} parameters", parameters.length);
       Arrays.stream(parameters).forEach(this::parameter);
       return this;
     }
@@ -364,7 +362,7 @@ public final class JPWise {
      */
     public InputBuilder parameters(Collection<TestParameter> parameters) {
       Objects.requireNonNull(parameters, "parameters collection must not be null");
-      logger.debug("Adding {} parameters from collection", parameters.size());
+      LOGGER.debug("Adding {} parameters from collection", parameters.size());
       parameters.forEach(this::parameter);
       return this;
     }
@@ -375,7 +373,7 @@ public final class JPWise {
      * @return The constructed test input
      */
     public TestInput build() {
-      logger.debug("Building TestInput with {} parameters", testInput.getTestParameters().size());
+      LOGGER.debug("Building TestInput with {} parameters", testInput.getTestParameters().size());
       TestInput copy = new TestInput();
       for (TestParameter param : testInput.getTestParameters()) {
         copy.add(param);
@@ -391,25 +389,8 @@ public final class JPWise {
      * @return A table of generated test combinations
      */
     public CombinationTable generatePairwise() {
-      logger.info("InputBuilder.generatePairwise() called. Using PairwiseAlgorithm by default.");
+      LOGGER.info("InputBuilder.generatePairwise() called. Using PairwiseAlgorithm by default.");
       return JPWise.executeGeneration(testInput, new PairwiseAlgorithm(), 2);
-    }
-
-    /**
-     * Generates pairwise combinations using the legacy pairwise algorithm with a
-     * specific jump value.
-     * This method is kept for specific scenarios or comparison and will likely be
-     * deprecated.
-     *
-     * @param jumpValue The jump value for the legacy pairwise algorithm.
-     * @return The generated {@link CombinationTable}.
-     */
-    @Deprecated
-    public CombinationTable generateLegacyPairwise(int jumpValue) {
-      logger.info(
-          "InputBuilder.generateLegacyPairwise(jumpValue={}) called. Using LegacyPairwiseAlgorithm.",
-          jumpValue);
-      return JPWise.executeGeneration(testInput, new LegacyPairwiseAlgorithm(jumpValue), 2);
     }
 
     /**
