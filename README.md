@@ -3,7 +3,7 @@
 JPWise is a powerful Java framework for generating pairwise test combinations, with support for complex parameter relationships and compatibility rules. See [All-pairs testing](https://en.wikipedia.org/wiki/All-pairs_testing) for more information about this testing approach.
 
 ## Table of Contents
-- [Why JPWise?](#why-jpwise-smart--simple-test-data-generation)
+- [Why JPWise? Smart & Simple Test Data Generation](#why-jpwise-smart--simple-test-data-generation)
 - [Features](#features)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
@@ -22,51 +22,55 @@ Manually creating comprehensive test data for features with many interacting opt
 **Here's JPWise in action, demonstrating key features including TestNG integration:**
 
 ```java
-import io.github.mikeddavydov.jpwise.JPWise;
-import io.github.mikeddavydov.jpwise.core.CombinationTable;
-import io.github.mikeddavydov.jpwise.core.CompatibilityPredicate;
-import io.github.mikeddavydov.jpwise.core.EquivalencePartition;
-import io.github.mikeddavydov.jpwise.core.SimpleValue;
-import io.github.mikeddavydov.jpwise.core.CyclingPartition;
+import io.github.mikeddavydov.jpwise.*;
+import io.github.mikeddavydov.jpwise.core.*;
+import static java.util.Arrays.asList;
+import java.util.List;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import java.util.Arrays;
-import java.util.List;
 
 public class JPWiseQuickDemoTest {
+
     private static final CombinationTable DEMO_COMBINATIONS = generateJPWiseData();
 
     private static CombinationTable generateJPWiseData() {
-        // Define a rule: "Safari" browser is only compatible with "macOS"
-        List<CompatibilityPredicate> browserRules = Arrays.asList(
-            (ep1, ep2) -> {
+        // Define a rule: "Safari" browser is only compatible with "macOS".
+        List<CompatibilityPredicate> browserOsRules = asList(
+            (ep1, ep2) -> { // ep1 will be a "Browser" value, ep2 will be an "OS" value
                 if (ep1.getName().equals("Safari") && !ep2.getName().equals("macOS")) {
-                    return false; // Safari is incompatible with non-macOS
+                    return false; // Incompatible pair
                 }
-                return true; // Otherwise compatible
+                return true; // Compatible pair
             }
         );
 
         return JPWise.builder()
-            .parameter("Browser", 
-                CyclingPartition.of("Chrome", Arrays.asList("latest", "previous")), 
-                SimpleValue.of("Safari"))
-            .parameter("OS",
-                SimpleValue.of("macOS"), 
-                SimpleValue.of("Windows"))
-            .generatePairwise();
+            .parameter("Browser", // First parameter: Browser
+                asList(
+                    // Chrome will cycle through "latest" and "previous" versions
+                    CyclingPartition.of("Chrome", asList("latest", "previous")),
+                    SimpleValue.of("Safari")
+                ),
+                browserOsRules) // These rules apply between "Browser" and the next parameter ("OS")
+            .parameter("OS",      // Second parameter: Operating System
+                SimpleValue.of("macOS"),
+                SimpleValue.of("Windows")
+            )
+            .generatePairwise(); // Generate all valid pairs
     }
 
     @DataProvider(name = "jpwiseTestData")
     public Object[][] getTestDataFromJPWise() {
+        // Provides generated combinations to TestNG tests
         return DEMO_COMBINATIONS.asDataProvider();
     }
 
     @Test(dataProvider = "jpwiseTestData")
-    public void testFeatureWithVariedConfigs(String description, String browser, String os) {
-        // description provides a summary (e.g., "Browser=Chrome(latest), OS=Windows")
-        System.out.printf("Testing: %s%n", description);
-        // Your test implementation here
+    // scenarioDesc: e.g., "Browser=Chrome(latest), OS=Windows"
+    // browserValue, osValue: concrete values for the current test case (e.g., "latest", "Windows")
+    public void testFeatureWithVariedConfigs(String scenarioDesc, Object browserValue, Object osValue) {
+        System.out.printf("Testing: %s - Browser: %s, OS: %s%n", scenarioDesc, browserValue, osValue);
+        // Your actual test automation logic using browserValue and osValue would go here...
     }
 }
 ```
@@ -83,9 +87,53 @@ public class JPWiseQuickDemoTest {
 
 ## Installation
 
+### Using GitHub Packages (Recommended)
+
+JPWise is available through GitHub Packages. To use it, you need to configure Maven to use the GitHub Packages repository for `io.github.mike-d-davydov`.
+
+1.  **Authenticate to GitHub Packages**: Ensure your Maven `settings.xml` (usually in `~/.m2/settings.xml`) is configured with your GitHub username and a Personal Access Token (PAT) with `read:packages` scope.
+
+    ```xml
+    <settings>
+      <servers>
+        <server>
+          <id>github</id>
+          <username>YOUR_GITHUB_USERNAME</username>
+          <password>YOUR_GITHUB_PAT</password>
+        </server>
+      </servers>
+    </settings>
+    ```
+
+2.  **Add the repository to your `pom.xml`**:
+    If your project doesn't already resolve from GitHub Packages for this owner, you might need to add the repository. However, often just the dependency is enough if the parent POM or `settings.xml` is configured globally.
+
+    ```xml
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>GitHub mike-d-davydov Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/mike-d-davydov/jpwise</url>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+    </repositories>
+    ```
+    *(Note: For snapshot versions, ensure the snapshot repository URL is correctly configured if different or ensure your Maven settings allow snapshot resolution from this repository.)*
+
+
+3.  **Add the dependency to your `pom.xml`**:
+
+    ```xml
+    <dependency>
+        <groupId>io.github.mike-d-davydov</groupId>
+        <artifactId>jpwise</artifactId>
+        <version>1.0-SNAPSHOT</version> <!-- Or the latest released version -->
+    </dependency>
+    ```
+
 ### Using JitPack
 
-Add the JitPack repository to your `pom.xml`:
+Alternatively, you can use JitPack. Add the JitPack repository to your `pom.xml`:
 
 ```xml
 <repositories>
@@ -102,7 +150,7 @@ Add the dependency:
 <dependency>
     <groupId>com.github.mike-d-davydov</groupId>
     <artifactId>jpwise</artifactId>
-    <version>v1.0.0</version>
+    <version>1.0-SNAPSHOT</version> <!-- Or a specific tag like v1.0.0 -->
 </dependency>
 ```
 
@@ -118,9 +166,9 @@ Then add the dependency to your project:
 
 ```xml
 <dependency>
-    <groupId>com.github.mike-d-davydov</groupId>
+    <groupId>io.github.mike-d-davydov</groupId>
     <artifactId>jpwise</artifactId>
-    <version>1.0.0</version>
+    <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -131,26 +179,23 @@ The most concise way to use JPWise is through the builder API:
 ```java
 import io.github.mikeddavydov.jpwise.JPWise;
 import io.github.mikeddavydov.jpwise.core.SimpleValue;
+import io.github.mikeddavydov.jpwise.core.EquivalencePartition;
+import io.github.mikeddavydov.jpwise.core.CombinationTable;
+import io.github.mikeddavydov.jpwise.core.Combination;
+import java.util.Arrays;
 
 // Generate combinations
 CombinationTable results = JPWise.builder()
-    .parameter("browser", 
-        SimpleValue.of("Chrome"),
-        SimpleValue.of("Firefox"))
-    .parameter("os", 
-        SimpleValue.of("Windows", "11"),
-        SimpleValue.of("macOS", "14.1"))
+    .parameter("browser", SimpleValue.of("Chrome"), SimpleValue.of("Firefox")) // Inlined
+    .parameter("os", SimpleValue.of("Windows", "11"), SimpleValue.of("macOS", "14.1")) // Inlined
     .generatePairwise();
-
-// Alternatively, to generate a limited set of all combinations (combinatorial):
-// CombinationTable combinatorialResults = JPWise.builder()...generateCombinatorial(4);
 
 // Use the results
 for (Combination combination : results.combinations()) {
     EquivalencePartition browserEP = combination.getValues()[0];
     EquivalencePartition osEP = combination.getValues()[1];
-    System.out.printf("Browser: %s, OS: %s%n", 
-        browserEP.getValue(), 
+    System.out.printf("Browser: %s, OS: %s%n",
+        browserEP.getValue(),
         osEP.getValue());
 }
 ```
@@ -176,7 +221,10 @@ JPWise supports three types of equivalence partitions:
 
 3. **`CyclingPartition`**: For cycling through values
     ```java
-    CyclingPartition versions = CyclingPartition.of("Firefox ESR", "115.0.1esr", "115.0.2esr", "115.0.3esr");
+    CyclingPartition versions = CyclingPartition.of(
+        "Firefox ESR Cycle",
+        Arrays.asList("115.0.1esr", "115.0.2esr", "115.0.3esr")
+    );
     ```
 
 ### Compatibility Rules
@@ -218,7 +266,7 @@ public void testBrowserCompatibility(String description, String browser, String 
 }
 ```
 
-For a complete example with parameter definitions, compatibility rules, and detailed test implementation, please refer to the test classes within the [src/test/java/io/github/mikeddavydov/jpwise/algo/](./src/test/java/io/github/mikeddavydov/jpwise/algo/) directory, such as [CombinatorialAlgorithmTest.java](./src/test/java/io/github/mikeddavydov/jpwise/algo/CombinatorialAlgorithmTest.java) or [PairwiseAlgorithmTest.java](./src/test/java/io/github/mikeddavydov/jpwise/algo/PairwiseAlgorithmTest.java) which demonstrate various usages.
+For a complete example with parameter definitions, compatibility rules, and detailed test implementation, see `JpWiseDataProviderDemoTest.java` in the test sources.
 
 ## Architecture
 
@@ -264,6 +312,3 @@ JPWise uses specific terminology to describe its concepts:
   - Added TestNG DataProvider integration
   - Added support for dynamic value generation
   - Standardized terminology
-
-
-
