@@ -1,15 +1,26 @@
 package io.github.mikeddavydov.jpwise.core;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import io.github.mikeddavydov.jpwise.algo.PairwiseAlgorithm;
 
 /** Tests for Combination class functionality. */
 public class CombinationTest {
   private TestParameter browser;
+  private TestParameter operatingSystem;
+  private TestParameter resolution;
   private SimpleValue chrome;
   private SimpleValue firefox;
   private SimpleValue safari;
@@ -30,38 +41,32 @@ public class CombinationTest {
     hd = SimpleValue.of("1920x1080");
 
     // Define browser-OS compatibility rules
-    List<CompatibilityPredicate> browserOsRules =
-        Arrays.asList(
-            (v1, v2) -> {
-              // Only apply rules if we're dealing with browser and OS parameters
-              if (!(v1.getParentParameter().getName().equals("browser")
-                  && v2.getParentParameter().getName().equals("operatingSystem"))) {
-                return true;
-              }
+    List<CompatibilityPredicate> browserOsRules = Arrays.asList(
+        (v1, v2) -> {
+          // Only apply rules if we're dealing with browser and OS parameters
+          if (!(v1.getParentParameter().getName().equals("browser")
+              && v2.getParentParameter().getName().equals("operatingSystem"))) {
+            return true;
+          }
 
-              // Safari only works with macOS
-              if (v1.getName().equals("Safari")) {
-                return v2.getName().equals("macOS");
-              }
-              // Chrome and Firefox work with all OS
-              return true;
-            });
+          // Safari only works with macOS
+          if (v1.getName().equals("Safari")) {
+            return v2.getName().equals("macOS");
+          }
+          // Chrome and Firefox work with all OS
+          return true;
+        });
 
     // Create test parameters with compatibility rules
-    browser =
-        new TestParameter(
-            "browser",
-            Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
-            browserOsRules);
+    browser = new TestParameter(
+        "browser",
+        Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
+        browserOsRules);
 
     // Create OS and resolution parameters (needed for parent parameter references)
-    @SuppressWarnings("unused") // Used for side effect: sets parent parameter on partitions
-    TestParameter operatingSystem =
-        new TestParameter(
-            "operatingSystem", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
-    @SuppressWarnings("unused") // Used for side effect: sets parent parameter on partitions
-    TestParameter resolution =
-        new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd));
+    operatingSystem = new TestParameter(
+        "operatingSystem", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
+    resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd));
   }
 
   @Test
@@ -136,40 +141,30 @@ public class CombinationTest {
 
   @Test
   public void testCombinationValidation() {
+    List<TestParameter> testParams = new ArrayList<>();
+    testParams.add(browser);
+    testParams.add(operatingSystem);
+    testParams.add(resolution);
+
     // Test valid combinations
-    Combination validCombo = new Combination(3);
+    Combination validCombo = new Combination(testParams);
     validCombo.setValue(0, chrome);
     validCombo.setValue(1, windows);
     validCombo.setValue(2, hd);
 
-    // Create a mock algorithm that uses the browser's compatibility rules
-    GenerationAlgorithm algorithm =
-        new GenerationAlgorithm() {
-          @Override
-          public void generate(TestGenerator testGenerator, int nwise) {}
-
-          @Override
-          public boolean isCompatible(EquivalencePartition v1, EquivalencePartition v2) {
-            if (v1.getParentParameter() == browser) {
-              return browser.areCompatible(v1, v2);
-            }
-            if (v2.getParentParameter() == browser) {
-              return browser.areCompatible(v2, v1);
-            }
-            return true;
-          }
-        };
+    // Use a concrete GenerationAlgorithm
+    GenerationAlgorithm algorithm = new PairwiseAlgorithm();
 
     assertTrue(
-        validCombo.checkNoConflicts(algorithm), "Chrome-Windows-HD combination should be valid");
+        algorithm.isValidCombination(validCombo), "Chrome-Windows-HD combination should be valid");
 
     // Test invalid combinations
-    Combination invalidCombo = new Combination(3);
+    Combination invalidCombo = new Combination(testParams);
     invalidCombo.setValue(0, safari);
     invalidCombo.setValue(1, windows);
     invalidCombo.setValue(2, hd);
     assertFalse(
-        invalidCombo.checkNoConflicts(algorithm),
+        algorithm.isValidCombination(invalidCombo),
         "Safari-Windows-HD combination should be invalid");
   }
 
@@ -181,8 +176,7 @@ public class CombinationTest {
     combination.setValue(1, windows);
     combination.setValue(2, hd);
 
-    String expected =
-        "Combination{[browser:Chrome, operatingSystem:Windows, resolution:1920x1080]}";
+    String expected = "Combination{[browser:Chrome, operatingSystem:Windows, resolution:1920x1080]}";
     assertEquals(
         combination.toString(),
         expected,
@@ -205,11 +199,14 @@ public class CombinationTest {
   public void testNullValueHandling() {
     // Test handling of null values
     Combination combination = new Combination(2);
-    combination.setValue(0, null);
-    combination.setValue(1, chrome);
+    // Assert that setting a null value throws IllegalArgumentException
+    assertThrows(IllegalArgumentException.class, () -> combination.setValue(0, null));
 
-    assertNull(combination.getValue(0), "Should handle null values");
-    assertEquals(combination.getValue(1), chrome, "Should handle non-null values after null");
+    // We can still test setting a non-null value afterwards, though the first part
+    // is the main fix
+    combination.setValue(1, chrome);
+    assertNull(combination.getValue(0), "Value at index 0 should still be null as it was never successfully set");
+    assertEquals(combination.getValue(1), chrome, "Should handle non-null values after failed null set attempt");
   }
 
   @Test

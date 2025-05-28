@@ -38,9 +38,10 @@ public class CombinatorialAlgorithmLimitTest {
                                                                 SimpleValue.of("Firefox"),
                                                                 SimpleValue.of("Safari")),
                                                 Arrays.asList((ep1, ep2) -> {
-                                                        if (ep1.getName().equals("Safari")
-                                                                        && ep2.getName().equals("OS")) {
-                                                                return ep2.getValue().equals("macOS");
+                                                        if (ep1.getName().equals("Safari") &&
+                                                                        ep2.getParentParameter().getName()
+                                                                                        .equals("OS")) {
+                                                                return ep2.getName().equals("macOS");
                                                         }
                                                         return true;
                                                 }))
@@ -51,9 +52,10 @@ public class CombinatorialAlgorithmLimitTest {
                                                                 SimpleValue.of("Windows", "10"),
                                                                 SimpleValue.of("macOS", "14.1")),
                                                 Arrays.asList((ep1, ep2) -> {
-                                                        if (ep2.getName().equals("Safari")
-                                                                        && ep1.getName().equals("OS")) {
-                                                                return ep1.getValue().equals("macOS");
+                                                        // If other is Browser=Safari, this OS (ep1) must be macOS.
+                                                        if (ep2.getParentParameter().getName().equals("Browser") &&
+                                                                        ep2.getName().equals("Safari")) {
+                                                                return ep1.getName().equals("macOS");
                                                         }
                                                         return true;
                                                 }))
@@ -76,12 +78,20 @@ public class CombinatorialAlgorithmLimitTest {
                                                                 SimpleValue.of("2560x1440"),
                                                                 SimpleValue.of("3840x2160")),
                                                 Arrays.asList((ep1, ep2) -> {
-                                                        if (ep2.getName().equals("Mobile")
-                                                                        && ep1.getName().equals("Resolution")) {
+                                                        // Mobile-4K rule
+                                                        if (ep1.getParentParameter().getName().equals("Resolution") &&
+                                                                        ep2.getParentParameter().getName()
+                                                                                        .equals("Device")
+                                                                        &&
+                                                                        ep2.getName().equals("Mobile")) {
                                                                 return !ep1.getValue().equals("3840x2160");
                                                         }
-                                                        if (ep2.getName().equals("10-bit")
-                                                                        && ep1.getName().equals("Resolution")) {
+                                                        // 10-bit with 4K rule (Resolution's perspective)
+                                                        if (ep1.getParentParameter().getName().equals("Resolution") &&
+                                                                        ep2.getParentParameter().getName()
+                                                                                        .equals("ColorDepth")
+                                                                        &&
+                                                                        ep2.getName().equals("10-bit")) {
                                                                 return ep1.getValue().equals("3840x2160");
                                                         }
                                                         return true;
@@ -92,8 +102,11 @@ public class CombinatorialAlgorithmLimitTest {
                                                                 SimpleValue.of("8-bit"),
                                                                 SimpleValue.of("10-bit")),
                                                 Arrays.asList((ep1, ep2) -> {
-                                                        if (ep1.getName().equals("10-bit")
-                                                                        && ep2.getName().equals("Resolution")) {
+                                                        // 10-bit with 4K rule (ColorDepth's perspective)
+                                                        if (ep1.getParentParameter().getName().equals("ColorDepth") &&
+                                                                        ep1.getName().equals("10-bit") &&
+                                                                        ep2.getParentParameter().getName()
+                                                                                        .equals("Resolution")) {
                                                                 return ep2.getValue().equals("3840x2160");
                                                         }
                                                         return true;

@@ -18,43 +18,74 @@
  */
 package io.github.mikeddavydov.jpwise.core;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Abstract class for the algorithm.
- *
- * @author panwei
+ * Base class for test generation algorithms.
+ * <p>
+ * This class provides common functionality for generating test combinations
+ * and checking compatibility between parameter values.
  */
 public abstract class GenerationAlgorithm {
-  private static Logger logger = LoggerFactory.getLogger(GenerationAlgorithm.class);
-
-  /** Reference to the generator. */
-  protected TestGenerator pwGenerator;
+  private static final Logger logger = LoggerFactory.getLogger(GenerationAlgorithm.class);
 
   /**
-   * Main method to generate combinations to be overwritten by child classes.
+   * Generates test combinations for the given input.
+   * <p>
+   * This method must be implemented by concrete algorithms to provide
+   * their specific combination generation logic.
    *
-   * @param testGenerator
-   * @param nwise
+   * @param input        The test input to generate combinations for
+   * @param nWiseOrLimit For N-wise algorithms, this specifies N. For
+   *                     combinatorial, the limit.
+   *                     For algorithms that don't use this, it can be ignored.
+   * @return A table containing the generated combinations
    */
-  public abstract void generate(TestGenerator testGenerator, int nwise);
+  public abstract CombinationTable generate(TestInput input, int nWiseOrLimit);
 
   /**
-   * Get the domain from the generator.
+   * Checks if a combination is valid according to the compatibility rules.
+   * <p>
+   * A combination is valid if all pairs of values in it are compatible
+   * according to the rules defined in their parameters.
    *
-   * @return
+   * @param combination The combination to check
+   * @return true if the combination is valid, false otherwise
    */
-  protected TestInput input() {
-    return pwGenerator.input();
-  }
+  public boolean isValidCombination(Combination combination) {
+    if (combination == null) {
+      throw new IllegalArgumentException("Combination cannot be null");
+    }
 
-  protected void addToResult(Combination combination) {
-    logger.debug("Adding combination:" + combination);
-    pwGenerator.result().add(combination);
-  }
+    List<TestParameter> parameters = combination.getParameters();
+    for (int i = 0; i < parameters.size(); i++) {
+      TestParameter param1 = parameters.get(i);
+      EquivalencePartition value1 = combination.getValue(i);
 
-  protected boolean isCompatible(EquivalencePartition v1, EquivalencePartition v2) {
-    return v1.isCompatibleWith(v2) && (v2.isCompatibleWith(v1));
+      if (value1 == null) {
+        continue; // Skip null values
+      }
+
+      // Check compatibility with all other parameters
+      for (int j = i + 1; j < parameters.size(); j++) {
+        TestParameter param2 = parameters.get(j);
+        EquivalencePartition value2 = combination.getValue(j);
+
+        if (value2 == null) {
+          continue; // Skip null values
+        }
+
+        // Check if values are compatible according to both parameters' rules
+        if (!param1.areCompatible(value1, value2) || !param2.areCompatible(value2, value1)) {
+          logger.debug("Incompatible values: {} and {}", value1, value2);
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 }

@@ -18,6 +18,10 @@
  */
 package io.github.mikeddavydov.jpwise.core;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +49,7 @@ import org.slf4j.LoggerFactory;
  *     SimpleValue.of("Firefox"))));
  *
  * TestGenerator generator = new TestGenerator(input);
- * generator.generate(new PairwiseAlgorithm());
- * CombinationTable results = generator.result();
+ * CombinationTable results = generator.generate(new PairwiseAlgorithm());
  * </pre>
  *
  * @author panwei
@@ -56,91 +59,85 @@ import org.slf4j.LoggerFactory;
  */
 public class TestGenerator {
   private static final Logger logger = LoggerFactory.getLogger(TestGenerator.class);
+  private static final boolean SHOULD_PREPROCESS_RULES;
 
-  /** The table containing all generated test combinations. */
-  private CombinationTable result;
+  static {
+    // Allow overriding via system property, default to true
+    SHOULD_PREPROCESS_RULES = Boolean.parseBoolean(System.getProperty("jpwise.preprocessRules", "true"));
+  }
+
+  private final TestInput input; // The effective TestInput after potential preprocessing
+  private final List<TestParameter> parameters; // Derived from the effective input
+  private CombinationTable result; // Holds the generated combinations
+  private final RulePreprocessor rulePreprocessor;
 
   /**
-   * The test input configuration containing parameters and their possible values.
-   */
-  private TestInput testInput;
-
-  /**
-   * Creates a new test generator for the specified test input configuration.
+   * Initializes a new TestGenerator with the provided test input.
+   * If rule preprocessing is enabled (default), a new preprocessed TestInput will
+   * be used internally.
    *
-   * @param input The test input configuration containing parameters and their
-   *              values
+   * @param initialInput The initial TestInput.
    */
-  public TestGenerator(TestInput input) {
-    this.testInput = input;
-    this.result = new CombinationTable();
-    logger.debug("Created new TestGenerator with {} parameters", input.getTestParameters().size());
+  public TestGenerator(TestInput initialInput) {
+    Objects.requireNonNull(initialInput, "Initial TestInput cannot be null");
+
+    if (SHOULD_PREPROCESS_RULES) {
+      logger.info("Rule preprocessing is enabled. Preprocessing initial input.");
+      this.rulePreprocessor = new RulePreprocessor();
+      this.input = this.rulePreprocessor.preprocess(initialInput);
+    } else {
+      logger.info("Rule preprocessing is disabled. Using initial input as is.");
+      // We could do 'this.input = new TestInput(initialInput);' for a defensive copy,
+      // but if initialInput is not modified elsewhere, direct assignment is fine.
+      this.rulePreprocessor = null;
+      this.input = initialInput;
+    }
+
+    this.parameters = this.input.getTestParameters();
+    if (this.parameters.isEmpty()) {
+      throw new IllegalArgumentException("Test input must contain at least one parameter.");
+    }
+    this.result = new CombinationTable(new ArrayList<>()); // Initialize result table
+  }
+
+  public TestInput getInput() {
+    return input;
   }
 
   /**
-   * Generates test combinations using the specified algorithm and N-wise
-   * coverage. For pairwise
-   * testing, use N=2. For higher-order combinations, use larger values. For full
-   * combinatorial
-   * testing, use a large value like 99.
+   * Generates test combinations using the specified algorithm and N-wise value
+   * (or limit).
    *
-   * @param algorithm The generation algorithm to use (e.g., PairwiseAlgorithm or
-   *                  CombinatorialAlgorithm)
-   * @param limit     The degree of combinations (2 for pairwise, higher for more
-   *                  combinations)
+   * @param algorithm    The generation algorithm to use
+   * @param nWiseOrLimit For N-wise algorithms, this is N. For combinatorial, this
+   *                     is the limit.
+   * @return A table of generated combinations
    */
-  public void generate(GenerationAlgorithm algorithm, int limit) {
-    logger.info("Starting test generation with {} algorithm and limit {}",
-        algorithm.getClass().getSimpleName(), limit);
-    algorithm.generate(this, limit);
-    logger.info("Generated {} test combinations", result.size());
+  public CombinationTable generate(GenerationAlgorithm algorithm, int nWiseOrLimit) {
+    logger.info(
+        "Generating combinations with algorithm: {}, N-wise/Limit: {}",
+        algorithm.getClass().getSimpleName(),
+        nWiseOrLimit);
+    this.result = algorithm.generate(this.input, nWiseOrLimit);
+    logger.info("Generated {} combinations", this.result.size());
+    return this.result;
   }
 
   /**
-   * Generates test combinations using the specified algorithm with pairwise
-   * (2-wise) coverage. This
-   * is a convenience method equivalent to calling generate(algorithm, 2).
+   * Calculates the total number of possible combinations without considering any
+   * rules.
+   * This is the product of the number of partitions for each parameter.
    *
-   * @param algorithm The generation algorithm to use
-   */
-  public void generate(GenerationAlgorithm algorithm) {
-    logger.debug("Starting pairwise test generation with {} algorithm",
-        algorithm.getClass().getSimpleName());
-    algorithm.generate(this, 2);
-  }
-
-  /**
-   * Gets the test input configuration.
-   *
-   * @return The test input configuration
-   */
-  public TestInput input() {
-    return testInput;
-  }
-
-  /**
-   * Gets the table containing all generated test combinations.
-   *
-   * @return The combination table with generated test cases
-   */
-  public CombinationTable result() {
-    return result;
-  }
-
-  /**
-   * Computes the total number of possible parameter value pairs in the test
-   * input. This represents
-   * the theoretical maximum number of combinations that could be generated.
-   *
-   * @return The total number of possible parameter value pairs
+   * @return The total number of possible combinations (span of the input space).
    */
   public int span() {
-    int size = 0;
-    for (int i = 0; i < testInput.size(); i++) {
-      for (int j = i + 1; j < testInput.size(); j++) {
-        size += testInput.get(i).getPartitions().size() * testInput.get(j).getPartitions().size();
-      }
+    if (parameters.isEmpty()) {
+      return 0;
     }
-    return size;
+    int totalCombinations = 1;
+    for (TestParameter parameter : parameters) {
+      totalCombinations *= parameter.getPartitions().size();
+    }
+    return totalCombinations;
   }
 }

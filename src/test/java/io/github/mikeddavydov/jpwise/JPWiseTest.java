@@ -150,8 +150,8 @@ public class JPWiseTest {
   }
 
   @Test
-  public void testPairwiseWithCustomJump() {
-    CombinationTable results = JPWise.builder().parameter(browser).parameter(os).generatePairwise(3);
+  public void testBuilderPairwiseGeneration() {
+    CombinationTable results = JPWise.builder().parameter(browser).parameter(os).generatePairwise();
 
     assertNotNull(results, "Should generate results");
     assertTrue(results.size() > 0, "Should generate some combinations");
@@ -215,11 +215,6 @@ public class JPWiseTest {
   @Test(expectedExceptions = NullPointerException.class)
   public void testNullRules() {
     JPWise.builder().parameter("browser", Arrays.asList(chrome, firefox), null);
-  }
-
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testInvalidJumpValue() {
-    JPWise.builder().parameter(browser).generatePairwise(0);
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)

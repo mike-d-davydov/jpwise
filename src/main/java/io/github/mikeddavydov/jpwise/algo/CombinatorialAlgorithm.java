@@ -7,190 +7,86 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.mikeddavydov.jpwise.core.Combination;
+import io.github.mikeddavydov.jpwise.core.CombinationTable;
 import io.github.mikeddavydov.jpwise.core.EquivalencePartition;
 import io.github.mikeddavydov.jpwise.core.GenerationAlgorithm;
-import io.github.mikeddavydov.jpwise.core.TestGenerator;
+import io.github.mikeddavydov.jpwise.core.TestInput;
 import io.github.mikeddavydov.jpwise.core.TestParameter;
 
 /**
- * Implements a full combinatorial test case generation algorithm. This
- * algorithm generates all
- * possible combinations of parameter values while respecting compatibility
- * rules between values.
- *
+ * Algorithm that generates all possible combinations of parameter values.
  * <p>
- * Unlike the pairwise algorithm that only covers pairs of values, this
- * algorithm generates every
- * possible combination, which provides complete coverage but results in a much
- * larger number of
- * test cases.
- *
+ * This algorithm generates the complete set of possible combinations by
+ * taking the cartesian product of all parameter values. It then filters
+ * out combinations that violate compatibility rules.
  * <p>
- * The number of test cases grows exponentially with the number of parameters
- * and their values.
- * For example, with 3 parameters having 3 values each, this could generate up
- * to 27 test cases
- * (3^3).
- *
- * <p>
- * Example usage:
- *
- * <pre>
- * TestInput input = new TestInput();
- * input.add(new TestParameter("browser", browserValues));
- * input.add(new TestParameter("os", osValues));
- *
- * TestGenerator generator = new TestGenerator(input);
- * generator.generate(new CombinatorialAlgorithm(), 99); // 99 indicates full coverage
- * CombinationTable results = generator.result();
- * </pre>
- *
- * <p>
- * Use this algorithm when:
- *
- * <ul>
- * <li>Complete test coverage is required
- * <li>The number of parameters and values is small
- * <li>You need to verify all possible interactions
- * </ul>
- *
- * @author DavydovMD
- * @see GenerationAlgorithm
- * @see TestGenerator
+ * Note that this algorithm can generate a very large number of combinations
+ * if there are many parameters or values per parameter. Use with caution.
  */
 public class CombinatorialAlgorithm extends GenerationAlgorithm {
-  private static final Logger logger = LoggerFactory.getLogger(CombinatorialAlgorithm.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      CombinatorialAlgorithm.class);
+  private int limit = Integer.MAX_VALUE;
 
-  /** Creates a new combinatorial algorithm instance. */
   public CombinatorialAlgorithm() {
     super();
-    logger.debug("Created new CombinatorialAlgorithm instance");
   }
 
   /**
-   * Generates all possible combinations of parameter values. The algorithm builds
-   * combinations
-   * recursively, checking compatibility rules at each step to avoid generating
-   * invalid
-   * combinations.
-   *
-   * @param testGenerator The test generator containing input parameters
-   * @param limit         The maximum number of combinations to generate
+   * Constructs a CombinatorialAlgorithm with a specific limit.
+   * This limit can be overridden by the one passed to the generate method.
+   * 
+   * @param limit The maximum number of combinations to generate.
    */
+  public CombinatorialAlgorithm(int limit) {
+    super();
+    if (limit <= 0) {
+      throw new IllegalArgumentException("Limit must be positive.");
+    }
+    this.limit = limit;
+  }
+
   @Override
-  public void generate(TestGenerator testGenerator, int limit) {
-    logger.info("Starting combinatorial test generation with limit {}", limit);
+  public CombinationTable generate(TestInput input, int nWiseOrLimit) {
+    // The nWiseOrLimit parameter for CombinatorialAlgorithm is the actual limit.
+    final int effectiveLimit = (nWiseOrLimit > 0) ? nWiseOrLimit : this.limit;
+    logger.info("Generating all possible combinations for {} parameters, limit: {}",
+        input.getTestParameters().size(), effectiveLimit);
 
-    List<TestParameter> parameters = testGenerator.input().getTestParameters();
-    if (parameters.isEmpty()) {
-      logger.warn("No parameters provided for test generation");
-      return;
-    }
+    List<Combination> combinations = new ArrayList<>();
+    List<TestParameter> parameters = input.getTestParameters();
 
-    List<Combination> results = new ArrayList<>();
-    Combination current = new Combination(parameters.size());
+    Combination current = new Combination(parameters);
+    // Pass effectiveLimit to the recursive helper
+    generateCombinationsRecursive(combinations, current, parameters, 0, effectiveLimit);
 
-    generateCombinationsRecursive(parameters, 0, current, results, limit);
-
-    // Add all valid combinations to the result table
-    for (Combination combination : results) {
-      if (combination.isFilled()) {
-        testGenerator.result().add(combination);
-      }
-    }
-
-    logger.info(
-        "Generated {} valid combinations out of {} possible combinations",
-        results.size(),
-        calculateTotalCombinations(parameters));
+    logger.info("Generated {} combinations (limit was {})", combinations.size(), effectiveLimit);
+    return new CombinationTable(combinations);
   }
 
-  /**
-   * Thoroughly checks if all values in a combination are compatible with each
-   * other.
-   * This method checks all possible combinations of values, not just pairs.
-   * It is slower but more accurate for complex compatibility rules.
-   *
-   * @param combination The combination to check
-   * @return true if all values are compatible, false otherwise
-   */
-  private boolean checkCombinationThoroughly(Combination combination) {
-    if (combination == null) {
-      logger.warn("Combination is null, skipping compatibility check");
-      return true;
-    }
-
-    EquivalencePartition[] values = combination.getValues();
-    if (values == null || values.length < 2) {
-      return true;
-    }
-
-    // Check all possible combinations of values
-    for (int i = 0; i < values.length; i++) {
-      if (values[i] == null) {
-        continue;
+  private void generateCombinationsRecursive(List<Combination> combinations, Combination current,
+      List<TestParameter> parameters, int index, final int effectiveLimit) {
+    if (index == parameters.size()) {
+      if (combinations.size() >= effectiveLimit) {
+        return;
       }
-
-      // Check compatibility with all other values
-      for (int j = 0; j < values.length; j++) {
-        if (i == j || values[j] == null) {
-          continue;
-        }
-
-        // Check compatibility in both directions
-        if (!values[i].isCompatibleWith(values[j]) || !values[j].isCompatibleWith(values[i])) {
-          logger.debug("Found incompatible values: {} and {}", values[i], values[j]);
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  private void generateCombinationsRecursive(
-      List<TestParameter> parameters,
-      int currentIndex,
-      Combination current,
-      List<Combination> results,
-      int limit) {
-    if (currentIndex >= parameters.size()) {
-      if (current.isFilled() && checkCombinationThoroughly(current)) {
-        results.add(new Combination(current));
-        if (results.size() >= limit) {
-          return;
-        }
+      if (isValidCombination(current)) {
+        combinations.add(new Combination(current));
       }
       return;
     }
 
-    TestParameter parameter = parameters.get(currentIndex);
-    if (parameter == null || parameter.getPartitions().isEmpty()) {
-      logger.warn("Parameter at index {} is null or has no partitions", currentIndex);
+    if (combinations.size() >= effectiveLimit) {
       return;
     }
 
+    TestParameter parameter = parameters.get(index);
     for (EquivalencePartition partition : parameter.getPartitions()) {
-      if (partition == null) {
-        logger.warn("Null partition found in parameter {}", parameter.getName());
-        continue;
-      }
-
-      current.setValue(currentIndex, partition);
-      if (checkCombinationThoroughly(current)) {
-        generateCombinationsRecursive(parameters, currentIndex + 1, current, results, limit);
-        if (results.size() >= limit) {
-          return;
-        }
+      current.setValue(index, partition);
+      generateCombinationsRecursive(combinations, current, parameters, index + 1, effectiveLimit);
+      if (combinations.size() >= effectiveLimit) {
+        return;
       }
     }
-  }
-
-  private long calculateTotalCombinations(List<TestParameter> parameters) {
-    long total = 1;
-    for (TestParameter parameter : parameters) {
-      total *= parameter.getPartitions().size();
-    }
-    return total;
   }
 }

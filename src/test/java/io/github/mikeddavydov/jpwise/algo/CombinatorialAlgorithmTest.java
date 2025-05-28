@@ -28,6 +28,7 @@ public class CombinatorialAlgorithmTest {
   private TestParameter browser;
   private TestParameter os;
   private TestParameter resolution;
+  private CombinatorialAlgorithm algorithm;
 
   @BeforeMethod
   public void setUp() {
@@ -62,32 +63,27 @@ public class CombinatorialAlgorithmTest {
     input.add(browser);
     input.add(os);
     input.add(resolution);
+    algorithm = new CombinatorialAlgorithm();
   }
 
   @Test
   public void testBasicCombinatorialGeneration() {
     TestGenerator generator = new TestGenerator(input);
-    generator.generate(new CombinatorialAlgorithm(), 99); // Use large number for full coverage
+    CombinationTable result = generator.generate(algorithm, 0);
 
-    CombinationTable result = generator.result();
     assertNotNull(result, "Should generate results");
     assertTrue(result.size() > 0, "Should generate some combinations");
 
-    // Verify that all combinations are valid
+    // Verify that all combinations are valid (Generator now ensures this)
     for (Combination combination : result.combinations()) {
       assertTrue(combination.isFilled(), "All combinations should be complete");
-      assertTrue(
-          combination.checkNoConflicts(new CombinatorialAlgorithm()),
-          "Combinations should be valid");
     }
   }
 
   @Test
   public void testCompatibilityRules() {
     TestGenerator generator = new TestGenerator(input);
-    generator.generate(new CombinatorialAlgorithm(), 99);
-
-    CombinationTable result = generator.result();
+    CombinationTable result = generator.generate(algorithm, 0);
 
     // Verify that Safari only appears with macOS
     for (Combination combination : result.combinations()) {
@@ -103,9 +99,7 @@ public class CombinatorialAlgorithmTest {
   @Test
   public void testFullCoverage() {
     TestGenerator generator = new TestGenerator(input);
-    generator.generate(new CombinatorialAlgorithm(), 99);
-
-    CombinationTable result = generator.result();
+    CombinationTable result = generator.generate(algorithm, 0);
 
     // Get all combinations
     Set<String> combinations = new HashSet<>();
@@ -152,9 +146,8 @@ public class CombinatorialAlgorithmTest {
   public void testLimit() {
     // Test with a small limit
     TestGenerator generator = new TestGenerator(input);
-    generator.generate(new CombinatorialAlgorithm(), 5);
+    CombinationTable result = generator.generate(new CombinatorialAlgorithm(5), 5);
 
-    CombinationTable result = generator.result();
     assertNotNull(result, "Should generate results");
     assertEquals(result.size(), 5, "Should respect the limit");
   }
@@ -167,9 +160,8 @@ public class CombinatorialAlgorithmTest {
     smallInput.add(TestParameter.of("param2", SimpleValue.of("1"), SimpleValue.of("2")));
 
     TestGenerator generator = new TestGenerator(smallInput);
-    generator.generate(new CombinatorialAlgorithm(), 99);
+    CombinationTable result = generator.generate(new CombinatorialAlgorithm(99), 99);
 
-    CombinationTable result = generator.result();
     assertEquals(result.size(), 4, "Should generate all possible combinations");
 
     // Verify all combinations

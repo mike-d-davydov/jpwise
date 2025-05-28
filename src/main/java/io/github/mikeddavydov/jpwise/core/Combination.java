@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010 Ng Pan Wei, 2013 Mikhail Davydov, 2013 Mikhail Davydov
+ * Copyright (c) 2010 Ng Pan Wei, 2013 Mikhail Davydov
  *
  * <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -25,37 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents a combination of parameter equivalence partitions (values) that
- * forms a test case. A
- * combination can be either partial (containing only some parameter partitions)
- * or complete
- * (containing partitions for all parameters).
- *
+ * Represents a combination of parameter values for testing.
  * <p>
- * Combinations are used both during test case generation (as partial
- * combinations) and in the
- * final results (as complete test cases). The class provides methods for
- * manipulating combinations,
- * checking their completeness, and merging them.
- *
- * <p>
- * Example usage:
- *
- * <pre>
- * // Create a combination for 3 parameters
- * Combination combination = new Combination(3);
- *
- * // Set partitions for parameters
- * combination.setValue(0, browserPartition);
- * combination.setValue(1, osPartition);
- * combination.setValue(2, resolutionPartition);
- *
- * // Check if all parameters have partitions
- * boolean isComplete = combination.isFilled();
- *
- * // Get a unique key for the combination
- * String key = combination.getKey();
- * </pre>
+ * A combination is a set of values, one from each parameter's partition,
+ * that together form a single test case.
  */
 public class Combination {
   private static final Logger logger = LoggerFactory.getLogger(Combination.class);
@@ -63,17 +36,33 @@ public class Combination {
   private static final String EMPTY = "_";
 
   private final EquivalencePartition[] values;
+  private final List<TestParameter> parameters;
 
   /**
-   * Creates a new combination with the specified number of parameters.
+   * Creates a new combination with the specified parameters.
    * All values are initially null.
    *
-   * @param size The number of parameters in the combination
+   * @param parameters The list of parameters for this combination
+   */
+  public Combination(List<TestParameter> parameters) {
+    if (parameters == null || parameters.isEmpty()) {
+      throw new IllegalArgumentException("Parameters list must not be null or empty");
+    }
+    this.parameters = new ArrayList<>(parameters);
+    this.values = new EquivalencePartition[parameters.size()];
+  }
+
+  /**
+   * Creates a new combination with the specified size.
+   * All values are initially null.
+   *
+   * @param size The number of parameters in this combination
    */
   public Combination(int size) {
     if (size <= 0) {
-      throw new IllegalArgumentException("Combination size must be positive");
+      throw new IllegalArgumentException("Size must be positive");
     }
+    this.parameters = new ArrayList<>();
     this.values = new EquivalencePartition[size];
   }
 
@@ -86,14 +75,24 @@ public class Combination {
     if (other == null) {
       throw new IllegalArgumentException("Cannot copy null combination");
     }
+    this.parameters = new ArrayList<>(other.parameters);
     this.values = new EquivalencePartition[other.values.length];
     System.arraycopy(other.values, 0, this.values, 0, other.values.length);
   }
 
   /**
+   * Gets the list of parameters in this combination.
+   *
+   * @return The list of parameters
+   */
+  public List<TestParameter> getParameters() {
+    return parameters;
+  }
+
+  /**
    * Converts this combination into a row for TestNG's data provider. The first
-   * element is the
-   * combination's string representation, followed by the actual values.
+   * element is the combination's string representation, followed by the actual
+   * values.
    *
    * @return An array suitable for use with TestNG's data provider
    */
@@ -136,10 +135,9 @@ public class Combination {
 
   /**
    * Generates a unique key for this combination. The key is a string
-   * representation of all
-   * partition names, with empty positions marked by underscores and names
-   * separated by vertical
-   * bars. For example: "Chrome|_|1024x768"
+   * representation of all partition names, with empty positions marked by
+   * underscores and names
+   * separated by vertical bars. For example: "Chrome|_|1024x768"
    *
    * @return A string key uniquely identifying this combination
    */
@@ -177,44 +175,124 @@ public class Combination {
   }
 
   /**
+   * Counts the number of parameters that have a value set in this combination.
+   *
+   * @return The count of non-null values
+   */
+  public int getSetCount() {
+    if (values == null) {
+      return 0;
+    }
+    int count = 0;
+    for (EquivalencePartition value : values) {
+      if (value != null) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
    * Attempts to merge this combination with another combination. The merge
-   * succeeds if there are no
-   * conflicts (same parameter having different partitions). Partitions from the
-   * other combination
-   * are added to positions that are null in this combination.
+   * succeeds if there are no conflicts (same parameter having different
+   * partitions). Partitions from the
+   * other combination are added to positions that are null in this combination.
    *
    * @param other The combination to merge with this one
    * @return A new merged combination, or null if there are conflicts
    */
   public Combination merge(Combination other) {
-    Combination result = new Combination(values.length);
+    logger.debug("Combination.merge called. this.getKey(): {}, other.getKey(): {}", this.getKey(), other.getKey());
 
-    for (int i = 0; i < values.length; i++) {
-      result.setValue(i, getValue(i));
-      if (other.getValue(i) != null) {
-        if (getValue(i) == null) {
-          result.setValue(i, other.getValue(i));
-        } else {
-          if (!result.getValue(i).equals(other.getValue(i))) {
-            return null;
-          }
+    if (other == null) {
+      logger.error("Combination.merge: 'other' combination is null.");
+      throw new IllegalArgumentException("Cannot merge with a null combination");
+    }
+    if (this.parameters == null) { // Should not happen if constructor is correct
+      logger.error("Combination.merge: 'this.parameters' is null.");
+      // This would be a critical internal error.
+      throw new IllegalStateException("'this.parameters' cannot be null in merge operation.");
+    }
+    // The parameters lists should be compatible (ideally same instance or .equals()
+    // true)
+    // For LegacyPairwiseAlgorithm, 'this.parameters' (from curCombination) and
+    // 'other.parameters' (from fromQueue)
+    // are both derived from 'input.getTestParameters()', so they should be
+    // compatible.
+    // The original merge logic didn't explicitly check parameters list equality
+    // here,
+    // relying on them having the same size and corresponding TestParameter objects.
+
+    Combination result = null;
+    try {
+      // 'this.parameters' is the list of TestParameter objects for the current
+      // combination.
+      // This list is used to initialize the 'result' combination.
+      logger.debug(
+          "Combination.merge: About to create result = new Combination(this.parameters). this.parameters size: {}",
+          this.parameters.size());
+      result = new Combination(this.parameters);
+      logger.debug("Combination.merge: result combination created. result.values.length: {}", result.values.length);
+    } catch (Exception e) {
+      logger.error("Combination.merge: Exception during new Combination(this.parameters): ", e);
+      // If an exception occurs here, rethrow it to make it visible.
+      throw e;
+    }
+
+    logger.debug("Combination.merge: Starting loop. this.values.length: {}", this.values.length);
+    // Assuming this.values.length == other.values.length because they should share
+    // compatible parameter lists.
+    for (int i = 0; i < this.values.length; i++) {
+      EquivalencePartition thisValue = this.values[i];
+      // Defensive check for other.values, though it should be initialized by
+      // Combination's constructor
+      EquivalencePartition otherValue = (other.values != null && i < other.values.length) ? other.values[i] : null;
+
+      logger.debug("  Merge loop i={}: this.value={}, other.value={}",
+          i,
+          (thisValue == null ? "null" : thisValue.getName()),
+          (otherValue == null ? "null" : otherValue.getName()));
+
+      if (thisValue != null && otherValue != null) {
+        // Both have a value for this parameter
+        logger.debug("    Both non-null. Comparing: '{}' with '{}'", thisValue.getName(), otherValue.getName());
+        if (!thisValue.equals(otherValue)) {
+          logger.debug("    Conflict! Values are not equal. Returning null.");
+          return null; // Conflict
         }
+        // Since they are equal, assign one of them to the result.
+        // Direct assignment to result.values[i] is fine if setValue has side effects we
+        // want to avoid here.
+        result.values[i] = thisValue;
+        logger.debug("    Values equal. result.values[{}] set to {}", i, thisValue.getName());
+      } else if (thisValue != null) {
+        // Only this combination has a value
+        result.values[i] = thisValue;
+        logger.debug("    Only thisValue non-null. result.values[{}] set to {}", i, thisValue.getName());
+      } else if (otherValue != null) {
+        // Only other combination has a value
+        result.values[i] = otherValue;
+        logger.debug("    Only otherValue non-null. result.values[{}] set to {}", i, otherValue.getName());
+      } else {
+        // Both are null, result.values[i] remains null (as initialized)
+        logger.debug("    Both values null. result.values[{}] remains null.", i);
       }
     }
+    logger.debug("Combination.merge loop finished. Returning result.getKey(): {}", result.getKey());
     return result;
   }
 
   /**
    * Finds the difference between this combination and another combination. The
-   * result contains
-   * values that are different between the combinations, with null values where
+   * result contains values that are different between the combinations, with null
+   * values where
    * they are the same.
    *
    * @param other The combination to compare with
    * @return A new combination containing the differences, or null if invalid
    */
   public Combination diff(Combination other) {
-    Combination result = new Combination(values.length);
+    Combination result = new Combination(parameters);
     for (int i = 0; i < values.length; i++) {
       result.setValue(i, values[i]);
       if (other.getValue(i) != null) {
@@ -299,83 +377,5 @@ public class Combination {
     }
     sb.append("]}");
     return sb.toString();
-  }
-
-  /**
-   * Checks if all parameter values in this combination are compatible with each
-   * other. This uses
-   * the compatibility rules defined in the parameters.
-   *
-   * @param algorithm The generation algorithm providing compatibility checking
-   * @return true if all values are compatible, false if any are incompatible or
-   *         if the combination is not filled
-   */
-  public boolean checkNoConflicts(GenerationAlgorithm algorithm) {
-    if (algorithm == null) {
-      throw new IllegalArgumentException("Algorithm cannot be null");
-    }
-
-    // Check for null values
-    for (int i = 0; i < values.length; i++) {
-      if (values[i] == null) {
-        continue; // Skip null values as they don't cause conflicts
-      }
-
-      // Check compatibility with other non-null values
-      for (int j = i + 1; j < values.length; j++) {
-        if (values[j] == null) {
-          continue;
-        }
-        if (!values[i].isCompatibleWith(values[j])) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Thoroughly checks if all values in the combination are compatible with each
-   * other.
-   * This method checks all possible combinations of values, not just pairs.
-   * It is slower but more accurate for complex compatibility rules.
-   *
-   * @param algorithm The generation algorithm to use for compatibility checks
-   * @return true if all values are compatible, false otherwise
-   */
-  public boolean checkNoConflictsThoroughly(GenerationAlgorithm algorithm) {
-    if (algorithm == null) {
-      logger.warn("Generation algorithm is null, skipping compatibility check");
-      return true;
-    }
-
-    // Get all non-null values
-    List<EquivalencePartition> nonNullValues = new ArrayList<>();
-    for (EquivalencePartition value : this.values) {
-      if (value != null) {
-        nonNullValues.add(value);
-      }
-    }
-
-    // If we have less than 2 values, there can't be any conflicts
-    if (nonNullValues.size() < 2) {
-      return true;
-    }
-
-    // Check all possible combinations of values
-    for (int i = 0; i < nonNullValues.size(); i++) {
-      for (int j = i + 1; j < nonNullValues.size(); j++) {
-        EquivalencePartition ep1 = nonNullValues.get(i);
-        EquivalencePartition ep2 = nonNullValues.get(j);
-
-        // Check compatibility in both directions
-        if (!ep1.isCompatibleWith(ep2) || !ep2.isCompatibleWith(ep1)) {
-          logger.debug("Found incompatible values: {} and {}", ep1, ep2);
-          return false;
-        }
-      }
-    }
-
-    return true;
   }
 }

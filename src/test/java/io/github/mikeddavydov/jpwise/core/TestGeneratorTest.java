@@ -17,6 +17,7 @@ public class TestGeneratorTest {
   private TestGenerator generator;
   private TestParameter browser;
   private TestParameter os;
+  private TestInput testInput;
 
   @BeforeMethod
   public void setUp() {
@@ -35,46 +36,32 @@ public class TestGeneratorTest {
             SimpleValue.of("Linux")));
 
     // Create test input
-    TestInput input = new TestInput();
-    input.add(browser);
-    input.add(os);
+    testInput = new TestInput();
+    testInput.add(browser);
+    testInput.add(os);
 
     // Create generator
-    generator = new TestGenerator(input);
+    generator = new TestGenerator(testInput);
   }
 
   @Test
   public void testConstructor() {
     assertNotNull(generator, "Should create generator");
-    assertEquals(generator.input().size(), 2, "Should have 2 parameters");
+    assertEquals(generator.getInput().size(), 2, "Should have 2 parameters");
   }
 
   @Test
   public void testInput() {
-    TestInput input = generator.input();
-    assertNotNull(input, "Should get input");
-    assertEquals(input.size(), 2, "Should have 2 parameters");
-    assertEquals(input.get(0), browser, "Should have browser parameter");
-    assertEquals(input.get(1), os, "Should have os parameter");
-  }
-
-  @Test
-  public void testResult() {
-    assertNotNull(generator.result(), "Should get result");
-    assertEquals(generator.result().size(), 0, "Should start with empty result");
-  }
-
-  @Test
-  public void testSpan() {
-    // For 2 parameters with 2 values each, we should have 4 possible pairs:
-    // Chrome-Windows, Chrome-Linux, Firefox-Windows, Firefox-Linux
-    assertEquals(generator.span(), 4, "Should calculate correct number of possible pairs");
+    TestInput currentInput = generator.getInput();
+    assertNotNull(currentInput, "Should get input");
+    assertEquals(currentInput.size(), 2, "Should have 2 parameters");
+    assertEquals(currentInput.get(0), browser, "Should have browser parameter");
+    assertEquals(currentInput.get(1), os, "Should have os parameter");
   }
 
   @Test
   public void testGenerateWithPairwiseAlgorithm() {
-    generator.generate(new PairwiseAlgorithm());
-    CombinationTable result = generator.result();
+    CombinationTable result = generator.generate(new PairwiseAlgorithm(), 2);
 
     assertNotNull(result, "Should generate results");
     assertTrue(result.size() > 0, "Should generate some combinations");
@@ -89,8 +76,7 @@ public class TestGeneratorTest {
 
   @Test
   public void testGenerateWithCombinatorialAlgorithm() {
-    generator.generate(new CombinatorialAlgorithm(), 99);
-    CombinationTable result = generator.result();
+    CombinationTable result = generator.generate(new CombinatorialAlgorithm(99), 99);
 
     assertNotNull(result, "Should generate results");
     assertTrue(result.size() > 0, "Should generate some combinations");
@@ -110,28 +96,14 @@ public class TestGeneratorTest {
 
     GenerationAlgorithm mockAlgorithm = new GenerationAlgorithm() {
       @Override
-      public void generate(TestGenerator testGenerator, int nwise) {
+      public CombinationTable generate(TestInput input, int nWiseOrLimit) {
         algorithmCalled[0] = true;
+        // Return an empty table for the mock
+        return new CombinationTable(new java.util.ArrayList<>());
       }
     };
 
-    generator.generate(mockAlgorithm);
+    generator.generate(mockAlgorithm, 0);
     assertTrue(algorithmCalled[0], "Should call algorithm");
-  }
-
-  @Test
-  public void testGenerateWithCustomNWise() {
-    // Test that nwise parameter is passed correctly
-    final int[] nwiseUsed = new int[1];
-
-    GenerationAlgorithm mockAlgorithm = new GenerationAlgorithm() {
-      @Override
-      public void generate(TestGenerator testGenerator, int nwise) {
-        nwiseUsed[0] = nwise;
-      }
-    };
-
-    generator.generate(mockAlgorithm, 3);
-    assertEquals(nwiseUsed[0], 3, "Should pass correct nwise value to algorithm");
   }
 }

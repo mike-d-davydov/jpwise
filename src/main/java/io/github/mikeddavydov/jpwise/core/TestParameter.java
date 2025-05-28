@@ -21,6 +21,7 @@ package io.github.mikeddavydov.jpwise.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -163,6 +164,22 @@ public class TestParameter {
   }
 
   /**
+   * Creates a copy of an existing test parameter.
+   * This creates a deep copy of the parameter, including its partitions and
+   * dependencies.
+   *
+   * @param other The parameter to copy
+   */
+  public TestParameter(TestParameter other) {
+    this.name = other.name;
+    this.partitions = new ArrayList<>(other.partitions);
+    this.dependencies = new ArrayList<>(other.dependencies);
+    for (EquivalencePartition partition : partitions) {
+      partition.setParentParameter(this);
+    }
+  }
+
+  /**
    * Gets a partition by its name.
    *
    * @param name The name of the partition to find
@@ -203,7 +220,7 @@ public class TestParameter {
    * @return An immutable list of all equivalence partitions
    */
   public List<EquivalencePartition> getPartitions() {
-    return partitions;
+    return Collections.unmodifiableList(partitions);
   }
 
   /**
@@ -212,7 +229,7 @@ public class TestParameter {
    * @return An immutable collection of compatibility rules
    */
   public List<CompatibilityPredicate> getDependencies() {
-    return new ArrayList<>(dependencies);
+    return Collections.unmodifiableList(dependencies);
   }
 
   /**

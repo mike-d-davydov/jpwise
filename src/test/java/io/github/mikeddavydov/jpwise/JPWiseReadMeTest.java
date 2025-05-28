@@ -3,37 +3,32 @@ package io.github.mikeddavydov.jpwise;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import io.github.mikeddavydov.jpwise.core.CombinationTable;
-import io.github.mikeddavydov.jpwise.core.CompatibilityPredicate;
-import io.github.mikeddavydov.jpwise.core.CyclingPartition;
 import io.github.mikeddavydov.jpwise.core.SimpleValue;
 
 public class JPWiseReadMeTest {
   private static final CombinationTable DEMO_COMBINATIONS = generateJPWiseData();
 
   private static CombinationTable generateJPWiseData() {
-    // Define a rule: "Safari" browser is only compatible with "macOS"
-    List<CompatibilityPredicate> browserRules = Arrays.asList(
-        (ep1, ep2) -> {
-          if (ep1.getName().equals("Safari") && !ep2.getName().equals("macOS")) {
-            return false; // Safari is incompatible with non-macOS
-          }
-          return true; // Otherwise compatible
-        });
+    // No rules for this simplified version
+    // List<CompatibilityPredicate> browserRules = Arrays.asList(
+    // (ep1, ep2) -> {
+    // if (ep1.getName().equals("Safari") && !ep2.getName().equals("macOS")) {
+    // return false; // Safari is incompatible with non-macOS
+    // }
+    // return true; // Otherwise compatible
+    // });
 
     return JPWise.builder()
         .parameter(
             "Browser",
-            Arrays.asList(
-                CyclingPartition.of("Chrome", "latest", "previous"),
-                SimpleValue.of("Safari")),
-            browserRules)
+            SimpleValue.of("Chrome"),
+            SimpleValue.of("Firefox")
+        // No rules
+        )
         .parameter(
             "OS",
             SimpleValue.of("macOS"),

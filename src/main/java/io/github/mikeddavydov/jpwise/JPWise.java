@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.mikeddavydov.jpwise.algo.CombinatorialAlgorithm;
+import io.github.mikeddavydov.jpwise.algo.LegacyPairwiseAlgorithm;
 import io.github.mikeddavydov.jpwise.algo.PairwiseAlgorithm;
 import io.github.mikeddavydov.jpwise.core.CombinationTable;
 import io.github.mikeddavydov.jpwise.core.CompatibilityPredicate;
@@ -158,7 +159,7 @@ public final class JPWise {
    * @throws NullPointerException if input is null
    */
   public static CombinationTable generatePairwise(TestInput input) {
-    return executeGeneration(input, new PairwiseAlgorithm(), 2);
+    return executeGeneration(input, new LegacyPairwiseAlgorithm(), 2);
   }
 
   /**
@@ -263,16 +264,23 @@ public final class JPWise {
     if (limit < 1) {
       throw new IllegalArgumentException("limit must be positive");
     }
-    return executeGeneration(input, algorithm, limit);
+    CombinatorialAlgorithm effectiveAlgorithm = new CombinatorialAlgorithm(limit);
+    return executeGeneration(input, effectiveAlgorithm, limit);
   }
 
   private static CombinationTable executeGeneration(
       TestInput input, GenerationAlgorithm algorithm, int nWiseOrLimit) {
-    logger.debug("Executing test generation with {} algorithm and {} limit",
+    logger.debug("JPWise.executeGeneration called with algorithm: {}, nWiseOrLimit: {}",
         algorithm.getClass().getSimpleName(), nWiseOrLimit);
+    Objects.requireNonNull(input, "input must not be null");
+    Objects.requireNonNull(algorithm, "algorithm must not be null");
+    if (nWiseOrLimit < 1) {
+      throw new IllegalArgumentException("nWiseOrLimit must generally be positive.");
+    }
+
     TestGenerator generator = new TestGenerator(input);
-    generator.generate(algorithm, nWiseOrLimit);
-    CombinationTable result = generator.result();
+    logger.debug("JPWise.executeGeneration: TestGenerator created. Calling TestGenerator.generate()...");
+    CombinationTable result = generator.generate(algorithm, nWiseOrLimit);
     logger.info("Generated {} test combinations", result.size());
     return result;
   }
@@ -383,22 +391,25 @@ public final class JPWise {
      * @return A table of generated test combinations
      */
     public CombinationTable generatePairwise() {
-      return JPWise.generatePairwise(testInput);
+      logger.info("InputBuilder.generatePairwise() called. Using PairwiseAlgorithm by default.");
+      return JPWise.executeGeneration(testInput, new PairwiseAlgorithm(), 2);
     }
 
     /**
-     * Convenience method to generate test combinations using a configured pairwise
-     * algorithm.
+     * Generates pairwise combinations using the legacy pairwise algorithm with a
+     * specific jump value.
+     * This method is kept for specific scenarios or comparison and will likely be
+     * deprecated.
      *
-     * @param jumpValue The jump value for the pairwise algorithm
-     * @return A table of generated test combinations
-     * @throws IllegalArgumentException if jumpValue is less than 1
+     * @param jumpValue The jump value for the legacy pairwise algorithm.
+     * @return The generated {@link CombinationTable}.
      */
-    public CombinationTable generatePairwise(int jumpValue) {
-      if (jumpValue < 1) {
-        throw new IllegalArgumentException("jumpValue must be positive");
-      }
-      return JPWise.generatePairwise(testInput, new PairwiseAlgorithm(jumpValue));
+    @Deprecated
+    public CombinationTable generateLegacyPairwise(int jumpValue) {
+      logger.info(
+          "InputBuilder.generateLegacyPairwise(jumpValue={}) called. Using LegacyPairwiseAlgorithm.",
+          jumpValue);
+      return JPWise.executeGeneration(testInput, new LegacyPairwiseAlgorithm(jumpValue), 2);
     }
 
     /**
@@ -423,7 +434,7 @@ public final class JPWise {
      */
     public CombinationTable generateCombinatorial(int limit) {
       return JPWise.generateCombinatorial(
-          testInput, new CombinatorialAlgorithm(), Integer.valueOf(limit));
+          testInput, new CombinatorialAlgorithm(limit), Integer.valueOf(limit));
     }
   }
 }
