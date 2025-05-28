@@ -24,15 +24,10 @@ public class JPWiseReadMeTest {
 
     return JPWise.builder()
         .parameter(
-            "Browser",
-            SimpleValue.of("Chrome"),
-            SimpleValue.of("Firefox")
-        // No rules
-        )
-        .parameter(
-            "OS",
-            SimpleValue.of("macOS"),
-            SimpleValue.of("Windows"))
+            "Browser", SimpleValue.of("Chrome"), SimpleValue.of("Firefox")
+            // No rules
+            )
+        .parameter("OS", SimpleValue.of("macOS"), SimpleValue.of("Windows"))
         .generatePairwise();
   }
 

@@ -33,30 +33,34 @@ public class CombinatorialAlgorithmTest {
   @BeforeMethod
   public void setUp() {
     // Define browser-OS compatibility rules
-    List<CompatibilityPredicate> browserOsRules = asList(
-        (v1, v2) -> {
-          // Only apply Safari-macOS rule if we're dealing with browser and OS
-          if (!(v1.getParentParameter().getName().equals("browser")
-              && v2.getParentParameter().getName().equals("os"))) {
-            return true;
-          }
+    List<CompatibilityPredicate> browserOsRules =
+        asList(
+            (v1, v2) -> {
+              // Only apply Safari-macOS rule if we're dealing with browser and OS
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("os"))) {
+                return true;
+              }
 
-          // Safari only works with macOS
-          if (v1.getName().equals("Safari")) {
-            return v2.getName().equals("macOS");
-          }
-          // All other combinations are compatible
-          return true;
-        });
+              // Safari only works with macOS
+              if (v1.getName().equals("Safari")) {
+                return v2.getName().equals("macOS");
+              }
+              // All other combinations are compatible
+              return true;
+            });
 
     // Create test parameters with inlined partition creation
-    browser = TestParameter.of(
-        "browser",
-        asList(SimpleValue.of("Chrome"), SimpleValue.of("Firefox"), SimpleValue.of("Safari")),
-        browserOsRules);
-    os = TestParameter.of(
-        "os", SimpleValue.of("Windows"), SimpleValue.of("macOS"), SimpleValue.of("Linux"));
-    resolution = TestParameter.of("resolution", SimpleValue.of("1920x1080"), SimpleValue.of("2560x1440"));
+    browser =
+        TestParameter.of(
+            "browser",
+            asList(SimpleValue.of("Chrome"), SimpleValue.of("Firefox"), SimpleValue.of("Safari")),
+            browserOsRules);
+    os =
+        TestParameter.of(
+            "os", SimpleValue.of("Windows"), SimpleValue.of("macOS"), SimpleValue.of("Linux"));
+    resolution =
+        TestParameter.of("resolution", SimpleValue.of("1920x1080"), SimpleValue.of("2560x1440"));
 
     // Create test input
     input = new TestInput();
@@ -69,7 +73,7 @@ public class CombinatorialAlgorithmTest {
   @Test
   public void testBasicCombinatorialGeneration() {
     TestGenerator generator = new TestGenerator(input);
-    CombinationTable result = generator.generate(algorithm, 0);
+    CombinationTable result = generator.generate(algorithm);
 
     assertNotNull(result, "Should generate results");
     assertTrue(result.size() > 0, "Should generate some combinations");
@@ -83,7 +87,7 @@ public class CombinatorialAlgorithmTest {
   @Test
   public void testCompatibilityRules() {
     TestGenerator generator = new TestGenerator(input);
-    CombinationTable result = generator.generate(algorithm, 0);
+    CombinationTable result = generator.generate(algorithm);
 
     // Verify that Safari only appears with macOS
     for (Combination combination : result.combinations()) {
@@ -99,7 +103,7 @@ public class CombinatorialAlgorithmTest {
   @Test
   public void testFullCoverage() {
     TestGenerator generator = new TestGenerator(input);
-    CombinationTable result = generator.generate(algorithm, 0);
+    CombinationTable result = generator.generate(algorithm);
 
     // Get all combinations
     Set<String> combinations = new HashSet<>();
@@ -146,7 +150,7 @@ public class CombinatorialAlgorithmTest {
   public void testLimit() {
     // Test with a small limit
     TestGenerator generator = new TestGenerator(input);
-    CombinationTable result = generator.generate(new CombinatorialAlgorithm(5), 5);
+    CombinationTable result = generator.generate(new CombinatorialAlgorithm(5));
 
     assertNotNull(result, "Should generate results");
     assertEquals(result.size(), 5, "Should respect the limit");
@@ -160,7 +164,7 @@ public class CombinatorialAlgorithmTest {
     smallInput.add(TestParameter.of("param2", SimpleValue.of("1"), SimpleValue.of("2")));
 
     TestGenerator generator = new TestGenerator(smallInput);
-    CombinationTable result = generator.generate(new CombinatorialAlgorithm(99), 99);
+    CombinationTable result = generator.generate(new CombinatorialAlgorithm(99));
 
     assertEquals(result.size(), 4, "Should generate all possible combinations");
 

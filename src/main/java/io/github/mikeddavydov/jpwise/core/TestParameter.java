@@ -25,22 +25,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a test parameter with its equivalence partitions and compatibility
- * rules. A test
- * parameter is a variable in the test space that can take on different
- * partitions. For example, a
- * "browser" parameter might have partitions like "Chrome", "Firefox", and
- * "Safari".
+ * Represents a test parameter with its equivalence partitions and compatibility rules. A test
+ * parameter is a variable in the test space that can take on different partitions. For example, a
+ * "browser" parameter might have partitions like "Chrome", "Firefox", and "Safari".
  *
- * <p>
- * Parameters can also have compatibility rules that define which partitions are
- * compatible with
- * partitions of other parameters. For example, "Safari" might only be
- * compatible with "MacOS" in an
+ * <p>Parameters can also have compatibility rules that define which partitions are compatible with
+ * partitions of other parameters. For example, "Safari" might only be compatible with "MacOS" in an
  * operating system parameter.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>
  * // Simple parameter without compatibility rules using varargs
@@ -74,13 +67,10 @@ public class TestParameter {
   private List<CompatibilityPredicate> dependencies;
 
   /**
-   * Creates a new test parameter with the specified name and equivalence
-   * partitions.
+   * Creates a new test parameter with the specified name and equivalence partitions.
    *
-   * @param name       The name of the parameter (used for reporting and
-   *                   identification)
-   * @param partitions Variable number of equivalence partitions for this
-   *                   parameter
+   * @param name The name of the parameter (used for reporting and identification)
+   * @param partitions Variable number of equivalence partitions for this parameter
    * @return A new TestParameter instance
    */
   public static TestParameter of(String name, EquivalencePartition... partitions) {
@@ -88,11 +78,9 @@ public class TestParameter {
   }
 
   /**
-   * Creates a new test parameter with the specified name and equivalence
-   * partitions.
+   * Creates a new test parameter with the specified name and equivalence partitions.
    *
-   * @param name       The name of the parameter (used for reporting and
-   *                   identification)
+   * @param name The name of the parameter (used for reporting and identification)
    * @param partitions Collection of equivalence partitions for this parameter
    * @return A new TestParameter instance
    */
@@ -101,14 +89,11 @@ public class TestParameter {
   }
 
   /**
-   * Creates a new test parameter with name, equivalence partitions, and
-   * compatibility rules.
+   * Creates a new test parameter with name, equivalence partitions, and compatibility rules.
    *
-   * @param name         The name of the parameter (used for reporting and
-   *                     identification)
-   * @param partitions   Collection of equivalence partitions for this parameter
-   * @param dependencies List of compatibility rules for this parameter's
-   *                     partitions
+   * @param name The name of the parameter (used for reporting and identification)
+   * @param partitions Collection of equivalence partitions for this parameter
+   * @param dependencies List of compatibility rules for this parameter's partitions
    * @return A new TestParameter instance
    */
   public static TestParameter of(
@@ -119,12 +104,10 @@ public class TestParameter {
   }
 
   /**
-   * Creates a new test parameter with the specified name and equivalence
-   * partitions. This
+   * Creates a new test parameter with the specified name and equivalence partitions. This
    * constructor creates a parameter without any compatibility rules.
    *
-   * @param theName    The name of the parameter (used for reporting and
-   *                   identification)
+   * @param theName The name of the parameter (used for reporting and identification)
    * @param partitions Collection of equivalence partitions for this parameter
    */
   public TestParameter(String theName, Collection<EquivalencePartition> partitions) {
@@ -138,17 +121,13 @@ public class TestParameter {
   }
 
   /**
-   * Creates a new test parameter with name, equivalence partitions, and
-   * compatibility rules. The
-   * compatibility rules define which equivalence partitions of this parameter are
-   * compatible with
+   * Creates a new test parameter with name, equivalence partitions, and compatibility rules. The
+   * compatibility rules define which equivalence partitions of this parameter are compatible with
    * partitions of other parameters.
    *
-   * @param theName      The name of the parameter (used for reporting and
-   *                     identification)
-   * @param partitions   Collection of equivalence partitions for this parameter
-   * @param dependencies List of compatibility rules for this parameter's
-   *                     partitions
+   * @param theName The name of the parameter (used for reporting and identification)
+   * @param partitions Collection of equivalence partitions for this parameter
+   * @param dependencies List of compatibility rules for this parameter's partitions
    */
   public TestParameter(
       String theName,
@@ -164,9 +143,8 @@ public class TestParameter {
   }
 
   /**
-   * Creates a copy of an existing test parameter.
-   * This creates a deep copy of the parameter, including its partitions and
-   * dependencies.
+   * Creates a copy of an existing test parameter. This creates a deep copy of the parameter,
+   * including its partitions and dependencies.
    *
    * @param other The parameter to copy
    */
@@ -233,10 +211,8 @@ public class TestParameter {
   }
 
   /**
-   * Checks if two equivalence partitions are compatible according to this
-   * parameter's rules. This
-   * method applies all compatibility predicates to determine if the partitions
-   * can be used together
+   * Checks if two equivalence partitions are compatible according to this parameter's rules. This
+   * method applies all compatibility predicates to determine if the partitions can be used together
    * in a test combination.
    *
    * @param v1 The first equivalence partition to check

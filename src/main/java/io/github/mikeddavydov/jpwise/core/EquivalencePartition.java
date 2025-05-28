@@ -1,8 +1,6 @@
 package io.github.mikeddavydov.jpwise.core;
 
-/**
- * @author DavydovMD Date: 17.06.13 Time: 15:49
- */
+/** @author DavydovMD Date: 17.06.13 Time: 15:49 */
 public interface EquivalencePartition {
   TestParameter getParentParameter();
 

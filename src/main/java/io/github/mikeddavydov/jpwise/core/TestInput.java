@@ -22,8 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The problem domain which we want to cover. It has many testParameters, each
- * having several
+ * The problem domain which we want to cover. It has many testParameters, each having several
  * possible values.
  *
  * @author panwei, davydovmd

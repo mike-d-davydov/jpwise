@@ -45,7 +45,8 @@ public class JPWiseTest {
     uhd = SimpleValue.of("4K", "3840x2160");
 
     // Create test parameters
-    browser = new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox, safari));
+    browser =
+        new TestParameter("browser", Arrays.<EquivalencePartition>asList(chrome, firefox, safari));
     os = new TestParameter("os", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
     resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd, uhd));
   }
@@ -113,10 +114,11 @@ public class JPWiseTest {
 
   @Test
   public void testInlineParameterCreation() {
-    CombinationTable results = JPWise.builder()
-        .parameter("browser", chrome, firefox)
-        .parameter("os", windows, macOS)
-        .generatePairwise();
+    CombinationTable results =
+        JPWise.builder()
+            .parameter("browser", chrome, firefox)
+            .parameter("os", windows, macOS)
+            .generatePairwise();
 
     assertNotNull(results, "Should generate results with inline parameters");
     assertTrue(results.size() > 0, "Should generate some combinations");
@@ -124,7 +126,8 @@ public class JPWiseTest {
 
   @Test
   public void testParametersVarargs() {
-    CombinationTable results = JPWise.builder().parameters(browser, os, resolution).generatePairwise();
+    CombinationTable results =
+        JPWise.builder().parameters(browser, os, resolution).generatePairwise();
 
     assertNotNull(results, "Should generate results");
     assertTrue(results.size() > 0, "Should generate some combinations");
@@ -159,7 +162,8 @@ public class JPWiseTest {
 
   @Test
   public void testCombinatorialWithLimit() {
-    CombinationTable results = JPWise.builder().parameter(browser).parameter(os).generateCombinatorial(4);
+    CombinationTable results =
+        JPWise.builder().parameter(browser).parameter(os).generateCombinatorial(4);
 
     assertNotNull(results, "Should generate results");
     assertEquals(results.size(), 4, "Should respect combination limit");

@@ -19,14 +19,11 @@ import io.github.mikeddavydov.jpwise.core.TestInput;
 import io.github.mikeddavydov.jpwise.core.TestParameter;
 
 /**
- * A facade class providing a simplified API for the JPWise test generation
- * framework. This class
- * offers static methods for building test inputs and generating test
- * combinations using either
+ * A facade class providing a simplified API for the JPWise test generation framework. This class
+ * offers static methods for building test inputs and generating test combinations using either
  * pairwise or combinatorial algorithms.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>
  * // Direct generation
@@ -54,8 +51,7 @@ public final class JPWise {
   }
 
   /**
-   * Creates a new InputBuilder for fluently constructing test inputs. This is an
-   * alias for {@link
+   * Creates a new InputBuilder for fluently constructing test inputs. This is an alias for {@link
    * #builder()}.
    *
    * @return A new InputBuilder instance
@@ -96,8 +92,7 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using the pairwise algorithm with default
-   * settings.
+   * Generates test combinations using the pairwise algorithm with default settings.
    *
    * @param parameters The test parameters
    * @return A table of generated test combinations
@@ -108,8 +103,7 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using the pairwise algorithm with default
-   * settings.
+   * Generates test combinations using the pairwise algorithm with default settings.
    *
    * @param parameters The test parameters
    * @return A table of generated test combinations
@@ -122,11 +116,10 @@ public final class JPWise {
   /**
    * Generates test combinations using a configured pairwise algorithm.
    *
-   * @param algorithm  The configured pairwise algorithm instance
+   * @param algorithm The configured pairwise algorithm instance
    * @param parameters The test parameters
    * @return A table of generated test combinations
-   * @throws NullPointerException if algorithm, parameters array, or any parameter
-   *                              is null
+   * @throws NullPointerException if algorithm, parameters array, or any parameter is null
    */
   public static CombinationTable generatePairwise(
       PairwiseAlgorithm algorithm, TestParameter... parameters) {
@@ -137,11 +130,10 @@ public final class JPWise {
   /**
    * Generates test combinations using a configured pairwise algorithm.
    *
-   * @param algorithm  The configured pairwise algorithm instance
+   * @param algorithm The configured pairwise algorithm instance
    * @param parameters The test parameters
    * @return A table of generated test combinations
-   * @throws NullPointerException if algorithm, parameters collection, or any
-   *                              parameter is null
+   * @throws NullPointerException if algorithm, parameters collection, or any parameter is null
    */
   public static CombinationTable generatePairwise(
       PairwiseAlgorithm algorithm, Collection<TestParameter> parameters) {
@@ -150,8 +142,7 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using the pairwise algorithm with default
-   * settings.
+   * Generates test combinations using the pairwise algorithm with default settings.
    *
    * @param input The test input configuration
    * @return A table of generated test combinations
@@ -164,7 +155,7 @@ public final class JPWise {
   /**
    * Generates test combinations using a configured pairwise algorithm.
    *
-   * @param input     The test input configuration
+   * @param input The test input configuration
    * @param algorithm The configured pairwise algorithm instance
    * @return A table of generated test combinations
    * @throws NullPointerException if input or algorithm is null
@@ -176,8 +167,7 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using the combinatorial algorithm with default
-   * settings.
+   * Generates test combinations using the combinatorial algorithm with default settings.
    *
    * @param parameters The test parameters
    * @return A table of generated test combinations
@@ -188,14 +178,12 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using the combinatorial algorithm with default
-   * settings.
+   * Generates test combinations using the combinatorial algorithm with default settings.
    *
    * @param parameters The test parameters
-   * @param limit      The maximum number of combinations to generate
+   * @param limit The maximum number of combinations to generate
    * @return A table of generated test combinations
-   * @throws NullPointerException     if parameters collection or any element is
-   *                                  null
+   * @throws NullPointerException if parameters collection or any element is null
    * @throws IllegalArgumentException if limit is less than 1
    */
   public static CombinationTable generateCombinatorial(
@@ -206,12 +194,11 @@ public final class JPWise {
   /**
    * Generates test combinations using a configured combinatorial algorithm.
    *
-   * @param algorithm  The configured combinatorial algorithm instance
-   * @param limit      The maximum number of combinations to generate
+   * @param algorithm The configured combinatorial algorithm instance
+   * @param limit The maximum number of combinations to generate
    * @param parameters The test parameters
    * @return A table of generated test combinations
-   * @throws NullPointerException     if algorithm, parameters array, or any
-   *                                  parameter is null
+   * @throws NullPointerException if algorithm, parameters array, or any parameter is null
    * @throws IllegalArgumentException if limit is less than 1
    */
   public static CombinationTable generateCombinatorial(
@@ -221,8 +208,7 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using the combinatorial algorithm with default
-   * settings.
+   * Generates test combinations using the combinatorial algorithm with default settings.
    *
    * @param input The test input configuration
    * @return A table of generated test combinations
@@ -235,7 +221,7 @@ public final class JPWise {
   /**
    * Generates test combinations using a configured combinatorial algorithm.
    *
-   * @param input     The test input configuration
+   * @param input The test input configuration
    * @param algorithm The configured combinatorial algorithm instance
    * @return A table of generated test combinations
    * @throws NullPointerException if input or algorithm is null
@@ -246,14 +232,13 @@ public final class JPWise {
   }
 
   /**
-   * Generates test combinations using a configured combinatorial algorithm with a
-   * limit.
+   * Generates test combinations using a configured combinatorial algorithm with a limit.
    *
-   * @param input     The test input configuration
+   * @param input The test input configuration
    * @param algorithm The configured combinatorial algorithm instance
-   * @param limit     The maximum number of combinations to generate
+   * @param limit The maximum number of combinations to generate
    * @return A table of generated test combinations
-   * @throws NullPointerException     if input or algorithm is null
+   * @throws NullPointerException if input or algorithm is null
    * @throws IllegalArgumentException if limit is less than 1
    */
   public static CombinationTable generateCombinatorial(
@@ -268,19 +253,22 @@ public final class JPWise {
   }
 
   private static CombinationTable executeGeneration(
-      TestInput input, GenerationAlgorithm algorithm, int nWiseOrLimit) {
-    logger.debug("JPWise.executeGeneration called with algorithm: {}, nWiseOrLimit: {}",
-        algorithm.getClass().getSimpleName(), nWiseOrLimit);
-    Objects.requireNonNull(input, "input must not be null");
-    Objects.requireNonNull(algorithm, "algorithm must not be null");
-    if (nWiseOrLimit < 1) {
-      throw new IllegalArgumentException("nWiseOrLimit must generally be positive.");
-    }
+      TestInput input, GenerationAlgorithm algorithm, Integer nWiseOrLimit) {
+    logger.info(
+        "Executing generation with algorithm: {} for TestInput with {} parameters. NWise/Limit: {}",
+        algorithm.getClass().getSimpleName(),
+        input.getTestParameters().size(),
+        nWiseOrLimit == null ? "default" : nWiseOrLimit);
 
+    // Create the generator and run the algorithm.
+    // The nWiseOrLimit is now handled by the algorithm's constructor if needed.
     TestGenerator generator = new TestGenerator(input);
-    logger.debug("JPWise.executeGeneration: TestGenerator created. Calling TestGenerator.generate()...");
-    CombinationTable result = generator.generate(algorithm, nWiseOrLimit);
-    logger.info("Generated {} test combinations", result.size());
+    logger.debug(
+        "JPWise.executeGeneration: TestGenerator created. Calling TestGenerator.generate()...");
+    CombinationTable result = generator.generate(algorithm);
+    logger.debug(
+        "JPWise.executeGeneration: TestGenerator.generate() returned. Result size: {}",
+        result.size());
     return result;
   }
 
@@ -310,7 +298,7 @@ public final class JPWise {
     /**
      * Creates and adds a parameter with the given name and partitions.
      *
-     * @param name       The parameter name
+     * @param name The parameter name
      * @param partitions The parameter's partitions
      * @return This builder instance
      * @throws NullPointerException if name or partitions array is null
@@ -322,12 +310,11 @@ public final class JPWise {
     }
 
     /**
-     * Creates and adds a parameter with the given name, partitions, and
-     * compatibility rules.
+     * Creates and adds a parameter with the given name, partitions, and compatibility rules.
      *
-     * @param name       The parameter name
+     * @param name The parameter name
      * @param partitions The parameter's partitions
-     * @param rules      The parameter's compatibility rules
+     * @param rules The parameter's compatibility rules
      * @return This builder instance
      * @throws NullPointerException if any argument is null
      */
@@ -382,8 +369,7 @@ public final class JPWise {
     }
 
     /**
-     * Convenience method to generate test combinations using the pairwise algorithm
-     * with default
+     * Convenience method to generate test combinations using the pairwise algorithm with default
      * settings.
      *
      * @return A table of generated test combinations
@@ -394,8 +380,7 @@ public final class JPWise {
     }
 
     /**
-     * Convenience method to generate test combinations using the combinatorial
-     * algorithm with
+     * Convenience method to generate test combinations using the combinatorial algorithm with
      * default settings.
      *
      * @return A table of generated test combinations
@@ -405,8 +390,7 @@ public final class JPWise {
     }
 
     /**
-     * Convenience method to generate test combinations using the combinatorial
-     * algorithm with a
+     * Convenience method to generate test combinations using the combinatorial algorithm with a
      * limit.
      *
      * @param limit The maximum number of combinations to generate

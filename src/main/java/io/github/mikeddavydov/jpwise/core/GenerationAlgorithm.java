@@ -25,32 +25,29 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Base class for test generation algorithms.
- * <p>
- * This class provides common functionality for generating test combinations
- * and checking compatibility between parameter values.
+ *
+ * <p>This class provides common functionality for generating test combinations and checking
+ * compatibility between parameter values.
  */
 public abstract class GenerationAlgorithm {
   private static final Logger logger = LoggerFactory.getLogger(GenerationAlgorithm.class);
 
   /**
    * Generates test combinations for the given input.
-   * <p>
-   * This method must be implemented by concrete algorithms to provide
-   * their specific combination generation logic.
    *
-   * @param input        The test input to generate combinations for
-   * @param nWiseOrLimit For N-wise algorithms, this specifies N. For
-   *                     combinatorial, the limit.
-   *                     For algorithms that don't use this, it can be ignored.
+   * <p>This method must be implemented by concrete algorithms to provide their specific combination
+   * generation logic.
+   *
+   * @param input The test input to generate combinations for
    * @return A table containing the generated combinations
    */
-  public abstract CombinationTable generate(TestInput input, int nWiseOrLimit);
+  public abstract CombinationTable generate(TestInput input);
 
   /**
    * Checks if a combination is valid according to the compatibility rules.
-   * <p>
-   * A combination is valid if all pairs of values in it are compatible
-   * according to the rules defined in their parameters.
+   *
+   * <p>A combination is valid if all pairs of values in it are compatible according to the rules
+   * defined in their parameters.
    *
    * @param combination The combination to check
    * @return true if the combination is valid, false otherwise

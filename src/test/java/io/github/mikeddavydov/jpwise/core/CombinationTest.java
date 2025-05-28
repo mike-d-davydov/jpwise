@@ -41,31 +41,34 @@ public class CombinationTest {
     hd = SimpleValue.of("1920x1080");
 
     // Define browser-OS compatibility rules
-    List<CompatibilityPredicate> browserOsRules = Arrays.asList(
-        (v1, v2) -> {
-          // Only apply rules if we're dealing with browser and OS parameters
-          if (!(v1.getParentParameter().getName().equals("browser")
-              && v2.getParentParameter().getName().equals("operatingSystem"))) {
-            return true;
-          }
+    List<CompatibilityPredicate> browserOsRules =
+        Arrays.asList(
+            (v1, v2) -> {
+              // Only apply rules if we're dealing with browser and OS parameters
+              if (!(v1.getParentParameter().getName().equals("browser")
+                  && v2.getParentParameter().getName().equals("operatingSystem"))) {
+                return true;
+              }
 
-          // Safari only works with macOS
-          if (v1.getName().equals("Safari")) {
-            return v2.getName().equals("macOS");
-          }
-          // Chrome and Firefox work with all OS
-          return true;
-        });
+              // Safari only works with macOS
+              if (v1.getName().equals("Safari")) {
+                return v2.getName().equals("macOS");
+              }
+              // Chrome and Firefox work with all OS
+              return true;
+            });
 
     // Create test parameters with compatibility rules
-    browser = new TestParameter(
-        "browser",
-        Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
-        browserOsRules);
+    browser =
+        new TestParameter(
+            "browser",
+            Arrays.<EquivalencePartition>asList(chrome, firefox, safari),
+            browserOsRules);
 
     // Create OS and resolution parameters (needed for parent parameter references)
-    operatingSystem = new TestParameter(
-        "operatingSystem", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
+    operatingSystem =
+        new TestParameter(
+            "operatingSystem", Arrays.<EquivalencePartition>asList(windows, macOS, linux));
     resolution = new TestParameter("resolution", Arrays.<EquivalencePartition>asList(hd));
   }
 
@@ -176,7 +179,8 @@ public class CombinationTest {
     combination.setValue(1, windows);
     combination.setValue(2, hd);
 
-    String expected = "Combination{[browser:Chrome, operatingSystem:Windows, resolution:1920x1080]}";
+    String expected =
+        "Combination{[browser:Chrome, operatingSystem:Windows, resolution:1920x1080]}";
     assertEquals(
         combination.toString(),
         expected,
@@ -205,8 +209,13 @@ public class CombinationTest {
     // We can still test setting a non-null value afterwards, though the first part
     // is the main fix
     combination.setValue(1, chrome);
-    assertNull(combination.getValue(0), "Value at index 0 should still be null as it was never successfully set");
-    assertEquals(combination.getValue(1), chrome, "Should handle non-null values after failed null set attempt");
+    assertNull(
+        combination.getValue(0),
+        "Value at index 0 should still be null as it was never successfully set");
+    assertEquals(
+        combination.getValue(1),
+        chrome,
+        "Should handle non-null values after failed null set attempt");
   }
 
   @Test

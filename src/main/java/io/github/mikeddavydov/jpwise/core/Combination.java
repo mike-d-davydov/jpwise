@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Represents a combination of parameter values for testing.
- * <p>
- * A combination is a set of values, one from each parameter's partition,
- * that together form a single test case.
+ *
+ * <p>A combination is a set of values, one from each parameter's partition, that together form a
+ * single test case.
  */
 public class Combination {
   private static final Logger logger = LoggerFactory.getLogger(Combination.class);
@@ -39,8 +39,7 @@ public class Combination {
   private final List<TestParameter> parameters;
 
   /**
-   * Creates a new combination with the specified parameters.
-   * All values are initially null.
+   * Creates a new combination with the specified parameters. All values are initially null.
    *
    * @param parameters The list of parameters for this combination
    */
@@ -53,8 +52,7 @@ public class Combination {
   }
 
   /**
-   * Creates a new combination with the specified size.
-   * All values are initially null.
+   * Creates a new combination with the specified size. All values are initially null.
    *
    * @param size The number of parameters in this combination
    */
@@ -90,9 +88,8 @@ public class Combination {
   }
 
   /**
-   * Converts this combination into a row for TestNG's data provider. The first
-   * element is the combination's string representation, followed by the actual
-   * values.
+   * Converts this combination into a row for TestNG's data provider. The first element is the
+   * combination's string representation, followed by the actual values.
    *
    * @return An array suitable for use with TestNG's data provider
    */
@@ -125,7 +122,8 @@ public class Combination {
    */
   public void setValue(int index, EquivalencePartition value) {
     if (index < 0 || index >= values.length) {
-      throw new IndexOutOfBoundsException("Index " + index + " out of bounds for length " + values.length);
+      throw new IndexOutOfBoundsException(
+          "Index " + index + " out of bounds for length " + values.length);
     }
     if (value == null) {
       throw new IllegalArgumentException("Cannot set null value for combination");
@@ -134,10 +132,9 @@ public class Combination {
   }
 
   /**
-   * Generates a unique key for this combination. The key is a string
-   * representation of all partition names, with empty positions marked by
-   * underscores and names
-   * separated by vertical bars. For example: "Chrome|_|1024x768"
+   * Generates a unique key for this combination. The key is a string representation of all
+   * partition names, with empty positions marked by underscores and names separated by vertical
+   * bars. For example: "Chrome|_|1024x768"
    *
    * @return A string key uniquely identifying this combination
    */
@@ -157,8 +154,7 @@ public class Combination {
   }
 
   /**
-   * Checks if this combination is complete (has a partition set for all
-   * parameters).
+   * Checks if this combination is complete (has a partition set for all parameters).
    *
    * @return true if all parameters have a partition set, false otherwise
    */
@@ -193,16 +189,18 @@ public class Combination {
   }
 
   /**
-   * Attempts to merge this combination with another combination. The merge
-   * succeeds if there are no conflicts (same parameter having different
-   * partitions). Partitions from the
-   * other combination are added to positions that are null in this combination.
+   * Attempts to merge this combination with another combination. The merge succeeds if there are no
+   * conflicts (same parameter having different partitions). Partitions from the other combination
+   * are added to positions that are null in this combination.
    *
    * @param other The combination to merge with this one
    * @return A new merged combination, or null if there are conflicts
    */
   public Combination merge(Combination other) {
-    logger.debug("Combination.merge called. this.getKey(): {}, other.getKey(): {}", this.getKey(), other.getKey());
+    logger.debug(
+        "Combination.merge called. this.getKey(): {}, other.getKey(): {}",
+        this.getKey(),
+        other.getKey());
 
     if (other == null) {
       logger.error("Combination.merge: 'other' combination is null.");
@@ -232,7 +230,9 @@ public class Combination {
           "Combination.merge: About to create result = new Combination(this.parameters). this.parameters size: {}",
           this.parameters.size());
       result = new Combination(this.parameters);
-      logger.debug("Combination.merge: result combination created. result.values.length: {}", result.values.length);
+      logger.debug(
+          "Combination.merge: result combination created. result.values.length: {}",
+          result.values.length);
     } catch (Exception e) {
       logger.error("Combination.merge: Exception during new Combination(this.parameters): ", e);
       // If an exception occurs here, rethrow it to make it visible.
@@ -246,16 +246,21 @@ public class Combination {
       EquivalencePartition thisValue = this.values[i];
       // Defensive check for other.values, though it should be initialized by
       // Combination's constructor
-      EquivalencePartition otherValue = (other.values != null && i < other.values.length) ? other.values[i] : null;
+      EquivalencePartition otherValue =
+          (other.values != null && i < other.values.length) ? other.values[i] : null;
 
-      logger.debug("  Merge loop i={}: this.value={}, other.value={}",
+      logger.debug(
+          "  Merge loop i={}: this.value={}, other.value={}",
           i,
           (thisValue == null ? "null" : thisValue.getName()),
           (otherValue == null ? "null" : otherValue.getName()));
 
       if (thisValue != null && otherValue != null) {
         // Both have a value for this parameter
-        logger.debug("    Both non-null. Comparing: '{}' with '{}'", thisValue.getName(), otherValue.getName());
+        logger.debug(
+            "    Both non-null. Comparing: '{}' with '{}'",
+            thisValue.getName(),
+            otherValue.getName());
         if (!thisValue.equals(otherValue)) {
           logger.debug("    Conflict! Values are not equal. Returning null.");
           return null; // Conflict
@@ -268,11 +273,13 @@ public class Combination {
       } else if (thisValue != null) {
         // Only this combination has a value
         result.values[i] = thisValue;
-        logger.debug("    Only thisValue non-null. result.values[{}] set to {}", i, thisValue.getName());
+        logger.debug(
+            "    Only thisValue non-null. result.values[{}] set to {}", i, thisValue.getName());
       } else if (otherValue != null) {
         // Only other combination has a value
         result.values[i] = otherValue;
-        logger.debug("    Only otherValue non-null. result.values[{}] set to {}", i, otherValue.getName());
+        logger.debug(
+            "    Only otherValue non-null. result.values[{}] set to {}", i, otherValue.getName());
       } else {
         // Both are null, result.values[i] remains null (as initialized)
         logger.debug("    Both values null. result.values[{}] remains null.", i);
@@ -283,10 +290,8 @@ public class Combination {
   }
 
   /**
-   * Finds the difference between this combination and another combination. The
-   * result contains values that are different between the combinations, with null
-   * values where
-   * they are the same.
+   * Finds the difference between this combination and another combination. The result contains
+   * values that are different between the combinations, with null values where they are the same.
    *
    * @param other The combination to compare with
    * @return A new combination containing the differences, or null if invalid
@@ -368,9 +373,7 @@ public class Combination {
         sb.append(", ");
       }
       if (values[i] != null) {
-        sb.append(values[i].getParentParameter().getName())
-            .append(":")
-            .append(values[i].getName());
+        sb.append(values[i].getParentParameter().getName()).append(":").append(values[i].getName());
       } else {
         sb.append("null");
       }

@@ -17,6 +17,16 @@
     </module>
 
     <module name="TreeWalker">
+        <!-- Indentation -->
+        <module name="Indentation">
+            <property name="basicOffset" value="2" />
+            <property name="braceAdjustment" value="0" />
+            <property name="caseIndent" value="2" />
+            <property name="throwsIndent" value="4" />
+            <property name="lineWrappingIndentation" value="4" />
+            <property name="arrayInitIndent" value="2" />
+        </module>
+
         <!-- Checks for Naming Conventions -->
         <module name="ConstantName" />
         <module name="LocalFinalVariableName" />

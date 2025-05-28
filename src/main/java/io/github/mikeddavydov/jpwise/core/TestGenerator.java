@@ -26,21 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The main test case generator class that implements test combination
- * generation algorithms. This
- * class serves as the primary interface for generating test combinations using
- * either pairwise or
+ * The main test case generator class that implements test combination generation algorithms. This
+ * class serves as the primary interface for generating test combinations using either pairwise or
  * full combinatorial approaches.
  *
- * <p>
- * The generator works with a {@link TestInput} object that defines the test
- * parameters and their
- * possible values. It uses a specified {@link GenerationAlgorithm} to generate
- * the test
+ * <p>The generator works with a {@link TestInput} object that defines the test parameters and their
+ * possible values. It uses a specified {@link GenerationAlgorithm} to generate the test
  * combinations.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>
  * TestInput input = new TestInput();
@@ -66,8 +60,8 @@ public class TestGenerator {
   private final RulePreprocessor rulePreprocessor;
 
   /**
-   * Initializes a new TestGenerator with the provided test input.
-   * A new preprocessed TestInput will be used internally.
+   * Initializes a new TestGenerator with the provided test input. A new preprocessed TestInput will
+   * be used internally.
    *
    * @param initialInput The initial TestInput.
    */
@@ -90,28 +84,22 @@ public class TestGenerator {
   }
 
   /**
-   * Generates test combinations using the specified algorithm and N-wise value
-   * (or limit).
+   * Generates test combinations using the specified algorithm. The algorithm itself should be
+   * configured with any specific parameters (like N-wise value or limit) via its constructor.
    *
-   * @param algorithm    The generation algorithm to use
-   * @param nWiseOrLimit For N-wise algorithms, this is N. For combinatorial, this
-   *                     is the limit.
+   * @param algorithm The generation algorithm to use
    * @return A table of generated combinations
    */
-  public CombinationTable generate(GenerationAlgorithm algorithm, int nWiseOrLimit) {
-    logger.info(
-        "Generating combinations with algorithm: {}, N-wise/Limit: {}",
-        algorithm.getClass().getSimpleName(),
-        nWiseOrLimit);
-    this.result = algorithm.generate(this.input, nWiseOrLimit);
+  public CombinationTable generate(GenerationAlgorithm algorithm) {
+    logger.info("Generating combinations with algorithm: {}", algorithm.getClass().getSimpleName());
+    this.result = algorithm.generate(this.input);
     logger.info("Generated {} combinations", this.result.size());
     return this.result;
   }
 
   /**
-   * Calculates the total number of possible combinations without considering any
-   * rules.
-   * This is the product of the number of partitions for each parameter.
+   * Calculates the total number of possible combinations without considering any rules. This is the
+   * product of the number of partitions for each parameter.
    *
    * @return The total number of possible combinations (span of the input space).
    */

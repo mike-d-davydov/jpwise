@@ -10,21 +10,15 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * An equivalence partition that cycles through a set of equivalent values. For
- * example, when
- * testing browser versions, you might want to cycle through several versions of
- * Chrome that are
+ * An equivalence partition that cycles through a set of equivalent values. For example, when
+ * testing browser versions, you might want to cycle through several versions of Chrome that are
  * considered equivalent for testing purposes.
  *
- * <p>
- * The partition automatically cycles through all values, returning to the first
- * value after
- * reaching the end. This is useful for ensuring test coverage across multiple
- * equivalent values
+ * <p>The partition automatically cycles through all values, returning to the first value after
+ * reaching the end. This is useful for ensuring test coverage across multiple equivalent values
  * while maintaining the pairwise testing efficiency.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>
  * // Using factory method with varargs
@@ -39,10 +33,9 @@ public class CyclingPartition extends BaseEquivalencePartition {
   private final AtomicInteger currentIndex = new AtomicInteger(0);
 
   /**
-   * Creates a new cycling partition with a name and a collection of equivalent
-   * values.
+   * Creates a new cycling partition with a name and a collection of equivalent values.
    *
-   * @param name             The name of this partition (e.g., "Chrome")
+   * @param name The name of this partition (e.g., "Chrome")
    * @param equivalentValues Collection of values to cycle through
    * @return A new cycling partition
    */
@@ -53,7 +46,7 @@ public class CyclingPartition extends BaseEquivalencePartition {
   /**
    * Creates a new cycling partition with a name and a set of equivalent values.
    *
-   * @param name   The name of this partition (e.g., "Chrome")
+   * @param name The name of this partition (e.g., "Chrome")
    * @param values Values to cycle through
    * @return A new cycling partition
    */
@@ -62,10 +55,9 @@ public class CyclingPartition extends BaseEquivalencePartition {
   }
 
   /**
-   * Creates a new cycling partition with a name and a collection of equivalent
-   * values.
+   * Creates a new cycling partition with a name and a collection of equivalent values.
    *
-   * @param name             The name of this partition (e.g., "Chrome")
+   * @param name The name of this partition (e.g., "Chrome")
    * @param equivalentValues Collection of values to cycle through
    */
   public CyclingPartition(String name, Collection<Object> equivalentValues) {
@@ -78,7 +70,7 @@ public class CyclingPartition extends BaseEquivalencePartition {
   /**
    * Creates a new cycling partition with a name and a set of equivalent values.
    *
-   * @param name   The name of this partition (e.g., "Chrome")
+   * @param name The name of this partition (e.g., "Chrome")
    * @param values Values to cycle through
    */
   public CyclingPartition(String name, Object... values) {
@@ -89,8 +81,7 @@ public class CyclingPartition extends BaseEquivalencePartition {
   }
 
   /**
-   * Gets the next value in the cycle. This method is thread-safe and will
-   * automatically wrap around
+   * Gets the next value in the cycle. This method is thread-safe and will automatically wrap around
    * to the first value after reaching the end of the list.
    *
    * @return The next value in the cycle
